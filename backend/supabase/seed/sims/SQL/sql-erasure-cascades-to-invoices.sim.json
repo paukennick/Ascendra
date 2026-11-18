@@ -1,0 +1,981 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sql-erasure-cascades-to-invoices",
+  "title": "Erase the customer, keep the invoice",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "schema.sql and the erasure job, Larkspur Garden Center online shop (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Finance manager, Pete Ruiz",
+          "text": "The erasure job runs at 18:00 for 40 customers. On staging it took their invoices with them, and the tax rules here (fictional policy) say invoices are kept seven years.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Deleting a customer on staging deleted every invoice that pointed at them.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "Production invoices were deleted by cascade.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Erasure job",
+          "text": "18:00: the erasure job ran on the schema as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "schema.sql",
+          "language": "SQL",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "customer_id int REFERENCES customers(id) ON DELETE CASCADE",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "customer_id int REFERENCES customers(id) ON DELETE RESTRICT",
+              "when": "fix == \"restrict\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "-- job: anonymize customers, invoices.billing_name := 'Erased customer'; delete nothing",
+              "when": "fix == \"restrict\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "customer_id int REFERENCES customers(id) ON DELETE SET NULL",
+              "when": "fix == \"setnull\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "customer_id int REFERENCES customers(id) ON DELETE CASCADE  -- job moved to 02:00",
+              "when": "fix == \"later\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Erasure job",
+          "value": "18:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Link tables with FOREIGN KEY constraints and choose ON DELETE RESTRICT, CASCADE or SET NULL",
+  "secondaryObjectives": [
+    "Insert, update and delete rows safely, including RETURNING and INSERT ... ON CONFLICT"
+  ],
+  "sources": [
+    {
+      "cite": "Supabase Docs, Cascade Deletes",
+      "checkedAt": "2026-11-17",
+      "url": "https://supabase.com/docs/guides/database/postgres/cascade-deletes.md",
+      "note": "Read 2026-11-17 through a summarizing fetch. CASCADE: 'When a row is deleted from the parent table, all related rows in the child tables are deleted as well'; RESTRICT: 'the delete operation is aborted if there are any related rows in the child tables'; SET NULL sets the child's foreign key columns to NULL."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the shop database at Larkspur Garden Center (fictional). Forty customers asked to be erased; the job deletes their customer rows at 18:00. On staging, the same delete also removed 1,920 invoices, because invoices.customer_id references customers with ON DELETE CASCADE. Company policy (fictional) keeps invoices for seven years with personal details removed. It is 17:05.",
+    "handover": [
+      "Invoices hold a copy of the billing name; policy says it must be replaced with 'Erased customer'."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "restrict",
+        "setnull",
+        "later"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"restrict\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"restrict\" or fix == \"setnull\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "On staging, delete one test customer with RETURNING and count invoices before and after",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "DELETE blocked: invoices reference customer 9041 (RESTRICT)\nanonymize: 1 customer, 48 invoices renamed; 48 kept"
+            }
+          ],
+          "else": [
+            {
+              "output": "DELETE 1 RETURNING id 9041\ninvoices for 9041: 48 before, 0 after"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Invoices stay; personal details go."
+            }
+          ],
+          "else": [
+            {
+              "finding": "CASCADE deletes the child rows with the parent: every invoice goes with the customer."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the foreign key and the job",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "restrict",
+              "label": "ON DELETE RESTRICT, and change the job to anonymize customers and invoice names instead of deleting"
+            },
+            {
+              "value": "setnull",
+              "label": "ON DELETE SET NULL, keep deleting customers"
+            },
+            {
+              "value": "later",
+              "label": "Keep CASCADE and move the job to 02:00"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Run the erasure for the 40 customers now on production to meet the request",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "1920"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "DELETE 40\n1,920 invoices deleted by cascade"
+        },
+        {
+          "log": "Invoices policy says to keep were deleted.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the erasure on staging and count invoices, names and blocked deletes",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"restrict\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "staging: 40 customers anonymized; 1,920 invoices kept, names replaced; deletes blocked\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"setnull\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "1,920 invoices kept; customer_id NULL; billing names still present\n2 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"later\"",
+              "then": [
+                {
+                  "output": "1,920 invoices deleted at 02:00\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "1,920 invoices deleted\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Let the 18:00 erasure job run",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Ran: 40 customers erased; 1,920 invoices kept and anonymized."
+            }
+          ],
+          "else": [
+            {
+              "output": "Ran: invoices damaged or deleted."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the invoices disappeared",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "ON DELETE CASCADE deletes child invoices with the customer"
+                },
+                {
+                  "value": "c1",
+                  "label": "A separate cleanup job ran"
+                },
+                {
+                  "value": "c2",
+                  "label": "Invoices were never saved"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is safe",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "A staging run keeps all 1,920 invoices with names replaced, and deletes are blocked"
+                },
+                {
+                  "value": "k1",
+                  "label": "Fewer rows changed"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "18:00: the erasure job ran on the schema as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For finance: why the invoices went, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "ON DELETE CASCADE removes child rows when the parent is deleted, so deleting a customer deleted their invoices.",
+          "modelAnswer": "CASCADE on invoices."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "RESTRICT so customers with invoices cannot be deleted, and an erasure job that anonymizes customer and invoice names; SET NULL keeps the name copy; moving the job only moves the loss.",
+          "modelAnswer": "RESTRICT plus anonymize."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Staging run: invoices kept, names replaced, deletes blocked.",
+          "modelAnswer": "1,920 kept, 0 names."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Invoices deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "Seven-year records for 40 customers must be rebuilt from backups."
+    },
+    "wrongSent": {
+      "label": "Erasure broke the records",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Invoices are deleted, or kept with the customer's name."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing was damaged, but the erasure requests were not met tonight."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Forty customers are erased, and their invoices remain as anonymous records."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Tested a delete on staging before changing the schema",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Restricted deletes and erased by anonymizing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "RESTRICT, and erasure by anonymizing."
+          },
+          {
+            "when": "fix == \"setnull\"",
+            "score": "partial",
+            "why": "Invoices survive but lose their customer link, and the billing name copy is not erased."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Ran the cascade on production.\" : fix == \"later\" ? \"The invoices are deleted at 02:00 instead.\" : \"CASCADE still deletes the invoices.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Deleted no invoices",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ran the cascade on production."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Staging erasure kept every invoice after the last change, before the job",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Staging: 48 invoices go with one customer."
+      },
+      {
+        "at": "4-9 min",
+        "text": "RESTRICT; anonymize instead."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Staging keeps 1,920."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Let the job run."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the key says what a delete means",
+        "body": "CASCADE says the children belong to the parent. Invoices outlive customers, so restrict and anonymize."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Records broken",
+        "body": "SET NULL keeps names in the copy; a later run cascades the same."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Invoices deleted",
+        "body": "The erasure request could wait an hour; the invoices could not come back without a restore."
+      }
+    },
+    "modelReasoning": "On staging the invoices vanished with the customer because invoices.customer_id is ON DELETE CASCADE. Policy keeps invoices seven years with personal details removed, so a delete is the wrong operation. Change the key to RESTRICT and make the job anonymize the customer row and the invoice billing names. SET NULL keeps invoices but leaves the name copy and loses the link; moving the job only moves the loss. Running it on production now deletes 1,920 invoices."
+  }
+}

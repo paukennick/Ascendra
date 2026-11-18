@@ -1,0 +1,1162 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcap-ai-helper-invented-function",
+  "title": "The assistant wrote it, so it works?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "grades.py and pull request #214 (assistant-generated), Brightpath Training (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Teammate, Marco Diaz",
+          "text": "The assistant wrote weighted course grades for us. Can you approve #214? Grades post to learners at 16:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "crash",
+          "label": "Run",
+          "text": "AttributeError: module 'statistics' has no attribute 'weighted_mean'",
+          "when": "not isNull(ranAt) and fix == \"ai\"",
+          "severity": "error"
+        },
+        {
+          "id": "prompt",
+          "label": "Prompt log",
+          "text": "The prompt behind #214 pasted 30 learners' names and scores and the grading service's API key.",
+          "when": "not isNull(promptAt)",
+          "severity": "warning"
+        },
+        {
+          "id": "pkg",
+          "label": "Security",
+          "text": "An unknown package named weighted-mean was installed on the grading server from a public index.",
+          "when": "installed",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Learners",
+          "text": "16:00: grades posted from the old release, without weights.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "check",
+          "label": "Known case: the course's weighting example",
+          "spokenLabel": "the known-answer check",
+          "columns": [
+            {
+              "id": "what",
+              "label": "What"
+            },
+            {
+              "id": "v",
+              "label": "Value",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "g",
+              "cells": [
+                "grades",
+                "85, 92, 83, 91"
+              ]
+            },
+            {
+              "id": "w",
+              "cells": [
+                "weights",
+                "0.20, 0.20, 0.30, 0.30"
+              ]
+            },
+            {
+              "id": "exp",
+              "cells": [
+                "expected weighted grade",
+                "87.6"
+              ]
+            },
+            {
+              "id": "got",
+              "cells": [
+                "course_grade() returns",
+                "{fix == \"fmean\" ? \"87.6\" : fix == \"fallback\" ? \"87.75\" : fix == \"homemade\" ? \"21.9\" : installed ? \"87.6\" : \"AttributeError\"}"
+              ],
+              "flag": "fix != \"fmean\" and not installed"
+            }
+          ],
+          "when": "not isNull(ranAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "grades.py (PR #214)",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "import statistics"
+            },
+            {
+              "id": "c1",
+              "text": "def course_grade(scores, weights):"
+            },
+            {
+              "id": "c2",
+              "text": "    return statistics.weighted_mean(scores, weights)",
+              "when": "fix == \"ai\"",
+              "mark": "not isNull(ranAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c3",
+              "text": "    return statistics.fmean(scores, weights)",
+              "when": "fix == \"fmean\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "    try:",
+              "when": "fix == \"fallback\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "        return statistics.weighted_mean(scores, weights)",
+              "when": "fix == \"fallback\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "    except AttributeError:",
+              "when": "fix == \"fallback\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c7",
+              "text": "        return statistics.mean(scores)",
+              "when": "fix == \"fallback\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c8",
+              "text": "    return sum(s * w for s, w in zip(scores, weights)) / len(scores)",
+              "when": "fix == \"homemade\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Grades post",
+          "value": "16:00"
+        },
+        {
+          "id": "keyM",
+          "label": "Exposed API key",
+          "value": "{rotated ? \"rotated\" : \"still valid\"}"
+        }
+      ]
+    }
+  },
+  "objective": "Validate AI-generated code before using it: run and test it, confirm every API it calls exists, and keep secrets and personal data out of prompts",
+  "secondaryObjectives": [
+    "Review a proposed change, respond to feedback, and use CI results to decide whether it is ready to merge",
+    "Design isolated unit tests with typical, boundary and invalid inputs and check results with assertions"
+  ],
+  "sources": [
+    {
+      "cite": "Python Institute, PCAP-31-04 exam syllabus (revised November 2, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcap-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch: section 6, Testing, Debugging, Collaborative Development, and AI Assistance (14%); 6.3.2 'Execute and test generated code before incorporating it into a project'; 6.1.1 'Interpret passed and failed tests, and rerun relevant tests after code changes to detect regressions'."
+    },
+    {
+      "cite": "Python 3.15 documentation (3.15.2), statistics: Mathematical statistics functions",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/3/library/statistics",
+      "note": "Read 2026-11-17 through a summarizing fetch: fmean(data, weights=None), weights 'Changed in version 3.11'; the documentation's own example: grades [85, 92, 83, 91] with weights [0.20, 0.20, 0.30, 0.30] give 87.6; weights of a different length raise ValueError. The module has mean, fmean, geometric_mean and harmonic_mean and no weighted_mean. The case's known-answer check is that example."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Brightpath Training, its pull request, prompt log, learners and deadline are invented teaching values; no real person's data appears. Installing an unknown package suggested by generated code is a supply-chain risk the case treats as harm; the package name is invented."
+    }
+  ],
+  "brief": {
+    "situation": "You review pull requests at Brightpath Training (fictional). Your teammate asked a coding assistant for a function that computes weighted course grades and opened pull request #214 with its answer. Grades post to learners at 16:00. It is 15:05.",
+    "handover": [
+      "The weights are quizzes 20%, homework 20%, midterm 30%, final 30%.",
+      "The team's policy: no learner data or credentials in prompts to outside tools; report any that slip through."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: read the code or the prompt log, run it, look up the API, change the code, run the tests, or merge. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Merging is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Grades post at 16:00, 55 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "ai",
+        "fmean",
+        "fallback",
+        "homemade"
+      ],
+      "init": "ai"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "invented",
+        "version",
+        "typo"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "known",
+        "runs",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "installed": {
+      "type": "bool",
+      "init": false
+    },
+    "docsAt": {
+      "type": "time",
+      "init": null
+    },
+    "promptAt": {
+      "type": "time",
+      "init": null
+    },
+    "rotated": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "fix == \"fmean\""
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(ranAt) and not isNull(docsAt) and (isNull(changedAt) or (timeAt(ranAt) <= timeAt(changedAt) and timeAt(docsAt) <= timeAt(changedAt)))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    },
+    "correct": {
+      "expr": "fix == \"fmean\" and not installed"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "runit",
+        "docs",
+        "promptlog",
+        "change",
+        "install",
+        "rotate",
+        "pytest",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "runit": {
+      "label": "Check out #214 and run course_grade() on the weighting example",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(ranAt)",
+          "then": [
+            {
+              "set": "ranAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fix == \"ai\" and not installed",
+          "then": [
+            {
+              "output": "Traceback (most recent call last):\n  File \"grades.py\", line 3, in course_grade\nAttributeError: module 'statistics' has no attribute 'weighted_mean'"
+            }
+          ],
+          "else": [
+            {
+              "output": ">>> course_grade([85, 92, 83, 91], [0.20, 0.20, 0.30, 0.30])\n{fix == \"fallback\" ? \"87.75\" : fix == \"homemade\" ? \"21.9\" : \"87.6\"}"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "docs": {
+      "label": "Look the call up: dir(statistics) and the statistics documentation",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(docsAt)",
+          "then": [
+            {
+              "set": "docsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": ">>> [n for n in dir(statistics) if 'mean' in n]\n['fmean', 'geometric_mean', 'harmonic_mean', 'mean']\nfmean(data, weights=None): changed in 3.11, added support for weights"
+        },
+        {
+          "finding": "weighted_mean does not exist; the generated code invented it. fmean takes weights."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "promptlog": {
+      "label": "Open the prompt log attached to #214",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(promptAt)",
+          "then": [
+            {
+              "set": "promptAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "Prompt (excerpt): 'Here is our data, make it work: [30 rows of learner names and scores] ... auth with GRADES_API_KEY=gk_live_...'"
+        },
+        {
+          "finding": "Learner names and scores and a live API key went to an outside tool."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change course_grade()",
+      "group": "Change the code",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "fmean",
+              "label": "return statistics.fmean(scores, weights)"
+            },
+            {
+              "value": "fallback",
+              "label": "Keep weighted_mean, but fall back to statistics.mean(scores) on AttributeError"
+            },
+            {
+              "value": "homemade",
+              "label": "return sum(s * w for s, w in zip(scores, weights)) / len(scores)"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "course_grade() now uses the {f} version.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "install": {
+      "label": "pip install weighted-mean (the package the assistant suggested when asked)",
+      "group": "Change the service",
+      "available": "not busy and not installed",
+      "why": "Already installed.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "installed",
+          "to": "true"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "Successfully installed weighted-mean-0.0.3 (uploaded 4 days ago, 1 maintainer, no repository link)"
+        },
+        {
+          "log": "An unvetted package from a public index now runs on the grading server, and it patches statistics at import.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rotate": {
+      "label": "Rotate the grading API key and report the pasted learner data to the privacy contact",
+      "group": "Protect",
+      "available": "not busy and not rotated",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "rotated",
+          "to": "true"
+        },
+        {
+          "output": "GRADES_API_KEY rotated; old key revoked. Report filed: 30 learners' names and scores pasted into an outside tool."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "pytest": {
+      "label": "pytest tests/test_grades.py (the documented example, equal weights, a length mismatch)",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"fmean\" and not installed",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "test_documented_example PASSED (87.6)\ntest_equal_weights PASSED\ntest_length_mismatch_raises PASSED\n3 passed in 0.06s"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"fallback\"",
+              "then": [
+                {
+                  "output": "test_documented_example FAILED\nE   assert 87.75 == 87.6\n1 failed, 2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"homemade\"",
+              "then": [
+                {
+                  "output": "test_documented_example FAILED\nE   assert 21.9 == 87.6\ntest_length_mismatch_raises FAILED (zip silently drops the extra weight)\n2 failed, 1 passed"
+                }
+              ]
+            },
+            {
+              "when": "installed",
+              "then": [
+                {
+                  "output": "3 passed in 0.08s (with weighted-mean-0.0.3 imported)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "3 errors: AttributeError: module 'statistics' has no attribute 'weighted_mean'"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Approve and merge #214 for the 16:00 release",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "#214 merged ({fix})"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why #214 failed",
+              "options": [
+                {
+                  "value": "invented",
+                  "label": "The generated code called a function the statistics module does not have"
+                },
+                {
+                  "value": "version",
+                  "label": "Our Python is too old for it"
+                },
+                {
+                  "value": "typo",
+                  "label": "A typo in the function name"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the merged code is right",
+              "options": [
+                {
+                  "value": "known",
+                  "label": "Tests pass on the documentation's own example (87.6), equal weights and a length mismatch"
+                },
+                {
+                  "value": "runs",
+                  "label": "It runs without errors"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: grades posted from the old release.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the pull request: what was wrong with the generated code, what you changed, how you know it is right, and what you did about the prompt.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What was wrong",
+          "criteria": "The code calls statistics.weighted_mean, which does not exist (dir() and the documentation show mean, fmean, geometric_mean, harmonic_mean); generated code can invent plausible APIs, so every call is checked against the real API before use.",
+          "modelAnswer": "An invented function: fmean(data, weights) is the real one."
+        },
+        {
+          "label": "What you changed and how you know",
+          "criteria": "fmean(scores, weights), tested against a known answer (the documentation's 87.6), equal weights and a length mismatch. A fallback to the plain mean is silently wrong (87.75); dividing by the count is wrong (21.9); installing an unknown package the assistant names is a supply-chain risk.",
+          "modelAnswer": "fmean; three tests pass."
+        },
+        {
+          "label": "The prompt",
+          "criteria": "Learner data and a live key went to an outside tool: rotate the key, report the data under policy, and next time prompt with synthetic data and no secrets.",
+          "modelAnswer": "Key rotated, report filed; synthetic data from now on."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "Grades post at 16:00; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Merging nothing breaks nothing, but grades post without the weights the course promised.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "unvetted": {
+      "label": "An unvetted package on the server",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and installed",
+      "narrative": "A four-day-old package from an unknown maintainer runs inside the grading service."
+    },
+    "wrongSent": {
+      "label": "Wrong grades merged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "{fix == \"ai\" ? \"The release crashes at 16:00 and no grades post.\" : fix == \"fallback\" ? \"Every learner's grade ignores the weights.\" : \"Every learner's grade is a quarter of what it should be.\"}"
+    },
+    "notSent": {
+      "label": "Nothing merged",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing broken went out, but grades posted without the weights."
+    },
+    "right": {
+      "label": "Checked, tested, protected, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent and lookedFirst and rotated",
+      "narrative": "Learners get weighted grades from a real API, proved by a known answer, and the exposed key no longer works."
+    },
+    "gaps": {
+      "label": "Merged, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The code is right, but it went late or untested, or the exposed key and data were left alone."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "unvetted",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Ran it and checked the API it calls before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Ran it and looked the call up first."
+          },
+          {
+            "when": "not isNull(ranAt) or not isNull(docsAt)",
+            "score": "partial",
+            "why": "Did one, or only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither ran it nor checked the API."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Used the real API: fmean with weights",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"fmean\" and not installed",
+            "score": "met",
+            "why": "fmean(scores, weights)."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{installed ? \"An unknown package stands in for a real API.\" : fix == \"fallback\" ? \"The fallback silently drops the weights.\" : fix == \"homemade\" ? \"Divides by the count, not the sum of weights.\" : \"Still calls a function that does not exist.\"}"
+          }
+        ]
+      },
+      {
+        "id": "protected",
+        "label": "Rotated the exposed key and reported the pasted learner data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rotated",
+            "score": "met",
+            "why": "Key rotated, report filed."
+          },
+          {
+            "when": "not isNull(promptAt)",
+            "score": "partial",
+            "why": "Saw the prompt and did nothing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked at what was sent."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Tests on a known answer passed after the last change, before merging",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "87.6 on the documented example."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Ran tests, but they failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never ran the tests."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the invented API and the known-answer check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"invented\" and checkDoc == \"known\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"invented\" or checkDoc == \"known\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "gradeK",
+        "label": "Grade for the documented example",
+        "value": "fix == \"fmean\" ? 87.6 : fix == \"fallback\" ? 87.75 : fix == \"homemade\" ? 21.9 : 0",
+        "format": "number",
+        "expert": "87.6"
+      },
+      {
+        "id": "keyK",
+        "label": "Exposed key rotated",
+        "value": "rotated ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until merged",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 24"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-3 min",
+        "text": "Run it: AttributeError, no weighted_mean."
+      },
+      {
+        "at": "3-7 min",
+        "text": "dir(statistics) and the docs: fmean(data, weights)."
+      },
+      {
+        "at": "7-9 min",
+        "text": "Prompt log: learner data and a live key were pasted."
+      },
+      {
+        "at": "9-14 min",
+        "text": "fmean(scores, weights); tests on the documented example pass (87.6)."
+      },
+      {
+        "at": "14-19 min",
+        "text": "Rotate the key and report the data."
+      },
+      {
+        "at": "19-21 min",
+        "text": "Merge before 16:00."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: trust, then verify",
+        "body": "The generated code invented a plausible function. Running it, checking the real API, and testing a known answer turned it into working code, and the key it leaked no longer works."
+      },
+      "gaps": {
+        "headline": "Merged, with gaps",
+        "body": "The code is right; it went late, without a known-answer test, or with the exposed key and learner data left unreported."
+      },
+      "wrongSent": {
+        "headline": "Wrong code merged",
+        "body": "Catching the AttributeError and averaging hides the bug; dividing by the count is the wrong formula. Look up the real API and test against a known answer."
+      },
+      "unvetted": {
+        "headline": "An unknown package on the server",
+        "body": "A package an assistant names may not be the one you think, or may be new and malicious. Use the standard library's fmean, or vet a dependency before installing it."
+      },
+      "notSent": {
+        "headline": "Nothing merged",
+        "body": "Safe, but grades posted unweighted, and the fix is one line."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Generated code is a draft: run it and check every API it calls. statistics.weighted_mean does not exist; dir(statistics) and the documentation show fmean(data, weights), which since Python 3.11 takes weights. Test it against a known answer, the documentation's own example (87.6), plus equal weights and a length mismatch. A fallback to the plain mean is silently wrong (87.75), dividing by the count is wrong (21.9), and installing a package the assistant names, four days old with one maintainer, is a supply-chain risk. The prompt sent learner data and a live key to an outside tool: rotate the key, report it, and use synthetic data from now on."
+  }
+}

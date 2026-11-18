@@ -1,0 +1,1128 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "eleven-pills-three-falls-sleep-aid",
+  "title": "Eleven pills, three falls, a sleep aid",
+  "objective": "Use the comprehensive geriatric assessment areas -- function, cognition, mood, falls, pain, polypharmacy, nutrition, senses, care preferences -- to individualize care",
+  "secondaryObjectives": [
+    "Turn assessment data into a prioritized problem list, writing each problem as a NANDA-I diagnosis -- problem-focused, risk, health promotion or syndrome -- with the person's preferences in view"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Tatum PE III, Talebreza S, Ross JS. Geriatric Assessment: An Office-Based Approach. Am Fam Physician 2018;97(12):776-784",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2018/0615/p776.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: geriatric assessment 'addresses functional status, fall risk, medication review, nutrition, vision, hearing, cognition, mood, and toileting'; tools include the Mini-Cog, Timed Up and Go, Beers criteria, PHQ-2 and the Mini Nutritional Assessment; document goals and preferences and a surrogate decision maker."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "21:00 on a medical unit. You are the RN for Mrs. Varga, 84, on day 2 of an admission for a heart failure exacerbation. She is on the standard heart failure order set. She asks for 'something to help me sleep', and the order set includes an as-needed diphenhydramine at bedtime.",
+    "handover": [
+      "She lives alone, walks with a walker at home (not brought in), and wears glasses and hearing aids, which are at home.",
+      "Day shift charted her as 'pleasant, a little forgetful'. She has been up to the bathroom alone twice today.",
+      "Unit policy: the RN completes the geriatric screening areas within 24 hours for patients 75 and older, may hold an as-needed medication pending the provider when the screen flags a risk, and calls the provider and requests therapy, dietitian or pharmacy review on the findings."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "21:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Fall and delirium risk climbs through the night with the standard plan. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It falls once the plan fits her. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of fall with delirium. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of the medication review (unit policy: call on the screen's findings)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the provider's orders and the new plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "cogAt": {
+      "type": "time",
+      "init": null
+    },
+    "functionAt": {
+      "type": "time",
+      "init": null
+    },
+    "nutritionAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "meds",
+        "cog",
+        "function",
+        "nutrition"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "risk",
+        "sleep",
+        "hf"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "holdAt": {
+      "type": "time",
+      "init": null
+    },
+    "aidsAt": {
+      "type": "time",
+      "init": null
+    },
+    "sleepAidAt": {
+      "type": "time",
+      "init": null
+    },
+    "railsUpAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(84 + sin(t / 11) * 4)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "128",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "70",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Diphenhydramine: {not isNull(sleepAidAt) ? \"given\" : \"not given\"}. Walker and glasses arranged: {not isNull(aidsAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The provider is reviewing her medications."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "meds": {
+      "label": "Review her medications against the Beers criteria with her falls history",
+      "group": "Assess",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "cog": {
+      "label": "Screen cognition and attention (Mini-Cog and attention questions)",
+      "group": "Assess",
+      "available": "not testPending and isNull(cogAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cog\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "function": {
+      "label": "Function, gait and the Timed Up and Go with support",
+      "group": "Assess",
+      "available": "not testPending and isNull(functionAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"function\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "nutrition": {
+      "label": "Nutrition, mood and her own goals",
+      "group": "Assess",
+      "available": "not testPending and isNull(nutritionAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"nutrition\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hold": {
+      "label": "Hold the diphenhydramine and offer sleep measures (light, quiet, toileting, warm drink)",
+      "group": "Treat",
+      "available": "isNull(holdAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "holdAt",
+          "to": "t"
+        },
+        {
+          "log": "Diphenhydramine held; lights low, toileted, a warm decaffeinated drink.",
+          "kind": "act"
+        }
+      ]
+    },
+    "aids": {
+      "label": "Arrange a walker now, ask her family to bring her glasses and hearing aids, bed low with a call bell and night light",
+      "group": "Treat",
+      "available": "isNull(aidsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "aidsAt",
+          "to": "t"
+        },
+        {
+          "log": "Walker at the bedside, bed low, call bell in reach, night light on; her son will bring her glasses and hearing aids.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sleepAid": {
+      "label": "Give the as-needed diphenhydramine as she asked",
+      "group": "Treat",
+      "available": "isNull(sleepAidAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sleepAidAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Diphenhydramine given.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "railsUp": {
+      "label": "Put all four rails up and tell her to stay in bed",
+      "group": "Treat",
+      "available": "isNull(railsUpAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "railsUpAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Four rails up; told to stay in bed.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does the screen say her care must address first?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "risk",
+              "label": "Risk for falls and delirium from polypharmacy (a benzodiazepine and diphenhydramine), impaired cognition, gait and sensory loss; then nutrition and mood, with her goal of going home"
+            },
+            {
+              "value": "sleep",
+              "label": "Insomnia; she needs the sleep aid"
+            },
+            {
+              "value": "hf",
+              "label": "Only her heart failure; the order set covers it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"risk\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"risk\""
+                },
+                {
+                  "log": "Falls and delirium risk first.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sleep\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sleep\""
+                },
+                {
+                  "log": "Read as insomnia.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hf\""
+                },
+                {
+                  "log": "Read as heart failure only.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the provider now: geriatric screen positive for falls, delirium risk, polypharmacy (benzodiazepine, diphenhydramine), weight loss and low mood; diphenhydramine held; ask for a medication review and therapy, dietitian and pharmacy consults"
+            },
+            {
+              "value": "none",
+              "label": "Nothing to report; she is stable for heart failure"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The provider discontinues the diphenhydramine, asks pharmacy to review the benzodiazepine, and orders physical therapy, a dietitian and a delirium prevention plan.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Nothing reported.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Write a prioritized problem list with her and record her goals and preferences",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Problem list: risk for falls; risk for delirium; imbalanced nutrition; grieving; with her goal of returning home recorded.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit, room 30",
+      "clock": "running",
+      "actions": [
+        "meds",
+        "cog",
+        "function",
+        "nutrition",
+        "hold",
+        "aids",
+        "sleepAid",
+        "railsUp",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"meds\"",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Eleven medications, including a diuretic, a benzodiazepine her primary provider started last month, and the as-needed diphenhydramine; three falls at home this year, one with a wrist fracture.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cog\"",
+              "then": [
+                {
+                  "set": "cogAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Recalls 1 of 3 words; clock abnormal; she loses track of the questions: possible delirium on top of cognitive impairment.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"function\"",
+              "then": [
+                {
+                  "set": "functionAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Needs help to stand; unsteady without a walker; Timed Up and Go over 20 seconds.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "nutritionAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Lost 5 kg in 6 months, eats one meal a day; feels 'down since my husband died'; her goal is 'to stay in my own home'.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the new plan of care",
+      "wait": {
+        "skipLabel": "the new plan of care"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the provider's orders and the new plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Her plan now fits her: no sedating aid, walker and night light, consults ordered, her goal recorded.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does Mrs. Varga's geriatric screen tell you, and how do you change her care tonight?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Polypharmacy with a benzodiazepine and an as-needed diphenhydramine (both on the Beers list), three falls, impaired cognition and attention, gait needing a walker, sensory loss without her aids, weight loss and low mood: high risk for falls and delirium.",
+          "modelAnswer": "Eleven meds including a benzodiazepine and diphenhydramine, three falls, she's forgetful and inattentive, can't walk safely without her walker, no glasses or hearing aids, losing weight and down. She's set up for a fall and delirium tonight."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds the diphenhydramine with sleep measures, arranges a walker, glasses and hearing aids with the bed low, calls the provider for a medication review and consults, and writes a prioritized problem list with her goal of going home.",
+          "modelAnswer": "Hold the diphenhydramine and use sleep measures, get her walker and have her aids brought in with the bed low, call for a med review and PT, dietitian and pharmacy, and write her problem list with her goal of going home."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Unaddressed fall and delirium risk an hour on is harm here.",
+      "source": {
+        "cite": "Tatum PE III, Talebreza S, Ross JS. Geriatric Assessment: An Office-Based Approach. Am Fam Physician 2018;97(12):776-784",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2018/0615/p776.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: geriatric assessment 'addresses functional status, fall risk, medication review, nutrition, vision, hearing, cognition, mood, and toileting'; tools include the Mini-Cog, Timed Up and Go, Beers criteria, PHQ-2 and the Mini Nutritional Assessment; document goals and preferences and a surrogate decision maker."
+      }
+    }
+  },
+  "endings": {
+    "fall": {
+      "label": "Fall with delirium",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "At 02:00, confused and drowsy, she climbs out of bed to the bathroom without her walker and falls, striking her head."
+    },
+    "safe": {
+      "label": "Care individualized",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(sleepAidAt) and (not isNull(medsAt) and not isNull(holdAt)) and isNull(railsUpAt) and (not isNull(aidsAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is sleeping without a sedating aid, with her walker in reach, and her plan fits her."
+    },
+    "safeGaps": {
+      "label": "Changed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: her plan is changed, but the call was slow, the sleep aid went in, or the rails went up instead of individualized safety."
+    },
+    "time_up": {
+      "label": "Unchanged at 22:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "22:00 and the standard plan is unchanged."
+    }
+  },
+  "endingOrder": [
+    "fall",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The provider called within 5 minutes of the medication review, with therapy, dietitian and pharmacy requests",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "medsC",
+        "label": "Reviewed her medications for polypharmacy and held the sleep aid",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(sleepAidAt)",
+            "score": "missed",
+            "why": "Diphenhydramine given."
+          },
+          {
+            "when": "not isNull(medsAt) and not isNull(holdAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "fallC",
+        "label": "Individualized fall safety (walker, glasses, hearing aids, bed low), no four rails",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(railsUpAt)",
+            "score": "missed",
+            "why": "Four rails up."
+          },
+          {
+            "when": "not isNull(aidsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not individualized."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Screened cognition, function, nutrition, mood and goals",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(cogAt) and not isNull(functionAt) and not isNull(nutritionAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(cogAt) or not isNull(functionAt) or not isNull(nutritionAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Prioritized the risks the screen found",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"risk\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"sleep\"",
+            "score": "missed",
+            "why": "A sedating antihistamine adds to falls and delirium risk."
+          },
+          {
+            "when": "dxEnum == \"hf\"",
+            "score": "missed",
+            "why": "The screen found risks the order set misses."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Prioritized problems with her goals recorded",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: geriatric screen findings; falls and delirium risk first; individualize with her goals",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Medication review to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "21:00 to the sleep aid held",
+        "value": "isNull(holdAt) ? -1 : timeAt(holdAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:00",
+        "text": "Medications against Beers with her falls: benzodiazepine, diphenhydramine, three falls."
+      },
+      {
+        "at": "~21:01",
+        "text": "Hold the diphenhydramine; sleep measures."
+      },
+      {
+        "at": "~21:02",
+        "text": "Call the provider with the screen."
+      },
+      {
+        "at": "~21:05",
+        "text": "Walker, aids, bed low; cognition, function, nutrition, mood, goals; problem list with her."
+      }
+    ],
+    "debrief": {
+      "fall": {
+        "headline": "Fall with delirium",
+        "body": "A geriatric screen turns a standard plan into hers: sedating antihistamines and benzodiazepines, falls, sensory loss and gait are risks to act on tonight."
+      },
+      "safe": {
+        "headline": "Care individualized",
+        "body": "You used the geriatric screening areas, held the sleep aid, individualized fall safety, prioritized her risks with her goals, and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Changed, with gaps",
+        "body": "Check how soon you called, whether the sleep aid was given, and whether fall safety fit her."
+      },
+      "time_up": {
+        "headline": "Unchanged at 22:00",
+        "body": "Screen findings change tonight's plan."
+      }
+    },
+    "modelReasoning": "Geriatric assessment covers function, fall risk, medications, nutrition, vision, hearing, cognition, mood, toileting and goals of care. Mrs. Varga's screen shows polypharmacy with a benzodiazepine and diphenhydramine (both potentially inappropriate under the Beers criteria), three falls, impaired cognition and attention, unsafe gait without her walker, absent glasses and hearing aids, weight loss and low mood. Tonight: hold the sedating antihistamine, use sleep measures, give her the walker and aids with the bed low, call the provider for a medication review and therapy, dietitian and pharmacy consults, and write a prioritized problem list around her goal of staying in her own home."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "areasQ": {
+      "during": "testT",
+      "ask": "While you screen: which areas does a geriatric assessment cover?",
+      "choices": [
+        {
+          "id": "all",
+          "label": "Function, falls, medications, nutrition, vision, hearing, cognition, mood, toileting, goals"
+        },
+        {
+          "id": "vit",
+          "label": "Vital signs only"
+        },
+        {
+          "id": "hf",
+          "label": "Only her admitting diagnosis"
+        }
+      ],
+      "expect": "all",
+      "explain": "Geriatric assessment addresses functional status, fall risk, medication review, nutrition, vision, hearing, cognition, mood and toileting, with goals and preferences.",
+      "source": {
+        "cite": "Tatum PE III, Talebreza S, Ross JS. Geriatric Assessment: An Office-Based Approach. Am Fam Physician 2018;97(12):776-784",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2018/0615/p776.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: geriatric assessment 'addresses functional status, fall risk, medication review, nutrition, vision, hearing, cognition, mood, and toileting'; tools include the Mini-Cog, Timed Up and Go, Beers criteria, PHQ-2 and the Mini Nutritional Assessment; document goals and preferences and a surrogate decision maker."
+      }
+    },
+    "beersQ": {
+      "during": "leaveT",
+      "ask": "While the plan changes: what tool flags potentially inappropriate medications in older adults?",
+      "choices": [
+        {
+          "id": "beers",
+          "label": "The Beers criteria (or STOPP and START)"
+        },
+        {
+          "id": "mmse",
+          "label": "The Mini-Cog"
+        },
+        {
+          "id": "tug",
+          "label": "The Timed Up and Go"
+        }
+      ],
+      "expect": "beers",
+      "explain": "Medications are reviewed for appropriateness using the Beers, STOPP and START criteria.",
+      "source": {
+        "cite": "Tatum PE III, Talebreza S, Ross JS. Geriatric Assessment: An Office-Based Approach. Am Fam Physician 2018;97(12):776-784",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2018/0615/p776.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: geriatric assessment 'addresses functional status, fall risk, medication review, nutrition, vision, hearing, cognition, mood, and toileting'; tools include the Mini-Cog, Timed Up and Go, Beers criteria, PHQ-2 and the Mini Nutritional Assessment; document goals and preferences and a surrogate decision maker."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

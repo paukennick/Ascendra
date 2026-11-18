@@ -1,0 +1,1106 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "breakfast-tray-droop-last-seen-well",
+  "title": "A droop at breakfast",
+  "objective": "Recognize stroke as an emergency: find out when the client was last known well, because treatment is time-sensitive",
+  "secondaryObjectives": [
+    "Know that hemorrhagic stroke is most often caused by hypertension and that anticoagulants raise the risk"
+  ],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-PN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_PN_Test%20Plan-F.pdf",
+      "note": "Relayed from the LPN/VN course's earlier cases (read 2026-11-11, primary PDF), not re-read: the practical nursing course is built toward this test plan; the PN collects data, reports changes and works under RN or provider direction. Scope only."
+    },
+    {
+      "cite": "Ascendra LPN/VN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "CDC: Signs and Symptoms of Stroke (last reviewed 2026-05-19)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cdc.gov/stroke/signs-symptoms/index.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: sudden numbness or weakness of the face, arm or leg, confusion or trouble speaking; B.E. F.A.S.T.; 'Note the time when any symptoms first appear. This information helps health care providers determine the best treatment'; 'The stroke treatments that work best are available only if the stroke is recognized and diagnosed within 3 hours'; 'Call 9-1-1 right away'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "08:15 in a long-term care home. You are the LPN on the west hall. The aide calls you to Mr. Haddad, 74, who 'can't hold his spoon and is talking funny' at breakfast. He has hypertension and atrial fibrillation and takes an anticoagulant.",
+    "handover": [
+      "The night aide checked him at 06:00 and says he 'said good morning like always' when she helped him to the bathroom.",
+      "He is sitting up in his chair with his breakfast tray and his morning pills in a cup in front of him.",
+      "Facility policy: for suspected stroke the nurse calls 911 at once, notifies the RN supervisor and the provider, keeps the resident NPO, notes the last-known-well time, and sends the medication list."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "08:15",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Brain tissue is lost while treatment is delayed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Time to treatment shortens once 911 is called with a clear last-known-well time. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of treatment window missed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 called and the RN told within 5 minutes of the stroke signs (facility policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for the paramedics to arrive and leave."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "fastAt": {
+      "type": "time",
+      "init": null
+    },
+    "lkwAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "fast",
+        "lkw",
+        "vitals",
+        "meds"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "provider"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "stroke",
+        "tired",
+        "sugar"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "npoAt": {
+      "type": "time",
+      "init": null
+    },
+    "pillsAt": {
+      "type": "time",
+      "init": null
+    },
+    "napAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(92 + sin(t / 11) * 8)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(178 + 10 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ems\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "not isNull(vitalsAt)"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "NPO: {not isNull(npoAt)|yesno}. Morning pills: {not isNull(pillsAt) ? \"given\" : \"held\"}.",
+      "banner": [
+        {
+          "when": "route == \"ems\" and inClinic",
+          "text": "911 has been called; the RN supervisor is on the way."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "fast": {
+      "label": "Check face, arms, speech (and balance and vision)",
+      "group": "Assess",
+      "available": "not testPending and isNull(fastAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"fast\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "lkw": {
+      "label": "Establish when he was last known well",
+      "group": "Assess",
+      "available": "not testPending and isNull(lkwAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"lkw\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Vital signs and a fingerstick glucose",
+      "group": "Assess",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Pull his medication list and the time of his last anticoagulant dose",
+      "group": "Assess",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "npo": {
+      "label": "Keep him NPO: remove the tray and the pill cup",
+      "group": "Treat",
+      "available": "isNull(npoAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "npoAt",
+          "to": "t"
+        },
+        {
+          "log": "Tray and pill cup removed; nothing by mouth.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pills": {
+      "label": "Give his morning pills with applesauce first",
+      "group": "Treat",
+      "available": "isNull(pillsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pillsAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "He coughs and splutters on the applesauce.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "nap": {
+      "label": "Help him to bed for a rest and recheck after he naps",
+      "group": "Treat",
+      "available": "isNull(napAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "napAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.1, 2)"
+        },
+        {
+          "log": "Helped to bed to rest.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "stroke",
+              "label": "A possible stroke (facial droop, arm drift, slurred speech): an emergency, with time since last known well deciding treatment; on an anticoagulant a bleed is possible too"
+            },
+            {
+              "value": "tired",
+              "label": "He is tired and needs a nap"
+            },
+            {
+              "value": "sugar",
+              "label": "Low blood sugar"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"stroke\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stroke\""
+                },
+                {
+                  "log": "Possible stroke.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tired\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tired\""
+                },
+                {
+                  "log": "Read as tiredness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sugar\""
+                },
+                {
+                  "log": "Read as hypoglycemia.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911 now and tell the RN supervisor: face, arm and speech signs, last known well 06:00, on an anticoagulant (last dose 20:00), blood pressure 178/96, glucose 132"
+            },
+            {
+              "value": "provider",
+              "label": "Leave a message for the provider to see him on rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The paramedics arrive, confirm a positive stroke screen and take him to the stroke center with his medication list and last-known-well time; the RN notifies the provider and family.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"provider\""
+                },
+                {
+                  "log": "A message is left for rounds.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the signs, times, last-known-well and calls; send the medication list",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Signs, times, last-known-well, vital signs, calls and the medication list are documented and sent.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "West hall, room 9",
+      "clock": "running",
+      "actions": [
+        "fast",
+        "lkw",
+        "vitals",
+        "meds",
+        "npo",
+        "pills",
+        "nap",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"fast\"",
+              "then": [
+                {
+                  "set": "fastAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right side of his mouth droops when he smiles; his right arm drifts down; his speech is slurred and he cannot find words.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"lkw\"",
+              "then": [
+                {
+                  "set": "lkwAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The night aide saw him normal at 06:00; no one saw him between 06:00 and 08:10. Last known well: 06:00.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Blood pressure 178/96, pulse irregular around 92, glucose 132 mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Anticoagulant last given at 20:00 last night; list printed for the paramedics.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the paramedics",
+      "wait": {
+        "skipLabel": "the paramedics"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for the paramedics to arrive and leave."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the stroke center with his medication list and last-known-well time.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Mr. Haddad, and what do you do within your role?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Facial droop, arm drift and slurred speech are stroke signs; treatment is time-sensitive and depends on when he was last known well (06:00), not when he was found; his anticoagulant and high blood pressure raise the risk of a bleed.",
+          "modelAnswer": "That's a stroke until proven otherwise: the droop, the arm drift and the slurred speech. What matters is when he was last normal, 06:00, not when we found him. On a blood thinner with that pressure, it could be a bleed."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Keeps him NPO, finds the last-known-well time, calls 911 and the RN supervisor at once, takes vital signs and glucose, and sends the medication list with the anticoagulant time.",
+          "modelAnswer": "Nothing by mouth, get the last-known-well time, call 911 and the RN now, check his vitals and sugar, and send his med list with the time of his last blood thinner."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected stroke unreported an hour on is harm here.",
+      "source": {
+        "cite": "CDC: Signs and Symptoms of Stroke (last reviewed 2026-05-19)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cdc.gov/stroke/signs-symptoms/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: sudden numbness or weakness of the face, arm or leg, confusion or trouble speaking; B.E. F.A.S.T.; 'Note the time when any symptoms first appear. This information helps health care providers determine the best treatment'; 'The stroke treatments that work best are available only if the stroke is recognized and diagnosed within 3 hours'; 'Call 9-1-1 right away'."
+      }
+    }
+  },
+  "endings": {
+    "missed": {
+      "label": "Treatment window missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "By the time he reaches the hospital his deficits have worsened and the time-sensitive treatments are no longer an option."
+    },
+    "safe": {
+      "label": "Stroke recognized fast",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(lkwAt)) and isNull(pillsAt) and (not isNull(npoAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he is on his way to the stroke center with a clear last-known-well time."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to the hospital, but the call was slow, pills went in by mouth, or the last-known-well time was missing."
+    },
+    "time_up": {
+      "label": "Not called at 09:15",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "09:15 and no one has called 911."
+    }
+  },
+  "endingOrder": [
+    "missed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "911 called and the RN told within 5 minutes of the stroke signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ems\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "lkwC",
+        "label": "Found the last-known-well time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lkwAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not established."
+          }
+        ]
+      },
+      {
+        "id": "npoC",
+        "label": "Kept him NPO, no pills or food",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pillsAt)",
+            "score": "missed",
+            "why": "Pills given by mouth."
+          },
+          {
+            "when": "not isNull(npoAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not made NPO."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took vital signs and glucose and pulled the medication list",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt) and not isNull(medsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(vitalsAt) or not isNull(medsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized a possible stroke as an emergency",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"stroke\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"tired\"",
+            "score": "missed",
+            "why": "Sudden one-sided weakness and slurred speech are stroke signs."
+          },
+          {
+            "when": "dxEnum == \"sugar\"",
+            "score": "missed",
+            "why": "His glucose is normal."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and sent the list",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: stroke signs; last known well; NPO; 911 and the RN now",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Stroke signs to 911",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "08:15 to NPO",
+        "value": "isNull(npoAt) ? -1 : timeAt(npoAt)",
+        "format": "duration",
+        "expert": "under 2 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:15",
+        "text": "Face, arm, speech: positive."
+      },
+      {
+        "at": "~08:16",
+        "text": "Tray and pills away; NPO."
+      },
+      {
+        "at": "~08:17",
+        "text": "Last known well 06:00; 911 and the RN."
+      },
+      {
+        "at": "~08:19",
+        "text": "Vital signs and glucose; medication list; document."
+      }
+    ],
+    "debrief": {
+      "missed": {
+        "headline": "Treatment window missed",
+        "body": "Face, arm and speech changes are stroke until proven otherwise. Call 911 at once, keep him NPO and give the team the last-known-well time."
+      },
+      "safe": {
+        "headline": "Stroke recognized fast",
+        "body": "You recognized stroke signs, found the last-known-well time, kept him NPO, called 911 and the RN within minutes and sent the medication list. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check how soon you called, whether he got anything by mouth, and whether you gave a last-known-well time."
+      },
+      "time_up": {
+        "headline": "Not called at 09:15",
+        "body": "Stroke treatment is time-sensitive; call 911 at once."
+      }
+    },
+    "modelReasoning": "Sudden face drooping, arm weakness and slurred speech are stroke warning signs; call 911 right away. The time symptoms first appeared, or when the person was last known well, decides treatment, and the treatments that work best are available only if stroke is recognized and diagnosed within hours. Within the LPN role: keep him NPO (his swallow may be impaired), establish last known well (06:00), call 911 and the RN supervisor under facility policy, check vital signs and glucose, and send the medication list with the last anticoagulant dose; hypertension and anticoagulants raise the risk of a hemorrhagic stroke."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "fastQ": {
+      "during": "leaveT",
+      "ask": "While the paramedics take him: what does F.A.S.T. stand for?",
+      "choices": [
+        {
+          "id": "fast",
+          "label": "Face, Arms, Speech, Time to call 911"
+        },
+        {
+          "id": "food",
+          "label": "Food, Activity, Sleep, Temperature"
+        },
+        {
+          "id": "none",
+          "label": "Fever, Ache, Sweat, Tiredness"
+        }
+      ],
+      "expect": "fast",
+      "explain": "Face drooping, Arm drift, Speech slurred, Time: call 9-1-1 right away.",
+      "source": {
+        "cite": "CDC: Signs and Symptoms of Stroke (last reviewed 2026-05-19)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cdc.gov/stroke/signs-symptoms/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: sudden numbness or weakness of the face, arm or leg, confusion or trouble speaking; B.E. F.A.S.T.; 'Note the time when any symptoms first appear. This information helps health care providers determine the best treatment'; 'The stroke treatments that work best are available only if the stroke is recognized and diagnosed within 3 hours'; 'Call 9-1-1 right away'."
+      }
+    },
+    "timeQ": {
+      "during": "testT",
+      "ask": "While you check: why does the last-known-well time matter?",
+      "choices": [
+        {
+          "id": "time",
+          "label": "The best stroke treatments are only available within hours of onset"
+        },
+        {
+          "id": "paper",
+          "label": "Only for paperwork"
+        },
+        {
+          "id": "none",
+          "label": "It doesn't matter"
+        }
+      ],
+      "expect": "time",
+      "explain": "Note the time when symptoms first appear; the stroke treatments that work best are available only if stroke is recognized and diagnosed within 3 hours.",
+      "source": {
+        "cite": "CDC: Signs and Symptoms of Stroke (last reviewed 2026-05-19)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cdc.gov/stroke/signs-symptoms/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: sudden numbness or weakness of the face, arm or leg, confusion or trouble speaking; B.E. F.A.S.T.; 'Note the time when any symptoms first appear. This information helps health care providers determine the best treatment'; 'The stroke treatments that work best are available only if the stroke is recognized and diagnosed within 3 hours'; 'Call 9-1-1 right away'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

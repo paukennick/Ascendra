@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "fmea-dispatch-takt-lean",
+  "title": "A warehouse dispatch line: takt time, a process FMEA and where to act first",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "dispatch_line_fmea",
+      "flags": [
+        {
+          "id": "fTakt",
+          "label": "Takt time and the constraint",
+          "text": "{takt == \"takt\" ? \"Takt 1.0; packing balanced\" : takt == \"labels\" ? \"Labelling faster\" : takt == \"overtime\" ? \"Daily overtime\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fRpn",
+          "label": "FMEA priorities",
+          "text": "{rpn == \"rpn\" ? \"Wrong label RPN 336 first\" : rpn == \"severityOnly\" ? \"Severity only\" : rpn == \"loudest\" ? \"Loudest complaint first\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "error"
+        },
+        {
+          "id": "fAct",
+          "label": "Action on wrong labels",
+          "text": "{act == \"pokayoke\" ? \"Poka-yoke; RPN 336 to 96\" : act == \"retrain\" ? \"Retraining only\" : act == \"inspectAll\" ? \"100% manual inspection\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iGemba",
+          "label": "Go to the gemba: watch the line for an hour",
+          "text": "Packing queues build all shift; labels are reprinted by hand when the printer jams; nobody checks the label against the order.",
+          "when": "not isNull(gembaAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iFails",
+          "label": "Gather failure data for the FMEA",
+          "text": "Wrong label: severity 8, occurrence 6, detection 7. Damaged pack: 5, 4, 3. Late pickup: 7, 3, 2.",
+          "when": "not isNull(failsAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rTakt",
+              "cells": [
+                "Takt versus cycle times",
+                "{takt == \"takt\" ? \"Takt 1.0; packing balanced\" : takt == \"labels\" ? \"Labelling faster\" : takt == \"overtime\" ? \"Daily overtime\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "takt == \"overtime\""
+            },
+            {
+              "id": "rRpn",
+              "cells": [
+                "FMEA risk priority numbers",
+                "{rpn == \"rpn\" ? \"Wrong label RPN 336 first\" : rpn == \"severityOnly\" ? \"Severity only\" : rpn == \"loudest\" ? \"Loudest complaint first\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "rpn == \"loudest\""
+            },
+            {
+              "id": "rAct",
+              "cells": [
+                "Action and re-scored RPN",
+                "{act == \"pokayoke\" ? \"Poka-yoke; RPN 336 to 96\" : act == \"retrain\" ? \"Retraining only\" : act == \"inspectAll\" ? \"100% manual inspection\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "act == \"inspectAll\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Review",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Building a basic FMEA and calculating and interpreting risk priority numbers",
+  "secondaryObjectives": [
+    "Applying lean concepts: flow, takt time, just-in-time, the theory of constraints and going to the gemba"
+  ],
+  "sources": [
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar chart UCL = x-double-bar + A2 R-bar, center line x-double-bar, LCL = x-double-bar - A2 R-bar; R chart UCL = R-bar D4, center line R-bar, LCL = R-bar D3; A2 = 3/(d2 sqrt(n)). The factor values used (A2 = 0.577, D3 = 0, D4 = 2.114 for subgroups of 5) are the standard table values and were not on the fetched page; the limits in the case (R-bar 3.1 g: 500.2 to 503.8 g, R up to 6.55 g) are computed from them. Reused for REQ-336 from this course's cssgb-fill-weight-chart (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead improvement on the dispatch line of a fictional online retailer's warehouse. Orders must ship the same day; 480 orders arrive in an 8-hour shift.",
+    "handover": [
+      "The packing station takes 1.2 minutes per order; labelling takes 0.9.",
+      "Mis-shipments cost about 30 dollars each."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a review at a time. A decision comes to you at each tollgate; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-08T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owner": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "takt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "takt",
+        "labels",
+        "overtime"
+      ],
+      "init": "none"
+    },
+    "taktAt": {
+      "type": "time",
+      "init": null
+    },
+    "rpn": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rpn",
+        "severityOnly",
+        "loudest"
+      ],
+      "init": "none"
+    },
+    "rpnAt": {
+      "type": "time",
+      "init": null
+    },
+    "act": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pokayoke",
+        "retrain",
+        "inspectAll"
+      ],
+      "init": "none"
+    },
+    "actAt": {
+      "type": "time",
+      "init": null
+    },
+    "gembaAt": {
+      "type": "time",
+      "init": null
+    },
+    "failsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, owner), team)"
+    },
+    "missCount": {
+      "expr": "((takt == \"overtime\") ? 1 : 0) + ((rpn == \"loudest\") ? 1 : 0) + ((act == \"inspectAll\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(takt == \"none\" or (takt == \"overtime\") ? 1 : 0) + (rpn == \"none\" or (rpn == \"loudest\") ? 1 : 0) + (act == \"none\" or (act == \"inspectAll\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Analysis",
+      "clock": "turns",
+      "actions": [
+        "gemba",
+        "fails"
+      ]
+    },
+    "close": {
+      "label": "Tollgate record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "gemba": {
+      "label": "Go to the gemba: watch the line for an hour",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(gembaAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "gembaAt",
+          "to": "t"
+        },
+        {
+          "log": "Go to the gemba: watch the line for an hour.",
+          "kind": "act"
+        },
+        {
+          "finding": "Packing queues build all shift; labels are reprinted by hand when the printer jams; nobody checks the label against the order."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "fails": {
+      "label": "Gather failure data for the FMEA",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(failsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "failsAt",
+          "to": "t"
+        },
+        {
+          "log": "Gather failure data for the FMEA.",
+          "kind": "act"
+        },
+        {
+          "finding": "Wrong label: severity 8, occurrence 6, detection 7. Damaged pack: 5, 4, 3. Late pickup: 7, 3, 2."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Takt 1.0 with packing balanced, RPNs calculated with wrong labels first, and scan-to-verify lowering the RPN to 96"
+                },
+                {
+                  "value": "summary",
+                  "label": "Analysis done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "takt == \"overtime\"",
+              "then": [
+                {
+                  "log": "Day 2: overtime runs every evening; costs rise 15% and same-day shipping still slips on busy days.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "rpn == \"loudest\"",
+              "then": [
+                {
+                  "log": "Day 3: wrong labels keep shipping parcels to the wrong customers; mis-shipment costs don't fall.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "act == \"inspectAll\"",
+              "then": [
+                {
+                  "log": "Day 4: the manual check slows packing below takt; same-day shipping fails for a week.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Analyze tollgate is reached.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_takt",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: flow.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "taktPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_rpn",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the FMEA.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rpnPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_act",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the action.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "actPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "taktPrompt": {
+      "title": "Can the line keep up?",
+      "context": "480 orders in 480 minutes.",
+      "choices": [
+        {
+          "id": "takt",
+          "label": "Takt time is 480 / 480 = 1.0 minute per order; packing at 1.2 is the constraint, so balance packing (a second packer at peak)",
+          "effects": [
+            {
+              "set": "takt",
+              "to": "\"takt\""
+            },
+            {
+              "set": "taktAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "1"
+            },
+            {
+              "log": "Packing is balanced to takt.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Takt time is available time divided by demand; a step slower than takt is the constraint."
+        },
+        {
+          "id": "labels",
+          "label": "Speed up labelling",
+          "effects": [
+            {
+              "set": "takt",
+              "to": "\"labels\""
+            },
+            {
+              "set": "taktAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-1"
+            },
+            {
+              "log": "Labelling sped up.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Labelling is already under takt; the constraint is packing."
+        },
+        {
+          "id": "overtime",
+          "label": "Add overtime every day",
+          "effects": [
+            {
+              "set": "takt",
+              "to": "\"overtime\""
+            },
+            {
+              "set": "taktAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-2"
+            },
+            {
+              "log": "Overtime added.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It hides the constraint at a cost."
+        }
+      ]
+    },
+    "rpnPrompt": {
+      "title": "Which failure first?",
+      "context": "Three failure modes scored.",
+      "choices": [
+        {
+          "id": "rpn",
+          "label": "RPNs: wrong label 8 x 6 x 7 = 336, late pickup 7 x 3 x 2 = 42, damaged pack 5 x 4 x 3 = 60; act on wrong labels first, and note its high severity",
+          "effects": [
+            {
+              "set": "rpn",
+              "to": "\"rpn\""
+            },
+            {
+              "set": "rpnAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Wrong labels are the priority.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "RPN = severity x occurrence x detection; the highest, with high severity, comes first."
+        },
+        {
+          "id": "severityOnly",
+          "label": "Rank by severity only",
+          "effects": [
+            {
+              "set": "rpn",
+              "to": "\"severityOnly\""
+            },
+            {
+              "set": "rpnAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Severity ranking.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Ignores how often and how detectably it happens."
+        },
+        {
+          "id": "loudest",
+          "label": "Fix late pickups: the courier complains most",
+          "effects": [
+            {
+              "set": "rpn",
+              "to": "\"loudest\""
+            },
+            {
+              "set": "rpnAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Late pickups first.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Late pickup's RPN is 42; wrong labels are 336."
+        }
+      ]
+    },
+    "actPrompt": {
+      "title": "Reducing the wrong-label RPN",
+      "context": "Detection is poor: nobody checks labels.",
+      "choices": [
+        {
+          "id": "pokayoke",
+          "label": "Add a scan-to-verify step (poka-yoke) matching label to order before sealing, then re-score: detection 2, RPN 96",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"pokayoke\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Scan-to-verify is added; RPN falls to 96.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Mistake-proofing improves detection or prevents occurrence; re-scoring shows the effect."
+        },
+        {
+          "id": "retrain",
+          "label": "Retrain packers to be careful",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"retrain\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "Retraining.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Helps occurrence a little; detection unchanged."
+        },
+        {
+          "id": "inspectAll",
+          "label": "Add a final manual inspection of every parcel",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"inspectAll\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Manual inspection.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Slows the constraint further and misses errors when tired."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the Analyze tollgate summary.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Flow",
+          "criteria": "Takt 480/480 = 1.0 minute; packing at 1.2 is the constraint; balanced.",
+          "modelAnswer": "Takt is 1.0 minute per order; packing at 1.2 was the constraint, so a second packer covers the peak."
+        },
+        {
+          "label": "FMEA",
+          "criteria": "RPNs 336, 60, 42; scan-to-verify cuts detection to 2 and RPN to 96.",
+          "modelAnswer": "Wrong labels had RPN 336; scan-to-verify cuts detection to 2 and the RPN to 96."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (takt == \"labels\") and (rpn == \"severityOnly\") and (act == \"retrain\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+        "checkedAt": "2026-11-16",
+        "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar chart UCL = x-double-bar + A2 R-bar, center line x-double-bar, LCL = x-double-bar - A2 R-bar; R chart UCL = R-bar D4, center line R-bar, LCL = R-bar D3; A2 = 3/(d2 sqrt(n)). The factor values used (A2 = 0.577, D3 = 0, D4 = 2.114 for subgroups of 5) are the standard table values and were not on the fetched page; the limits in the case (R-bar 3.1 g: 500.2 to 503.8 g, R up to 6.55 g) are computed from them. Reused for REQ-336 from this course's cssgb-fill-weight-chart (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "taktHarm": {
+      "label": "Costly and still late",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and takt == \"overtime\"",
+      "narrative": "Overtime raised costs 15% and the line still missed same-day."
+    },
+    "rpnHarm": {
+      "label": "The big risk untreated",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rpn == \"loudest\"",
+      "narrative": "Wrong labels kept shipping parcels to the wrong customers."
+    },
+    "actHarm": {
+      "label": "Flow broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and act == \"inspectAll\"",
+      "narrative": "The manual check at the constraint broke same-day shipping."
+    },
+    "target": {
+      "label": "Flow balanced and the top risk treated",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (takt == \"takt\") and (rpn == \"rpn\") and (act == \"pokayoke\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The line meets takt and wrong labels are caught before sealing."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "taktHarm",
+    "rpnHarm",
+    "actHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "taktCrit",
+        "label": "Calculated takt time and found the constraint",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "takt == \"takt\"",
+            "score": "met",
+            "why": "Flow."
+          },
+          {
+            "when": "takt == \"labels\"",
+            "score": "partial",
+            "why": "Wrong step."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Masked."
+          }
+        ]
+      },
+      {
+        "id": "rpnCrit",
+        "label": "Calculated and interpreted RPNs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rpn == \"rpn\"",
+            "score": "met",
+            "why": "Interpreted."
+          },
+          {
+            "when": "rpn == \"severityOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong priority."
+          }
+        ]
+      },
+      {
+        "id": "actCrit",
+        "label": "Chose an action that lowers occurrence or detection, and re-scored",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "act == \"pokayoke\"",
+            "score": "met",
+            "why": "Effective."
+          },
+          {
+            "when": "act == \"retrain\"",
+            "score": "partial",
+            "why": "Weak."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Slows flow."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(gembaAt) and not isNull(failsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(gembaAt) or not isNull(failsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Watch the line and gather failure data first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Calculate takt and balance the constraint."
+      },
+      {
+        "at": "Day 2",
+        "text": "Calculate RPNs and act on the highest-severity, highest-RPN mode."
+      },
+      {
+        "at": "Day 3",
+        "text": "Mistake-proof with scan-to-verify and re-score the RPN."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "taktHarm": {
+        "headline": "Find the constraint",
+        "body": "Takt time and balancing the slowest step."
+      },
+      "rpnHarm": {
+        "headline": "Use the RPN",
+        "body": "Severity x occurrence x detection sets priority."
+      },
+      "actHarm": {
+        "headline": "Mistake-proof",
+        "body": "Prevent or detect errors at the source, without slowing flow."
+      },
+      "target": {
+        "headline": "Good: flow balanced and the top risk treated",
+        "body": "Takt and the constraint, RPNs interpreted, mistake-proofing."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Takt time is available time divided by customer demand; a step slower than takt is the constraint to balance. A process FMEA scores each failure mode's severity, occurrence and detection; RPN = S x O x D sets priority (high severity counts on its own). Actions that mistake-proof (poka-yoke) cut occurrence or improve detection; re-score to confirm."
+  }
+}

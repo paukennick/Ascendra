@@ -1,0 +1,1035 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "developer-vm-resources-host-starved",
+  "title": "A developer's virtual machines: host memory starved, virtualization disabled in firmware, and a full disk from snapshots",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tMem",
+          "ref": "INC-4401",
+          "kind": "incident",
+          "title": "Everything slow when both VMs run",
+          "when": "p >= 1",
+          "at": "1800",
+          "impact": "3",
+          "urgency": "1",
+          "priority": "3",
+          "status": "{mem == \"fit\" ? \"Allocations within the host\" : mem == \"oneAtATime\" ? \"One VM at a time\" : mem == \"pagefile\" ? \"64 GB page file on a nearly full SSD\" : \"Due\"}",
+          "open": "mem == \"none\"",
+          "due": "3600"
+        },
+        {
+          "id": "tVtx",
+          "ref": "INC-4402",
+          "kind": "incident",
+          "title": "'Virtualization not available' on a new laptop",
+          "when": "p >= 2",
+          "at": "3600",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{vtx == \"firmware\" ? \"VT-x enabled in UEFI\" : vtx == \"reinstall\" ? \"Reinstalled; still failing\" : vtx == \"secureBootOff\" ? \"Secure Boot and TPM off\" : \"Due\"}",
+          "open": "vtx == \"none\"",
+          "due": "5400"
+        },
+        {
+          "id": "tSnap",
+          "ref": "INC-4403",
+          "kind": "incident",
+          "title": "Host disk almost full",
+          "when": "p >= 3",
+          "at": "5400",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{snap == \"consolidate\" ? \"Snapshots consolidated; one kept\" : snap == \"move\" ? \"VM moved to external USB\" : snap == \"deleteFiles\" ? \"Delta files deleted by hand\" : \"Due\"}",
+          "open": "snap == \"none\"",
+          "due": "7200"
+        }
+      ],
+      "services": [
+        {
+          "id": "vMem",
+          "label": "Developer laptop",
+          "spokenLabel": "Developer laptop",
+          "status": "{mem == \"fit\" ? \"Allocations within the host\" : mem == \"oneAtATime\" ? \"One VM at a time\" : mem == \"pagefile\" ? \"64 GB page file on a nearly full SSD\" : \"Normal service\"}",
+          "tone": "mem == \"fit\" ? \"ok\" : mem == \"oneAtATime\" ? \"degraded\" : mem == \"pagefile\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vVtx",
+          "label": "New developer laptop",
+          "spokenLabel": "New developer laptop",
+          "status": "{vtx == \"firmware\" ? \"VT-x enabled in UEFI\" : vtx == \"reinstall\" ? \"Reinstalled; still failing\" : vtx == \"secureBootOff\" ? \"Secure Boot and TPM off\" : \"Normal service\"}",
+          "tone": "vtx == \"firmware\" ? \"ok\" : vtx == \"reinstall\" ? \"degraded\" : vtx == \"secureBootOff\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vSnap",
+          "label": "Developer laptop",
+          "spokenLabel": "Developer laptop",
+          "status": "{snap == \"consolidate\" ? \"Snapshots consolidated; one kept\" : snap == \"move\" ? \"VM moved to external USB\" : snap == \"deleteFiles\" ? \"Delta files deleted by hand\" : \"Normal service\"}",
+          "tone": "snap == \"consolidate\" ? \"ok\" : snap == \"move\" ? \"degraded\" : snap == \"deleteFiles\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Ticket round",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuring and troubleshooting resource allocation for a client-side virtual machine",
+  "secondaryObjectives": [
+    "Client-side virtualization concepts: the purpose of a VM and type 1 vs. type 2 hypervisors"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+      "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The business, the users, the devices and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the help desk technician at Cedarline Software, a fictional software company. A developer's laptop (16 GB RAM, 8 cores, 512 GB SSD) runs a type 2 hypervisor for two test VMs. Three tickets came in from the same developer this morning.",
+    "handover": [
+      "VM A: 12 GB RAM, 6 vCPUs. VM B: 8 GB RAM, 4 vCPUs. Both run at once.",
+      "A new laptop for a second developer reports 'virtualization not available' when starting a VM."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a ticket round at a time. A decision comes to you at each ticket round; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-12T09:00",
+    "tick": "1min",
+    "maxDuration": "360min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "mem": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fit",
+        "oneAtATime",
+        "pagefile"
+      ],
+      "init": "none"
+    },
+    "memAt": {
+      "type": "time",
+      "init": null
+    },
+    "vtx": {
+      "type": "enum",
+      "values": [
+        "none",
+        "firmware",
+        "reinstall",
+        "secureBootOff"
+      ],
+      "init": "none"
+    },
+    "vtxAt": {
+      "type": "time",
+      "init": null
+    },
+    "snap": {
+      "type": "enum",
+      "values": [
+        "none",
+        "consolidate",
+        "move",
+        "deleteFiles"
+      ],
+      "init": "none"
+    },
+    "snapAt": {
+      "type": "time",
+      "init": null
+    },
+    "allocAt": {
+      "type": "time",
+      "init": null
+    },
+    "diskAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((mem == \"pagefile\") ? 1 : 0) + ((vtx == \"secureBootOff\") ? 1 : 0) + ((snap == \"deleteFiles\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(mem == \"none\" or (mem == \"pagefile\") ? 1 : 0) + (vtx == \"none\" or (vtx == \"secureBootOff\") ? 1 : 0) + (snap == \"none\" or (snap == \"deleteFiles\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The ticket queue",
+      "clock": "turns",
+      "actions": [
+        "alloc",
+        "disk"
+      ]
+    },
+    "close": {
+      "label": "Work notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "alloc": {
+      "label": "Read the VMs' settings and the host's Task Manager",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(allocAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "allocAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the allocations and host usage.",
+          "kind": "act"
+        },
+        {
+          "finding": "The two VMs are given 20 GB of RAM and 10 vCPUs on a 16 GB, 8-core host: the host pages to disk constantly and everything crawls."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "disk": {
+      "label": "Check the host's disk and the VMs' snapshots",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(diskAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "diskAt",
+          "to": "t"
+        },
+        {
+          "log": "You check disk use.",
+          "kind": "act"
+        },
+        {
+          "finding": "VM A has 14 snapshots totalling 190 GB; the host SSD has 4 GB free."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the work notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "VM allocations sized within the host, VT-x enabled in UEFI, and snapshots consolidated in the hypervisor with one kept"
+                },
+                {
+                  "value": "summary",
+                  "label": "VM issues fixed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next ticket round",
+      "wait": {
+        "skipLabel": "Go to the next ticket round"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "mem == \"pagefile\"",
+              "then": [
+                {
+                  "log": "Round 2: the page file fills the SSD; the host crashes and VM A's disk image is corrupted mid-write.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "vtx == \"secureBootOff\"",
+              "then": [
+                {
+                  "log": "Round 3: with the TPM cleared, BitLocker demands the recovery key at boot; the developer is locked out for half a day.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "snap == \"deleteFiles\"",
+              "then": [
+                {
+                  "log": "Round 4: VM A won't start: its disk chain is broken, and the pre-upgrade state is gone too.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "30min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The developer's tickets are closed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "30min"
+        }
+      ]
+    },
+    {
+      "id": "t_mem",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 1: the slowness ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "memPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_vtx",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 2: the new laptop ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "vtxPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_snap",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 3: the disk ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "snapPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "memPrompt": {
+      "title": "More RAM given than the host has",
+      "context": "Both VMs need to run together for integration tests.",
+      "choices": [
+        {
+          "id": "fit",
+          "label": "Set VM A to 6 GB and 3 vCPUs and VM B to 4 GB and 2 vCPUs, leaving the host about 6 GB and 3 cores, and check the tests still pass",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"fit\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "Allocations fit the host; nothing pages.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Allocations must leave the host enough memory and cores for itself and the hypervisor."
+        },
+        {
+          "id": "oneAtATime",
+          "label": "Tell the developer to run one VM at a time",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"oneAtATime\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "One VM at a time.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No paging, but the integration tests need both."
+        },
+        {
+          "id": "pagefile",
+          "label": "Make the host's page file 64 GB so the allocations 'fit'",
+          "effects": [
+            {
+              "set": "mem",
+              "to": "\"pagefile\""
+            },
+            {
+              "set": "memAt",
+              "to": "t"
+            },
+            {
+              "log": "The page file grows to 64 GB.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Paging is the slowness; a bigger page file on a nearly full disk makes it worse and fills the disk."
+        }
+      ]
+    },
+    "vtxPrompt": {
+      "title": "The hypervisor won't start a VM",
+      "context": "The CPU supports hardware virtualization.",
+      "choices": [
+        {
+          "id": "firmware",
+          "label": "Enable the CPU's virtualization extensions (Intel VT-x or AMD-V) in the UEFI setup, save, and start the VM",
+          "effects": [
+            {
+              "set": "vtx",
+              "to": "\"firmware\""
+            },
+            {
+              "set": "vtxAt",
+              "to": "t"
+            },
+            {
+              "log": "Virtualization is enabled; the VM starts.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Hypervisors need the CPU's virtualization extensions, which ship disabled on some machines."
+        },
+        {
+          "id": "reinstall",
+          "label": "Reinstall the hypervisor",
+          "effects": [
+            {
+              "set": "vtx",
+              "to": "\"reinstall\""
+            },
+            {
+              "set": "vtxAt",
+              "to": "t"
+            },
+            {
+              "log": "The hypervisor is reinstalled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The hypervisor was fine; the setting is in the firmware."
+        },
+        {
+          "id": "secureBootOff",
+          "label": "Disable Secure Boot and the TPM to 'unlock' virtualization",
+          "effects": [
+            {
+              "set": "vtx",
+              "to": "\"secureBootOff\""
+            },
+            {
+              "set": "vtxAt",
+              "to": "t"
+            },
+            {
+              "log": "Secure Boot and the TPM are disabled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Those aren't the setting; disabling them suspends BitLocker protection and weakens the laptop for nothing."
+        }
+      ]
+    },
+    "snapPrompt": {
+      "title": "14 snapshots, 4 GB free",
+      "context": "The developer needs the snapshot from before last week's database upgrade; the rest are old.",
+      "choices": [
+        {
+          "id": "consolidate",
+          "label": "Delete the old snapshots in the hypervisor's snapshot manager (it merges them into the disk), keep the pre-upgrade one, and set a snapshot limit",
+          "effects": [
+            {
+              "set": "snap",
+              "to": "\"consolidate\""
+            },
+            {
+              "set": "snapAt",
+              "to": "t"
+            },
+            {
+              "log": "Snapshots consolidated; 170 GB freed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Snapshots are delta files the hypervisor must merge; delete them through it."
+        },
+        {
+          "id": "move",
+          "label": "Move the whole VM to an external drive",
+          "effects": [
+            {
+              "set": "snap",
+              "to": "\"move\""
+            },
+            {
+              "set": "snapAt",
+              "to": "t"
+            },
+            {
+              "log": "The VM moves to USB.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Space is freed, but the VM now runs slowly from USB and the snapshots keep growing."
+        },
+        {
+          "id": "deleteFiles",
+          "label": "Delete the snapshot files from the VM's folder in Explorer",
+          "effects": [
+            {
+              "set": "snap",
+              "to": "\"deleteFiles\""
+            },
+            {
+              "set": "snapAt",
+              "to": "t"
+            },
+            {
+              "log": "Snapshot delta files are deleted by hand.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The running disk depends on that chain of delta files; deleting them by hand breaks the VM."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the work notes: how you allocated resources, fixed virtualization support and freed disk space.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Allocation",
+          "criteria": "20 GB on a 16 GB host caused paging; resized to leave the host room.",
+          "modelAnswer": "The VMs had 20 GB on a 16 GB host, so it paged; they now have 6 and 4 GB, leaving the host about 6 GB."
+        },
+        {
+          "label": "Firmware and snapshots",
+          "criteria": "VT-x in UEFI; old snapshots deleted through the hypervisor, pre-upgrade one kept.",
+          "modelAnswer": "The new laptop needed VT-x enabled in UEFI. Old snapshots were deleted through the snapshot manager, keeping the pre-upgrade one."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (mem == \"oneAtATime\") and (vtx == \"reinstall\") and (snap == \"move\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+        "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "memHarm": {
+      "label": "A corrupted VM disk",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mem == \"pagefile\"",
+      "narrative": "The page file filled the SSD; the host crashed and corrupted VM A's disk image."
+    },
+    "vtxHarm": {
+      "label": "Locked out by BitLocker",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and vtx == \"secureBootOff\"",
+      "narrative": "Clearing the TPM made BitLocker ask for the recovery key; the developer was locked out for half a day."
+    },
+    "snapHarm": {
+      "label": "The VM's disk broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and snap == \"deleteFiles\"",
+      "narrative": "Deleting snapshot files by hand broke VM A's disk chain; it would not start."
+    },
+    "target": {
+      "label": "VMs that fit their host",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (mem == \"fit\") and (vtx == \"firmware\") and (snap == \"consolidate\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "Both developers' VMs run, the host is responsive and the disk has room."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "memHarm",
+    "vtxHarm",
+    "snapHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "memCrit",
+        "label": "Allocated resources within what the host can give",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mem == \"fit\"",
+            "score": "met",
+            "why": "Fits the host."
+          },
+          {
+            "when": "mem == \"oneAtATime\"",
+            "score": "partial",
+            "why": "Avoids, doesn't fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Made it worse."
+          }
+        ]
+      },
+      {
+        "id": "vtxCrit",
+        "label": "Enabled hardware virtualization in the firmware",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "vtx == \"firmware\"",
+            "score": "met",
+            "why": "Fixed in firmware."
+          },
+          {
+            "when": "vtx == \"reinstall\"",
+            "score": "partial",
+            "why": "Wrong layer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Weakened security for nothing."
+          }
+        ]
+      },
+      {
+        "id": "snapCrit",
+        "label": "Removed old snapshots through the hypervisor and kept the one needed",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "snap == \"consolidate\"",
+            "score": "met",
+            "why": "Freed safely."
+          },
+          {
+            "when": "snap == \"move\"",
+            "score": "partial",
+            "why": "Moved the problem."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke the disk chain."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(allocAt) and not isNull(diskAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(allocAt) or not isNull(diskAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the allocations, host usage and disk use first."
+      },
+      {
+        "at": "Round 1",
+        "text": "Size both VMs to leave the host room."
+      },
+      {
+        "at": "Round 2",
+        "text": "Enable VT-x or AMD-V in UEFI."
+      },
+      {
+        "at": "Round 3",
+        "text": "Delete old snapshots in the hypervisor, keep the needed one."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "memHarm": {
+        "headline": "Allocate what the host has",
+        "body": "VM memory and vCPUs must fit within the host, leaving room for it."
+      },
+      "vtxHarm": {
+        "headline": "Change the right setting",
+        "body": "Virtualization extensions are a firmware setting; leave Secure Boot and the TPM alone."
+      },
+      "snapHarm": {
+        "headline": "Manage snapshots in the hypervisor",
+        "body": "Delete snapshots through the hypervisor, which merges them safely."
+      },
+      "target": {
+        "headline": "Good: vMs that fit their host",
+        "body": "Allocations within the host, the right firmware setting, and snapshots managed by the hypervisor."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A type 2 hypervisor runs on the host OS, so VM memory and vCPUs must fit within the host and leave it room; over-allocation pages to disk. Hypervisors need the CPU's virtualization extensions (VT-x or AMD-V) enabled in firmware. Snapshots are chains of delta files that the hypervisor merges when you delete one; deleting files by hand breaks the disk."
+  }
+}

@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "platform-ingress-outage-tabletop",
+  "title": "A tabletop for the platform team: a shared ingress outage, a missing runbook and the review afterwards",
+  "screen": {
+    "type": "tabletop",
+    "level": 1,
+    "tabletop": {
+      "injects": [
+        {
+          "id": "jCmd",
+          "title": "Inject 1: every tenant endpoint returns 502",
+          "text": "The on-call platform engineer is debugging; 30 tenant teams are each opening tickets and debugging their own services.",
+          "when": "p >= 1",
+          "at": "900",
+          "open": "cmd == \"none\""
+        },
+        {
+          "id": "jRunbook",
+          "title": "Inject 2: the cause is an expired certificate on the ingress controller",
+          "text": "The ingress controller's serving certificate expired; nobody knew how cert-manager renewed it, and the first fix attempt failed.",
+          "when": "p >= 2",
+          "at": "1800",
+          "open": "runbook == \"none\""
+        },
+        {
+          "id": "jReview",
+          "title": "Inject 3: the review and the error budget",
+          "text": "The outage spent 38 minutes; the month's error budget is now exhausted. An executive asks who let the certificate expire.",
+          "when": "p >= 3",
+          "at": "2700",
+          "open": "review == \"none\""
+        }
+      ],
+      "roles": [
+        {
+          "id": "rCmd",
+          "label": "Incident commander",
+          "spokenLabel": "Incident commander",
+          "status": "{cmd == \"commander\" ? \"Platform-led: commander named, one tenant channel\" : cmd == \"tickets\" ? \"On-call fixing and answering tickets\" : cmd == \"silent\" ? \"No incident declared\" : \"Waiting for the inject\"}",
+          "tone": "cmd == \"commander\" ? \"engaged\" : cmd == \"tickets\" ? \"waiting\" : cmd == \"silent\" ? \"gap\" : \"waiting\""
+        },
+        {
+          "id": "rRunbook",
+          "label": "Platform on-call engineer",
+          "spokenLabel": "Platform on-call engineer",
+          "status": "{runbook == \"owned\" ? \"Runbook and expiry alert: owned and dated\" : runbook == \"noted\" ? \"Noted, no owner\" : runbook == \"hero\" ? \"One person is the plan\" : \"Waiting for the inject\"}",
+          "tone": "runbook == \"owned\" ? \"engaged\" : runbook == \"noted\" ? \"waiting\" : runbook == \"hero\" ? \"gap\" : \"waiting\""
+        },
+        {
+          "id": "rReview",
+          "label": "Platform lead",
+          "spokenLabel": "Platform lead",
+          "status": "{review == \"blameless\" ? \"Blameless review; budget policy applied\" : review == \"skipBudget\" ? \"Blameless review; budget ignored\" : review == \"blame\" ? \"An engineer blamed\" : \"Waiting for the inject\"}",
+          "tone": "review == \"blameless\" ? \"engaged\" : review == \"skipBudget\" ? \"waiting\" : review == \"blame\" ? \"gap\" : \"waiting\""
+        }
+      ],
+      "comms": [
+        {
+          "id": "cTen",
+          "label": "Tenant teams",
+          "spokenLabel": "the tenant teams",
+          "status": "{cmd == \"commander\" ? \"Status page and tenant channel, every 30 minutes\" : cmd == \"tickets\" ? \"Answering 30 ticket queues\" : cmd == \"silent\" ? \"No update\" : \"Not started\"}",
+          "tone": "cmd == \"commander\" ? \"sent\" : cmd == \"tickets\" ? \"draft\" : cmd == \"silent\" ? \"late\" : \"none\""
+        },
+        {
+          "id": "cExec",
+          "label": "Executives",
+          "spokenLabel": "the executives",
+          "status": "{cmd == \"commander\" ? \"Briefed by the incident commander\" : \"Not briefed\"}",
+          "tone": "cmd == \"commander\" ? \"sent\" : \"none\""
+        }
+      ],
+      "decisions": {
+        "label": "Decision log",
+        "items": [
+          {
+            "label": "{cmd == \"commander\" ? \"Platform-led: commander named, one tenant channel\" : cmd == \"tickets\" ? \"On-call fixing and answering tickets\" : cmd == \"silent\" ? \"No incident declared\" : \"\"}",
+            "when": "cmd != \"none\""
+          },
+          {
+            "label": "{runbook == \"owned\" ? \"Runbook and expiry alert: owned and dated\" : runbook == \"noted\" ? \"Noted, no owner\" : runbook == \"hero\" ? \"One person is the plan\" : \"\"}",
+            "when": "runbook != \"none\""
+          },
+          {
+            "label": "{review == \"blameless\" ? \"Blameless review; budget policy applied\" : review == \"skipBudget\" ? \"Blameless review; budget ignored\" : review == \"blame\" ? \"An engineer blamed\" : \"\"}",
+            "when": "review != \"none\""
+          }
+        ]
+      },
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Inject",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Plan incident response in platform engineering: on-call for the platform, runbooks, blameless reviews and error budgets shared with tenants",
+  "secondaryObjectives": [
+    "DevOps practices in platform engineering: shared ownership, automation, feedback loops, and how a platform team serves product teams"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cnpa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Google SRE Book, chapter 15: Postmortem Culture: Learning from Failure",
+      "checkedAt": "2026-11-17",
+      "url": "https://sre.google/sre-book/postmortem-culture/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a blameless postmortem identifies contributing causes without indicting any individual or team, and its action plan and fixes are reviewed for priority."
+    },
+    {
+      "cite": "CNCF TAG App Delivery, Platform Engineering Maturity Model",
+      "checkedAt": "2026-11-17",
+      "url": "https://tag-app-delivery.cncf.io/whitepapers/platform-eng-maturity-model/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: platform measurement through standardized surveys and feedback channels, adoption and time saved, and lead time and build times; at higher maturity a platform is run as a product with product management, user research and shared roadmaps."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the platform, the tenant teams and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You facilitate a tabletop exercise for the internal platform team at Osprey Freight, a fictional logistics company. Thirty product teams run on the platform. The scenario: the shared ingress controller fails on a Monday morning and every tenant's public endpoints return errors.",
+    "handover": [
+      "The platform has an on-call rotation but no incident commander role; tenants open tickets in their own queues.",
+      "The platform's SLO: 99.9% of ingress requests succeed each month."
+    ],
+    "howItWorks": [
+      "The table shows the injects as they arrive, who is engaged, the communications and the decision log.",
+      "Move on a inject at a time. A decision comes to you at each inject; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-17T13:00",
+    "tick": "1min",
+    "maxDuration": "180min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cmd": {
+      "type": "enum",
+      "values": [
+        "none",
+        "commander",
+        "tickets",
+        "silent"
+      ],
+      "init": "none"
+    },
+    "cmdAt": {
+      "type": "time",
+      "init": null
+    },
+    "runbook": {
+      "type": "enum",
+      "values": [
+        "none",
+        "owned",
+        "noted",
+        "hero"
+      ],
+      "init": "none"
+    },
+    "runbookAt": {
+      "type": "time",
+      "init": null
+    },
+    "review": {
+      "type": "enum",
+      "values": [
+        "none",
+        "blameless",
+        "skipBudget",
+        "blame"
+      ],
+      "init": "none"
+    },
+    "reviewAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "budgetAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((cmd == \"silent\") ? 1 : 0) + ((runbook == \"hero\") ? 1 : 0) + ((review == \"blame\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(cmd == \"none\" or (cmd == \"silent\") ? 1 : 0) + (runbook == \"none\" or (runbook == \"hero\") ? 1 : 0) + (review == \"none\" or (review == \"blame\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The exercise",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "budget"
+      ]
+    },
+    "close": {
+      "label": "After-action report",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "Read the platform's incident response plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "The plan names an on-call engineer but no incident commander, no tenant communication channel and no runbooks for the ingress controller."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "budget": {
+      "label": "Read this month's error budget",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(budgetAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "budgetAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the error budget.",
+          "kind": "act"
+        },
+        {
+          "finding": "The 99.9% monthly SLO allows about 43 minutes of failed ingress; 31 minutes are already spent this month."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the after-action report",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the report says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Platform-led command with a tenant channel, the runbook and expiry alert owned and dated, a blameless review and the error-budget policy applied"
+                },
+                {
+                  "value": "summary",
+                  "label": "Exercise completed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next inject",
+      "wait": {
+        "skipLabel": "Go to the next inject"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "cmd == \"silent\"",
+              "then": [
+                {
+                  "log": "Inject 2: two tenant teams roll back healthy releases, believing they caused the errors; one rollback reintroduces a fixed security bug.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "runbook == \"hero\"",
+              "then": [
+                {
+                  "log": "Inject 3 (scenario): two months later the same certificate expires while the senior engineer is on leave; the outage lasts three hours.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "review == \"blame\"",
+              "then": [
+                {
+                  "log": "The after-action note: in the next quarter, two near misses go unreported; engineers say they did not want to be named.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "15min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The exercise ends; the after-action report is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "15min"
+        }
+      ]
+    },
+    {
+      "id": "t_cmd",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject 1: 30 teams report errors at once.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "cmdPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_runbook",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject 2: the cause is found.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "runbookPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_review",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject 3: the post-incident review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "reviewPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "cmdPrompt": {
+      "title": "Who runs the incident?",
+      "context": "The on-call platform engineer is debugging; 30 tenant teams are each opening tickets and debugging their own services.",
+      "choices": [
+        {
+          "id": "commander",
+          "label": "The platform declares the incident: an incident commander separate from the engineer fixing it, one status page and tenant channel, updates every 30 minutes",
+          "effects": [
+            {
+              "set": "cmd",
+              "to": "\"commander\""
+            },
+            {
+              "set": "cmdAt",
+              "to": "t"
+            },
+            {
+              "log": "The team names a commander and opens one channel.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A shared capability's outage is the platform's incident: one commander, one channel, regular updates."
+        },
+        {
+          "id": "tickets",
+          "label": "The on-call engineer fixes it and answers tenant tickets as time allows",
+          "effects": [
+            {
+              "set": "cmd",
+              "to": "\"tickets\""
+            },
+            {
+              "set": "cmdAt",
+              "to": "t"
+            },
+            {
+              "log": "The engineer works the fix and the tickets.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The fix happens, but the engineer is split, and 30 teams wait on 30 queues."
+        },
+        {
+          "id": "silent",
+          "label": "Fix it quietly; tenants will see it recover",
+          "effects": [
+            {
+              "set": "cmd",
+              "to": "\"silent\""
+            },
+            {
+              "set": "cmdAt",
+              "to": "t"
+            },
+            {
+              "log": "The team works with no announcement.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Thirty teams spend the morning debugging their own healthy services."
+        }
+      ]
+    },
+    "runbookPrompt": {
+      "title": "No runbook for certificate expiry",
+      "context": "The ingress controller's serving certificate expired; nobody knew how cert-manager renewed it, and the first fix attempt failed.",
+      "choices": [
+        {
+          "id": "owned",
+          "label": "Record the gap: a certificate-expiry runbook owned by the on-call lead by Friday, and an alert 21 days before any platform certificate expires",
+          "effects": [
+            {
+              "set": "runbook",
+              "to": "\"owned\""
+            },
+            {
+              "set": "runbookAt",
+              "to": "t"
+            },
+            {
+              "log": "The gap has an owner, a date and an alert.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An exercise finds gaps; each needs an owner and a date, and automation where possible."
+        },
+        {
+          "id": "noted",
+          "label": "Note 'write a runbook' in the exercise notes",
+          "effects": [
+            {
+              "set": "runbook",
+              "to": "\"noted\""
+            },
+            {
+              "set": "runbookAt",
+              "to": "t"
+            },
+            {
+              "log": "A note is taken.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A gap without an owner and a date stays a gap."
+        },
+        {
+          "id": "hero",
+          "label": "Decide the senior engineer who knows cert-manager will always handle it",
+          "effects": [
+            {
+              "set": "runbook",
+              "to": "\"hero\""
+            },
+            {
+              "set": "runbookAt",
+              "to": "t"
+            },
+            {
+              "log": "The senior engineer is the plan.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The plan now depends on one person's memory and availability."
+        }
+      ]
+    },
+    "reviewPrompt": {
+      "title": "The review and the budget",
+      "context": "The outage spent 38 minutes; the month's error budget is now exhausted. An executive asks who let the certificate expire.",
+      "choices": [
+        {
+          "id": "blameless",
+          "label": "A blameless review of how the system allowed the expiry, action items with owners, and the error-budget policy applied: platform feature releases freeze for the month and reliability work comes first, shared with tenants",
+          "effects": [
+            {
+              "set": "review",
+              "to": "\"blameless\""
+            },
+            {
+              "set": "reviewAt",
+              "to": "t"
+            },
+            {
+              "log": "Blameless review; budget policy applied and shared.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Blameless reviews surface causes; an exhausted error budget shifts work to reliability, visibly to tenants."
+        },
+        {
+          "id": "skipBudget",
+          "label": "A blameless review, but keep releasing platform features this month",
+          "effects": [
+            {
+              "set": "review",
+              "to": "\"skipBudget\""
+            },
+            {
+              "set": "reviewAt",
+              "to": "t"
+            },
+            {
+              "log": "Review held; releases continue.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Good learning, but the budget means nothing if spending it changes nothing."
+        },
+        {
+          "id": "blame",
+          "label": "Name the engineer who set up the certificate in the report",
+          "effects": [
+            {
+              "set": "review",
+              "to": "\"blame\""
+            },
+            {
+              "set": "reviewAt",
+              "to": "t"
+            },
+            {
+              "log": "The report names an engineer.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Blame teaches people to hide problems; the system that let the certificate expire is unchanged."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the after-action report: how the platform should run incidents in its shared capabilities, the gaps found with their owners, and how the error budget is used.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Command and gaps",
+          "criteria": "A commander and one tenant channel; the runbook and expiry alert owned and dated.",
+          "modelAnswer": "The platform declares and commands incidents in shared capabilities, with one tenant channel. The certificate runbook and a 21-day expiry alert are owned by the on-call lead, due Friday."
+        },
+        {
+          "label": "Learning and budget",
+          "criteria": "A blameless review; the exhausted budget freezes platform features for the month, shared with tenants.",
+          "modelAnswer": "The review looked at how the system let the certificate expire. The budget is spent, so platform releases pause for reliability work this month."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "exercise",
+    "thresholds": {
+      "unownedGaps": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every gap the exercise found has an owner and a date in the after-action report."
+        }
+      },
+      "decisionWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each inject's key decision within 60 minutes of scenario time."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (cmd == \"tickets\") and (runbook == \"noted\") and (review == \"skipBudget\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified Cloud Native Platform Engineering Associate (CNPA) curriculum: Platform Engineering Core Fundamentals 36%, Platform Observability, Security and Conformance 20%, Continuous Delivery and Platform Engineering 16%, Platform APIs and Provisioning Infrastructure 12%, IDPs and Developer Experience 8%, Measuring your Platform 8%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cnpa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cnpa, summarizing fetch), which lists 'GitOps fundamentals' and continuous delivery in the core fundamentals domain and says to 'understand why GitOps uses pull-based reconciliation'. The official curriculum was not re-read; the objective wording is the course seed's. Reused for REQ-336 from this course's service-selector-no-endpoints-cnpa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "cmdHarm": {
+      "label": "Tenants acted blind",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cmd == \"silent\"",
+      "narrative": "With no incident declared, tenants rolled back healthy releases; one reintroduced a fixed security bug."
+    },
+    "runbookHarm": {
+      "label": "The same outage, longer",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and runbook == \"hero\"",
+      "narrative": "In the follow-on scenario, the certificate expired again while the only person who knew was on leave; three hours down."
+    },
+    "reviewHarm": {
+      "label": "Problems driven underground",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and review == \"blame\"",
+      "narrative": "Blaming an engineer led to near misses going unreported the next quarter."
+    },
+    "target": {
+      "label": "A platform ready for its next incident",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (cmd == \"commander\") and (runbook == \"owned\") and (review == \"blameless\") and record == \"honest\" and openCount <= unownedGaps",
+      "narrative": "The exercise left the platform with a command structure, owned gaps and an error-budget policy that means something."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "cmdHarm",
+    "runbookHarm",
+    "reviewHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cmdCrit",
+        "label": "Ran the incident from the platform with a commander and one channel to tenants",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cmd == \"commander\"",
+            "score": "met",
+            "why": "Platform-owned command."
+          },
+          {
+            "when": "cmd == \"tickets\"",
+            "score": "partial",
+            "why": "No command role."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Tenants left blind."
+          }
+        ]
+      },
+      {
+        "id": "runbookCrit",
+        "label": "Turned the gap into an owned runbook and automation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "runbook == \"owned\"",
+            "score": "met",
+            "why": "Owned, dated, automated."
+          },
+          {
+            "when": "runbook == \"noted\"",
+            "score": "partial",
+            "why": "No owner."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A single point of failure."
+          }
+        ]
+      },
+      {
+        "id": "reviewCrit",
+        "label": "Held a blameless review and used the error budget as the policy says",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "review == \"blameless\"",
+            "score": "met",
+            "why": "Learning and budget policy."
+          },
+          {
+            "when": "review == \"skipBudget\"",
+            "score": "partial",
+            "why": "Budget ignored."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Blamed a person."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(budgetAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(budgetAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the plan and the SLO's error budget before the first inject."
+      },
+      {
+        "at": "Inject 1",
+        "text": "Declare a platform incident with a commander and one tenant channel."
+      },
+      {
+        "at": "Inject 2",
+        "text": "Give the runbook and an expiry alert an owner and a date."
+      },
+      {
+        "at": "Inject 3",
+        "text": "Run a blameless review and apply the error-budget policy openly."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "cmdHarm": {
+        "headline": "Own the shared incident",
+        "body": "The platform declares and commands incidents in its capabilities, with one channel to tenants."
+      },
+      "runbookHarm": {
+        "headline": "Runbooks and alerts, not heroes",
+        "body": "Write the runbook, automate the alert, and give both an owner and a date."
+      },
+      "reviewHarm": {
+        "headline": "Blameless reviews",
+        "body": "Review how the system failed; name owners for fixes, not culprits."
+      },
+      "target": {
+        "headline": "Good: a platform ready for its next incident",
+        "body": "Platform-led command, owned gaps and a blameless review with the budget applied."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A platform team owns incidents in the capabilities it provides: it declares them, separates the incident commander from the people fixing, and gives tenants one channel with regular updates. Exercises and incidents find gaps; each gets an owner, a date and automation where possible, not a hero. Reviews are blameless, and a shared error budget turns reliability into a policy: when it is spent, reliability work comes before features."
+  }
+}

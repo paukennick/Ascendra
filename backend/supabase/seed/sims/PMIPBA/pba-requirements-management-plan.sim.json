@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pba-requirements-management-plan",
+  "title": "Planning the business analysis for a grants system: the requirements management plan, traceability and acceptance criteria",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRmp",
+          "label": "No requirements process",
+          "spokenLabel": "No requirements process",
+          "owner": "\"Business analyst\"",
+          "rating": "rmp == \"plan\" ? \"low\" : rmp == \"template\" ? \"medium\" : rmp == \"emails\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "rmp == \"plan\" ? \"within\" : rmp == \"template\" ? \"within\" : rmp == \"emails\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{rmp == \"plan\" ? \"Plan with roles and methods\" : rmp == \"template\" ? \"Template copied\" : rmp == \"emails\" ? \"Email collection\" : \"Open\"}"
+        },
+        {
+          "id": "rTrace",
+          "label": "Changes can't be assessed",
+          "spokenLabel": "Changes can't be assessed",
+          "owner": "\"Business analyst\"",
+          "rating": "trace == \"strategy\" ? \"low\" : trace == \"partial\" ? \"medium\" : trace == \"nothing\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "trace == \"strategy\" ? \"within\" : trace == \"partial\" ? \"within\" : trace == \"nothing\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{trace == \"strategy\" ? \"Objective-to-test traceability\" : trace == \"partial\" ? \"Requirements to tests only\" : trace == \"nothing\" ? \"No traceability\" : \"Open\"}"
+        },
+        {
+          "id": "rAcc",
+          "label": "Acceptance undefined",
+          "spokenLabel": "Acceptance undefined",
+          "owner": "\"Business analyst\"",
+          "rating": "acc == \"together\" ? \"low\" : acc == \"baOnly\" ? \"medium\" : acc == \"later\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "acc == \"together\" ? \"within\" : acc == \"baOnly\" ? \"within\" : acc == \"later\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{acc == \"together\" ? \"Metrics and criteria agreed\" : acc == \"baOnly\" ? \"BA-written criteria\" : acc == \"later\" ? \"Deferred to UAT\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business stakeholders",
+          "spokenLabel": "the business stakeholders' support",
+          "value": "biz",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRmp",
+          "kind": "Requirements plan",
+          "label": "Week 1: plan",
+          "status": "{rmp == \"plan\" ? \"Plan with roles and methods\" : rmp == \"template\" ? \"Template copied\" : rmp == \"emails\" ? \"Email collection\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and rmp == \"none\""
+        },
+        {
+          "id": "dTrace",
+          "kind": "Traceability",
+          "label": "Week 2: traceability",
+          "status": "{trace == \"strategy\" ? \"Objective-to-test traceability\" : trace == \"partial\" ? \"Requirements to tests only\" : trace == \"nothing\" ? \"No traceability\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and trace == \"none\""
+        },
+        {
+          "id": "dAcc",
+          "kind": "Acceptance criteria",
+          "label": "Week 3: acceptance",
+          "status": "{acc == \"together\" ? \"Metrics and criteria agreed\" : acc == \"baOnly\" ? \"BA-written criteria\" : acc == \"later\" ? \"Deferred to UAT\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and acc == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Developing a requirements management plan: stakeholders, roles/responsibilities, and elicitation/analysis/approval methods",
+  "secondaryObjectives": [
+    "Defining a requirements traceability strategy using traceability tools and techniques",
+    "Defining business metrics and acceptance criteria collaboratively with stakeholders"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+      "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the business analyst starting a grants management system for a fictional arts foundation. Funders, applicants, assessors and finance all have needs; last time requirements were collected in emails.",
+    "handover": [
+      "The project is predictive with a fixed budget.",
+      "Last project: 30% of requirements changed after build started."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-03T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "biz": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "rmp": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plan",
+        "template",
+        "emails"
+      ],
+      "init": "none"
+    },
+    "rmpAt": {
+      "type": "time",
+      "init": null
+    },
+    "trace": {
+      "type": "enum",
+      "values": [
+        "none",
+        "strategy",
+        "partial",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "traceAt": {
+      "type": "time",
+      "init": null
+    },
+    "acc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "together",
+        "baOnly",
+        "later"
+      ],
+      "init": "none"
+    },
+    "accAt": {
+      "type": "time",
+      "init": null
+    },
+    "lessonsAt": {
+      "type": "time",
+      "init": null
+    },
+    "stakeAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), biz)"
+    },
+    "missCount": {
+      "expr": "((rmp == \"emails\") ? 1 : 0) + ((trace == \"nothing\") ? 1 : 0) + ((acc == \"later\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rmp == \"none\" or (rmp == \"emails\") ? 1 : 0) + (trace == \"none\" or (trace == \"nothing\") ? 1 : 0) + (acc == \"none\" or (acc == \"later\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Business analysis planning",
+      "clock": "turns",
+      "actions": [
+        "lessons",
+        "stake"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "lessons": {
+      "label": "Read the last project's lessons learned",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lessonsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lessonsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the last project's lessons learned.",
+          "kind": "act"
+        },
+        {
+          "finding": "Requirements lived in emails; nobody approved them; acceptance was argued at go-live."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "stake": {
+      "label": "Identify stakeholder groups and decision makers",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(stakeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "stakeAt",
+          "to": "t"
+        },
+        {
+          "log": "Identify stakeholder groups and decision makers.",
+          "kind": "act"
+        },
+        {
+          "finding": "Four groups; the program director approves scope; finance owns audit rules."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A requirements management plan with roles and methods, objective-to-test traceability, and agreed metrics and acceptance criteria"
+                },
+                {
+                  "value": "summary",
+                  "label": "BA planned"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rmp == \"emails\"",
+              "then": [
+                {
+                  "log": "Week 2: assessors and finance send conflicting requirements by email; nobody can say which version is approved.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "trace == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 3: a change to the scoring rules can't be traced; three dependent reports break in testing.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "acc == \"later\"",
+              "then": [
+                {
+                  "log": "Week 4 (UAT): finance rejects the audit report format; the release slips three weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "Planning closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_rmp",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rmpPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_trace",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: traceability.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "tracePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_acc",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: acceptance.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "accPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "rmpPrompt": {
+      "title": "How requirements will be managed",
+      "context": "Nothing is defined.",
+      "choices": [
+        {
+          "id": "plan",
+          "label": "A plan naming stakeholders, roles (who elicits, who approves), elicitation methods per group (workshops, interviews, observation), analysis and approval methods",
+          "effects": [
+            {
+              "set": "rmp",
+              "to": "\"plan\""
+            },
+            {
+              "set": "rmpAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "The plan is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The plan sets who does what and how requirements are elicited, analyzed and approved."
+        },
+        {
+          "id": "template",
+          "label": "Use a template from another project unchanged",
+          "effects": [
+            {
+              "set": "rmp",
+              "to": "\"template\""
+            },
+            {
+              "set": "rmpAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "A template is copied.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It doesn't name this project's stakeholders or approvers."
+        },
+        {
+          "id": "emails",
+          "label": "Collect requirements by email as before",
+          "effects": [
+            {
+              "set": "rmp",
+              "to": "\"emails\""
+            },
+            {
+              "set": "rmpAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Emails again.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The last project's failure repeats."
+        }
+      ]
+    },
+    "tracePrompt": {
+      "title": "How to trace",
+      "context": "A spreadsheet or the team's tool?",
+      "choices": [
+        {
+          "id": "strategy",
+          "label": "Trace business objectives to requirements, designs and tests in the team's tool with unique IDs and versioning",
+          "effects": [
+            {
+              "set": "trace",
+              "to": "\"strategy\""
+            },
+            {
+              "set": "traceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "1"
+            },
+            {
+              "log": "Traceability is defined end to end.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A traceability strategy links objectives to requirements to tests, versioned."
+        },
+        {
+          "id": "partial",
+          "label": "Trace requirements to tests only",
+          "effects": [
+            {
+              "set": "trace",
+              "to": "\"partial\""
+            },
+            {
+              "set": "traceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-1"
+            },
+            {
+              "log": "Requirements to tests.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You can't show which objective each requirement serves."
+        },
+        {
+          "id": "nothing",
+          "label": "Skip traceability: it's overhead",
+          "effects": [
+            {
+              "set": "trace",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "traceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-2"
+            },
+            {
+              "log": "No traceability.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Changes can't be assessed and delivery can't be evidenced."
+        }
+      ]
+    },
+    "accPrompt": {
+      "title": "Who defines done?",
+      "context": "Last time acceptance was argued at go-live.",
+      "choices": [
+        {
+          "id": "together",
+          "label": "Define business metrics (grant decisions in 6 weeks, audit findings zero) and acceptance criteria per requirement with each group, approved by the program director",
+          "effects": [
+            {
+              "set": "acc",
+              "to": "\"together\""
+            },
+            {
+              "set": "accAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Criteria are agreed and approved.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Acceptance criteria and metrics defined with stakeholders up front prevent arguments at go-live."
+        },
+        {
+          "id": "baOnly",
+          "label": "Write the criteria yourself",
+          "effects": [
+            {
+              "set": "acc",
+              "to": "\"baOnly\""
+            },
+            {
+              "set": "accAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "You write them.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Stakeholders haven't agreed them."
+        },
+        {
+          "id": "later",
+          "label": "Leave acceptance to UAT",
+          "effects": [
+            {
+              "set": "acc",
+              "to": "\"later\""
+            },
+            {
+              "set": "accAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Deferred to UAT.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Testing without criteria repeats the go-live arguments."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the business analysis plan summary for the program director.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Plan and traceability",
+          "criteria": "Roles, elicitation and approval methods; traceability from objectives to tests.",
+          "modelAnswer": "The plan names who elicits and approves, the methods per group, and traces objectives to requirements to tests."
+        },
+        {
+          "label": "Acceptance",
+          "criteria": "Metrics and criteria agreed with each group.",
+          "modelAnswer": "Grant decisions in 6 weeks and zero audit findings are the metrics; each requirement has agreed acceptance criteria."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rmp == \"template\") and (trace == \"partial\") and (acc == \"baOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+        "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rmpHarm": {
+      "label": "Conflicting, unapproved requirements",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rmp == \"emails\"",
+      "narrative": "Conflicting emailed requirements had no approved version."
+    },
+    "traceHarm": {
+      "label": "Broken dependencies",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and trace == \"nothing\"",
+      "narrative": "An untraced scoring change broke three reports."
+    },
+    "accHarm": {
+      "label": "Rejected at UAT",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and acc == \"later\"",
+      "narrative": "With no agreed criteria, finance rejected the audit reports at UAT."
+    },
+    "target": {
+      "label": "Business analysis planned",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rmp == \"plan\") and (trace == \"strategy\") and (acc == \"together\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Requirements will be elicited, traced and accepted the way everyone agreed."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rmpHarm",
+    "traceHarm",
+    "accHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rmpCrit",
+        "label": "Wrote a requirements management plan with roles and methods",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rmp == \"plan\"",
+            "score": "met",
+            "why": "Planned."
+          },
+          {
+            "when": "rmp == \"template\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No plan."
+          }
+        ]
+      },
+      {
+        "id": "traceCrit",
+        "label": "Defined a traceability strategy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "trace == \"strategy\"",
+            "score": "met",
+            "why": "Traceable."
+          },
+          {
+            "when": "trace == \"partial\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Untraceable."
+          }
+        ]
+      },
+      {
+        "id": "accCrit",
+        "label": "Defined metrics and acceptance criteria with the stakeholders",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "acc == \"together\"",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "acc == \"baOnly\"",
+            "score": "partial",
+            "why": "Not shared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Undefined."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lessonsAt) and not isNull(stakeAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(lessonsAt) or not isNull(stakeAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the lessons and identify the stakeholders first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Write the plan with roles and methods."
+      },
+      {
+        "at": "Week 2",
+        "text": "Trace objectives to requirements to tests in the tool, versioned."
+      },
+      {
+        "at": "Week 3",
+        "text": "Define metrics and acceptance criteria with each group."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rmpHarm": {
+        "headline": "Plan the BA work",
+        "body": "Roles, methods and approval in a plan."
+      },
+      "traceHarm": {
+        "headline": "Trace",
+        "body": "Link objectives, requirements and tests."
+      },
+      "accHarm": {
+        "headline": "Define acceptance early",
+        "body": "Metrics and criteria agreed with stakeholders."
+      },
+      "target": {
+        "headline": "Good: business analysis planned",
+        "body": "A plan, traceability and agreed acceptance."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Business analysis planning sets the requirements management plan (stakeholders, roles, elicitation, analysis and approval methods), a traceability strategy linking objectives to requirements and tests, and business metrics and acceptance criteria defined with stakeholders up front."
+  }
+}

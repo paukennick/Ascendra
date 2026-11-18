@@ -1,0 +1,1036 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "office-server-raid-psu-printer",
+  "title": "A small office's hardware day: a file server's RAID level, a workstation's power supply, and a laser printer's fuser",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tRaid",
+          "ref": "INC-3101",
+          "kind": "request",
+          "title": "Set up the new file server's four drives",
+          "when": "p >= 1",
+          "at": "1800",
+          "impact": "1",
+          "urgency": "2",
+          "priority": "2",
+          "status": "{raid == \"raid5\" ? \"RAID 5, 12 TB usable, alerts on\" : raid == \"raid1\" ? \"Two RAID 1 mirrors, 8 TB usable\" : raid == \"raid0\" ? \"RAID 0: no fault tolerance\" : \"Due\"}",
+          "open": "raid == \"none\"",
+          "due": "3600"
+        },
+        {
+          "id": "tPsu",
+          "ref": "INC-3102",
+          "kind": "incident",
+          "title": "Workstation shuts down when rendering",
+          "when": "p >= 2",
+          "at": "3600",
+          "impact": "2",
+          "urgency": "1",
+          "priority": "2",
+          "status": "{psu == \"size\" ? \"850 W supply, airflow checked\" : psu == \"oneGpu\" ? \"One GPU until a new supply\" : psu == \"adapter\" ? \"Adapters on an overloaded supply\" : \"Due\"}",
+          "open": "psu == \"none\"",
+          "due": "5400"
+        },
+        {
+          "id": "tFuser",
+          "ref": "INC-3103",
+          "kind": "incident",
+          "title": "Laser printer smears toner",
+          "when": "p >= 3",
+          "at": "5400",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{fuser == \"kit\" ? \"Maintenance kit fitted; counter reset\" : fuser == \"toner\" ? \"New toner; still smearing\" : fuser == \"hotHands\" ? \"Fuser handled hot\" : \"Due\"}",
+          "open": "fuser == \"none\"",
+          "due": "7200"
+        }
+      ],
+      "services": [
+        {
+          "id": "vRaid",
+          "label": "Project file server",
+          "spokenLabel": "Project file server",
+          "status": "{raid == \"raid5\" ? \"RAID 5, 12 TB usable, alerts on\" : raid == \"raid1\" ? \"Two RAID 1 mirrors, 8 TB usable\" : raid == \"raid0\" ? \"RAID 0: no fault tolerance\" : \"Normal service\"}",
+          "tone": "raid == \"raid5\" ? \"ok\" : raid == \"raid1\" ? \"degraded\" : raid == \"raid0\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vPsu",
+          "label": "Rendering workstation",
+          "spokenLabel": "Rendering workstation",
+          "status": "{psu == \"size\" ? \"850 W supply, airflow checked\" : psu == \"oneGpu\" ? \"One GPU until a new supply\" : psu == \"adapter\" ? \"Adapters on an overloaded supply\" : \"Normal service\"}",
+          "tone": "psu == \"size\" ? \"ok\" : psu == \"oneGpu\" ? \"degraded\" : psu == \"adapter\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vFuser",
+          "label": "Office laser printer",
+          "spokenLabel": "Office laser printer",
+          "status": "{fuser == \"kit\" ? \"Maintenance kit fitted; counter reset\" : fuser == \"toner\" ? \"New toner; still smearing\" : fuser == \"hotHands\" ? \"Fuser handled hot\" : \"Normal service\"}",
+          "tone": "fuser == \"kit\" ? \"ok\" : fuser == \"toner\" ? \"degraded\" : fuser == \"hotHands\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Ticket round",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Installing and configuring storage devices: SATA and NVMe SSDs, HDDs, and RAID levels by use case",
+  "secondaryObjectives": [
+    "Selecting a power supply by wattage and connector type, and choosing appropriate cooling for a build",
+    "Comparing laser, inkjet, thermal, and impact printer technologies and their routine maintenance"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+      "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The business, the users, the devices and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the IT technician for Larkspur Architects, a fictional 20-person firm. Three tickets wait this morning: the new file server's drives, a rendering workstation that shuts down under load, and a laser printer smearing toner.",
+    "handover": [
+      "File server: four new 4 TB SATA HDDs, a hardware RAID controller, nightly backup to the cloud.",
+      "The rendering workstation got a second GPU last week; the power supply is 550 W."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a ticket round at a time. A decision comes to you at each ticket round; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-08T08:30",
+    "tick": "1min",
+    "maxDuration": "360min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "raid": {
+      "type": "enum",
+      "values": [
+        "none",
+        "raid5",
+        "raid1",
+        "raid0"
+      ],
+      "init": "none"
+    },
+    "raidAt": {
+      "type": "time",
+      "init": null
+    },
+    "psu": {
+      "type": "enum",
+      "values": [
+        "none",
+        "size",
+        "oneGpu",
+        "adapter"
+      ],
+      "init": "none"
+    },
+    "psuAt": {
+      "type": "time",
+      "init": null
+    },
+    "fuser": {
+      "type": "enum",
+      "values": [
+        "none",
+        "kit",
+        "toner",
+        "hotHands"
+      ],
+      "init": "none"
+    },
+    "fuserAt": {
+      "type": "time",
+      "init": null
+    },
+    "specsAt": {
+      "type": "time",
+      "init": null
+    },
+    "printlogAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((raid == \"raid0\") ? 1 : 0) + ((psu == \"adapter\") ? 1 : 0) + ((fuser == \"hotHands\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(raid == \"none\" or (raid == \"raid0\") ? 1 : 0) + (psu == \"none\" or (psu == \"adapter\") ? 1 : 0) + (fuser == \"none\" or (fuser == \"hotHands\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The ticket queue",
+      "clock": "turns",
+      "actions": [
+        "specs",
+        "printlog"
+      ]
+    },
+    "close": {
+      "label": "Work notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "specs": {
+      "label": "Read the server and workstation specifications",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(specsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "specsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the specifications.",
+          "kind": "act"
+        },
+        {
+          "finding": "The file server holds every project; it must survive a drive failure and stay usable. The workstation's two GPUs draw about 450 W at full load, plus 150 W for the CPU and the rest."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "printlog": {
+      "label": "Read the printer's maintenance log",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(printlogAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "printlogAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the printer log.",
+          "kind": "act"
+        },
+        {
+          "finding": "The laser printer has printed 148,000 pages; the fuser assembly's rated life is 150,000. Toner that smears off the page means it is not being fused."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the work notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "RAID 5 with alerts and backup kept, an 850 W supply with cooling checked, and the fuser kit fitted after cooling"
+                },
+                {
+                  "value": "summary",
+                  "label": "Tickets closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next ticket round",
+      "wait": {
+        "skipLabel": "Go to the next ticket round"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "raid == \"raid0\"",
+              "then": [
+                {
+                  "log": "Round 2: one of the new drives fails early; the RAID 0 volume is lost and the firm restores from last night, losing a morning's drawings.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "psu == \"adapter\"",
+              "then": [
+                {
+                  "log": "Round 3: during a render the adapter overheats and melts; the workstation is out for a week and the motherboard is damaged.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "fuser == \"hotHands\"",
+              "then": [
+                {
+                  "log": "Round 4: you burn your hand on the fuser and the replacement is cracked when it is forced in; the printer is out for a week.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "30min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The morning's tickets are closed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "30min"
+        }
+      ]
+    },
+    {
+      "id": "t_raid",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 1: the file server ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "raidPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_psu",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 2: the workstation ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "psuPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_fuser",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 3: the printer ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fuserPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "raidPrompt": {
+      "title": "Which RAID level?",
+      "context": "Four 4 TB drives. The firm needs to survive a drive failure, with as much space as possible for large project files.",
+      "choices": [
+        {
+          "id": "raid5",
+          "label": "RAID 5 across the four drives (about 12 TB usable, survives one failed drive), keep the nightly cloud backup, and set up drive-failure alerts",
+          "effects": [
+            {
+              "set": "raid",
+              "to": "\"raid5\""
+            },
+            {
+              "set": "raidAt",
+              "to": "t"
+            },
+            {
+              "log": "RAID 5 is built; alerts are on.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "RAID 5 gives fault tolerance for one drive with good capacity; RAID is not a backup, so the backup stays."
+        },
+        {
+          "id": "raid1",
+          "label": "Two RAID 1 mirrors (8 TB usable)",
+          "effects": [
+            {
+              "set": "raid",
+              "to": "\"raid1\""
+            },
+            {
+              "set": "raidAt",
+              "to": "t"
+            },
+            {
+              "log": "Two mirrors are built.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fault tolerant, but half the capacity, split across two volumes."
+        },
+        {
+          "id": "raid0",
+          "label": "RAID 0 across all four for the full 16 TB and speed",
+          "effects": [
+            {
+              "set": "raid",
+              "to": "\"raid0\""
+            },
+            {
+              "set": "raidAt",
+              "to": "t"
+            },
+            {
+              "log": "RAID 0 is built.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "RAID 0 stripes with no redundancy: one failed drive loses the whole volume."
+        }
+      ]
+    },
+    "psuPrompt": {
+      "title": "Shutdowns under load",
+      "context": "The system draws about 650 W at full load on a 550 W supply.",
+      "choices": [
+        {
+          "id": "size",
+          "label": "Fit an 850 W 80 Plus Gold supply with the GPUs' PCIe power connectors, and check case airflow for the second GPU",
+          "effects": [
+            {
+              "set": "psu",
+              "to": "\"size\""
+            },
+            {
+              "set": "psuAt",
+              "to": "t"
+            },
+            {
+              "log": "The new supply and airflow fix the shutdowns.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Size the supply for peak draw plus headroom, with the connectors each card needs, and cool what you added."
+        },
+        {
+          "id": "oneGpu",
+          "label": "Remove the second GPU until a new supply is budgeted",
+          "effects": [
+            {
+              "set": "psu",
+              "to": "\"oneGpu\""
+            },
+            {
+              "set": "psuAt",
+              "to": "t"
+            },
+            {
+              "log": "The second GPU comes out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Stable again, but renders take twice as long."
+        },
+        {
+          "id": "adapter",
+          "label": "Use Molex-to-PCIe adapters to power the second GPU from the old supply",
+          "effects": [
+            {
+              "set": "psu",
+              "to": "\"adapter\""
+            },
+            {
+              "set": "psuAt",
+              "to": "t"
+            },
+            {
+              "log": "Adapters feed the second GPU.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Adapters don't add wattage; they overload a rail and are a fire risk."
+        }
+      ]
+    },
+    "fuserPrompt": {
+      "title": "Toner smears off the page",
+      "context": "The printer is at 148,000 pages; the fuser is rated for 150,000.",
+      "choices": [
+        {
+          "id": "kit",
+          "label": "Power off and let it cool, install the maintenance kit (fuser and rollers), reset the page counter, and print a test page",
+          "effects": [
+            {
+              "set": "fuser",
+              "to": "\"kit\""
+            },
+            {
+              "set": "fuserAt",
+              "to": "t"
+            },
+            {
+              "log": "The maintenance kit is fitted; prints are clean.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Smearing toner means it isn't fused; the fuser is due, and it is hot, so let it cool first."
+        },
+        {
+          "id": "toner",
+          "label": "Replace the toner cartridge",
+          "effects": [
+            {
+              "set": "fuser",
+              "to": "\"toner\""
+            },
+            {
+              "set": "fuserAt",
+              "to": "t"
+            },
+            {
+              "log": "A new cartridge is fitted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Toner isn't the fault here; the fuser is."
+        },
+        {
+          "id": "hotHands",
+          "label": "Pull the fuser out straight away while the printer is running hot",
+          "effects": [
+            {
+              "set": "fuser",
+              "to": "\"hotHands\""
+            },
+            {
+              "set": "fuserAt",
+              "to": "t"
+            },
+            {
+              "log": "You reach in while it is hot.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A fuser runs at about 200 degrees Celsius; handling it hot burns you and can damage the unit."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the work notes: why you chose the RAID level, the power supply and the printer fix.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Storage and power",
+          "criteria": "RAID 5 survives one drive and keeps capacity; backup kept. 850 W for 650 W peak.",
+          "modelAnswer": "RAID 5 gives 12 TB and survives one drive; the backup stays because RAID is not a backup. The workstation peaks near 650 W, so it got an 850 W supply."
+        },
+        {
+          "label": "Printer",
+          "criteria": "Smearing means the fuser; maintenance kit after cooling.",
+          "modelAnswer": "Toner smeared because the fuser was at end of life; we let it cool and fitted the maintenance kit."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (raid == \"raid1\") and (psu == \"oneGpu\") and (fuser == \"toner\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA A+ Core 1 (220-1201) V15: domains Mobile devices 13%, Networking 23%, Hardware 25%, Virtualization and cloud computing 11%, Hardware and network troubleshooting 28%; launched 2025-03-25",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.comptia.org/en-us/certifications/a/core-1-v15/",
+        "note": "Exam page read through a summarizing fetch on 2026-11-14 ('Diagnosing issues: identifying and fixing hardware, network, and connectivity problems'). The objectives PDF (Exam Objectives Version 1.2) was read in primary text the same day: 5.5 'Given a scenario, troubleshoot network issues' lists 'Limited connectivity' and 'Intermittent internet connectivity'; 2.6 lists APIPA, static and dynamic addressing, subnet mask and gateway; 2.4 lists DHCP leases, reservations, scope and exclusions. The PDF says the troubleshooting methodology 'will not be tested' in the 220-1200 series but remains a competency standard. Reused for REQ-336 from this course's rogue-dhcp-soho-office (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "raidHarm": {
+      "label": "The volume lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and raid == \"raid0\"",
+      "narrative": "A single drive failure destroyed the RAID 0 volume; a morning's drawings were lost."
+    },
+    "psuHarm": {
+      "label": "A melted connector",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and psu == \"adapter\"",
+      "narrative": "The adapter overheated on the overloaded supply; the workstation and its motherboard were damaged."
+    },
+    "fuserHarm": {
+      "label": "A burn and a broken part",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and fuser == \"hotHands\"",
+      "narrative": "Handling the fuser hot burned the technician and the forced replacement cracked."
+    },
+    "target": {
+      "label": "Right parts for the job",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (raid == \"raid5\") and (psu == \"size\") and (fuser == \"kit\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "The server is fault tolerant, the workstation renders without shutting down, and prints are clean."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "raidHarm",
+    "psuHarm",
+    "fuserHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "raidCrit",
+        "label": "Chose a RAID level that survives a drive failure for the use case",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "raid == \"raid5\"",
+            "score": "met",
+            "why": "Fault tolerant with capacity."
+          },
+          {
+            "when": "raid == \"raid1\"",
+            "score": "partial",
+            "why": "Safe, less space."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No redundancy."
+          }
+        ]
+      },
+      {
+        "id": "psuCrit",
+        "label": "Sized the power supply to the load with headroom and the right connectors",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "psu == \"size\"",
+            "score": "met",
+            "why": "Sized with headroom."
+          },
+          {
+            "when": "psu == \"oneGpu\"",
+            "score": "partial",
+            "why": "Stable, slower."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overloaded the supply."
+          }
+        ]
+      },
+      {
+        "id": "fuserCrit",
+        "label": "Replaced the worn fuser as routine maintenance",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fuser == \"kit\"",
+            "score": "met",
+            "why": "Routine maintenance done safely."
+          },
+          {
+            "when": "fuser == \"toner\"",
+            "score": "partial",
+            "why": "Wrong part."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsafe."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(specsAt) and not isNull(printlogAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(specsAt) or not isNull(printlogAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the specifications and the printer's maintenance log first."
+      },
+      {
+        "at": "Round 1",
+        "text": "Build RAID 5 with failure alerts and keep the backup."
+      },
+      {
+        "at": "Round 2",
+        "text": "Fit an 850 W supply with the right connectors and check cooling."
+      },
+      {
+        "at": "Round 3",
+        "text": "Let it cool, fit the maintenance kit, reset the counter, test."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "raidHarm": {
+        "headline": "RAID by use case",
+        "body": "A shared file server needs fault tolerance: RAID 5 or mirrors, plus a backup."
+      },
+      "psuHarm": {
+        "headline": "Size the supply",
+        "body": "Peak draw plus headroom, and the connectors each component needs."
+      },
+      "fuserHarm": {
+        "headline": "Cool, then maintain",
+        "body": "Power off and let the fuser cool before replacing it."
+      },
+      "target": {
+        "headline": "Good: right parts for the job",
+        "body": "RAID by use case, power sized with headroom, and routine printer maintenance done safely."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Choose a RAID level by use case: RAID 0 stripes with no redundancy, RAID 1 mirrors, RAID 5 survives one failed drive with more capacity, and none replaces a backup. Size a power supply for peak draw plus headroom with the connectors each component needs, and cool what you add. Toner that smears off a laser print is not being fused: the fuser is a maintenance item, replaced cool, by page count."
+  }
+}

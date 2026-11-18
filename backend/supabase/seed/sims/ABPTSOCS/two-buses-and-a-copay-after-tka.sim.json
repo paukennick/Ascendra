@@ -1,0 +1,1145 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "two-buses-and-a-copay-after-tka",
+  "title": "Two buses and a copay",
+  "objective": "Plan knee arthroplasty rehab through shared decision-making, weighing patient preference against out-of-pocket cost, limits on covered visits and transport barriers when choosing setting and format",
+  "secondaryObjectives": [
+    "After knee arthroplasty, start progressive strength training early in the postacute period, add balance and gait retraining, and use NMES for quadriceps activation deficits, except with demand-type pacemakers, active cancer or deep vein thrombosis",
+    "Medical screening and differential diagnosis for red flags masquerading as musculoskeletal pain"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: orthopaedics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
+      "note": "Relayed from the orthopaedics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Clinical reasoning, professionalism, communication, education and systems-based practice (10%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra orthopaedics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSOCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "American Physical Therapy Association. Clinical practice guideline for physical therapist management of total knee arthroplasty: revision 2026. Phys Ther 2026, doi:10.1093/ptj/pzag058",
+      "checkedAt": "2026-11-04",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13403188/",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag TKA-CPG; full text read 2026-11-04), not re-read: plan knee arthroplasty rehab through shared decision-making, weighing patient preference against out-of-pocket cost, limits on covered visits and transport barriers when choosing setting and format (the orthopaedic course objective's wording)."
+    },
+    {
+      "cite": "Waheed, et al.. Deep Venous Thrombosis. StatPearls (updated 2023-01-19), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DVT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen for deep vein thrombosis risk with Virchow's triad (vessel wall damage, flow stasis, hypercoagulability); clinical probability is scored with the Wells system before D-dimer and ultrasound (the cardiovascular course objective's wording, relayed from the same seed)."
+    },
+    {
+      "cite": "MedlinePlus Medical Encyclopedia: Deep vein thrombosis (reviewed 2025-04-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://medlineplus.gov/ency/article/000156.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms: 'Redness of the skin', 'Skin that feels warm to the touch', 'Swelling (edema) of a leg or arm', 'Pain or tenderness in a leg or arm'; risk factors include 'Recent surgery (most commonly hip, knee, or female pelvic surgery)'; 'When a clot breaks off and moves through the bloodstream, it is called an embolism'; pulmonary embolism is a complication 'which may be fatal'; 'Contact your provider if you have symptoms of DVT.'"
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in an outpatient orthopedic clinic. You are the physical therapist. Mrs. Alvarez, 68, is 10 days after a right total knee replacement. The clinic's standard order set is three clinic visits a week for 8 weeks. She came by two buses, pays a copay each visit, and her plan covers a limited number of visits a year. She says her right calf 'aches more than the knee' since yesterday.",
+    "handover": [
+      "The surgeon's protocol: progress strength, balance and gait; no restrictions.",
+      "Clinic policy: signs of a possible blood clot are phoned to the surgeon the same day, before exercise."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An unrecognized clot risks moving. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Under medical evaluation. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of a clot on the move. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The surgeon called within 5 minutes of the calf exam (clinic policy: same day, before exercise)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "calfAt": {
+      "type": "time",
+      "init": null
+    },
+    "romAt": {
+      "type": "time",
+      "init": null
+    },
+    "prefAt": {
+      "type": "time",
+      "init": null
+    },
+    "coverAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "calf",
+        "rom",
+        "pref",
+        "cover"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "surgeon",
+        "next"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dvt",
+        "sore",
+        "knee"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "bikeAt": {
+      "type": "time",
+      "init": null
+    },
+    "fixedAt": {
+      "type": "time",
+      "init": null
+    },
+    "sdmAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(bikeAt) ? 88 : 112)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(bikeAt) ? 136 : 150)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 6 * max(0, prog - 0.8))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"surgeon\" and isNull(bikeAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Alvarez, 68, 10 days after a total knee replacement",
+        "presentation": "First outpatient visit. Came by two buses. {not isNull(bikeAt) ? \"On the stationary bike.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : (not isNull(bikeAt) ? \"Pedaling hard, wincing at the calf.\" : \"Seated, leg elevated.\")}",
+      "measures": [
+        {
+          "id": "calfResult",
+          "label": "Calves",
+          "result": "Right calf swollen, warm and tender; 3 cm larger than the left.",
+          "when": "not isNull(calfAt)",
+          "flag": "true"
+        },
+        {
+          "id": "romResult",
+          "label": "Knee",
+          "result": "Flexion 85 degrees, extension lacks 5; weak quadriceps contraction.",
+          "when": "not isNull(romAt)"
+        },
+        {
+          "id": "prefResult",
+          "label": "Preferences",
+          "result": "Wants to garden by spring; copay is hard on three visits a week; two buses each way; comfortable with video calls and a home program.",
+          "when": "not isNull(prefAt)"
+        },
+        {
+          "id": "coverResult",
+          "label": "Coverage",
+          "result": "A limited number of visits a year; a copay each visit.",
+          "when": "not isNull(coverAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Surgeon called about the calf",
+            "when": "route == \"surgeon\""
+          },
+          {
+            "label": "Plan chosen together",
+            "when": "not isNull(sdmAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleDvt",
+          "label": "A swollen, warm, tender calf after knee surgery",
+          "text": "Possible deep vein thrombosis: no vigorous exercise; same-day medical evaluation.",
+          "met": "not isNull(calfAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "calf": {
+      "label": "Look at and feel both calves; measure their girth",
+      "group": "Examine",
+      "available": "not testPending and isNull(calfAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"calf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "rom": {
+      "label": "Knee range of motion and quadriceps activation",
+      "group": "Examine",
+      "available": "not testPending and isNull(romAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rom\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "pref": {
+      "label": "Ask what matters to her: goals, costs, transport, time, how she likes to exercise",
+      "group": "Examine",
+      "available": "not testPending and isNull(prefAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"pref\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "cover": {
+      "label": "Check her plan's covered visits and costs",
+      "group": "Examine",
+      "available": "not testPending and isNull(coverAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cover\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "bike": {
+      "label": "Start today's session as usual: stationary bike and strengthening",
+      "group": "Treat",
+      "available": "isNull(bikeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bikeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "Five minutes on the bike, the calf pain sharpens and she becomes short of breath.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "fixed": {
+      "label": "Book the standard three clinic visits a week for 8 weeks",
+      "group": "Treat",
+      "available": "isNull(fixedAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "fixedAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "Booked 24 clinic visits; she looks worried about the buses and the cost.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "sdm": {
+      "label": "Lay out the options with her: fewer clinic visits plus a home program and video visits, or clinic-heavy; choose together, once the calf is cleared",
+      "group": "Treat",
+      "available": "isNull(sdmAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sdmAt",
+          "to": "t"
+        },
+        {
+          "log": "Together you choose clinic visits once a week, a daily home program and a weekly video visit, starting once the calf is cleared.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What explains the calf ache?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "dvt",
+              "label": "Possible deep vein thrombosis: a swollen, warm, tender calf 10 days after knee surgery"
+            },
+            {
+              "value": "sore",
+              "label": "Muscle soreness from the home exercises"
+            },
+            {
+              "value": "knee",
+              "label": "Referred knee pain"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"dvt\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dvt\""
+                },
+                {
+                  "log": "Possible DVT.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sore\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sore\""
+                },
+                {
+                  "log": "Read as soreness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"knee\""
+                },
+                {
+                  "log": "Read as knee pain.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "surgeon",
+              "label": "Call the surgeon's office now: right calf swollen 3 cm, warm and tender, day 10 after knee replacement; no exercise today; ask for same-day evaluation"
+            },
+            {
+              "value": "next",
+              "label": "Mention it at her next visit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"surgeon\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"surgeon\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The surgeon's office sends her for an ultrasound this afternoon; strengthening waits for the result.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"next\""
+                },
+                {
+                  "log": "Left for next visit.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the calf findings, the call and the shared plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Calf findings, the call and the shared plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Ortho clinic",
+      "clock": "running",
+      "actions": [
+        "calf",
+        "rom",
+        "pref",
+        "cover",
+        "bike",
+        "fixed",
+        "sdm",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"calf\"",
+              "then": [
+                {
+                  "set": "calfAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Right calf swollen, warm and tender, 3 cm larger than the left, 10 days after knee surgery: possible deep vein thrombosis.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"rom\"",
+              "then": [
+                {
+                  "set": "romAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Knee flexion 85 degrees, extension lacking 5; weak quadriceps activation.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"pref\"",
+              "then": [
+                {
+                  "set": "prefAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Her goal is gardening by spring; three copays a week strains her budget; two buses each way; she is comfortable with video calls and a home program.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "coverAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Her plan covers a limited number of visits a year with a copay each time.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves for the ultrasound with a plan she chose.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you do about Mrs. Alvarez's calf and her rehab plan?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A swollen, warm, tender calf 10 days after knee replacement is a possible deep vein thrombosis, a red flag that stops exercise today; the rehab plan then has to fit her goals, copay, covered visits and two-bus trip.",
+          "modelAnswer": "Her calf could be a clot, so no exercise until it's checked. Then the plan has to fit her gardening goal, her copays, her visit limit and the buses."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Call the surgeon for same-day evaluation, then lay out the options and choose together: fewer clinic visits with a home program and video visits, starting once cleared; document.",
+          "modelAnswer": "Call the surgeon now, then work out with her a plan of weekly clinic visits, a daily home program and video check-ins once she's cleared."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The surgeon called within 5 minutes of the calf exam (clinic policy: same day, before exercise)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unexamined calf and no plan is harm here.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Deep vein thrombosis (reviewed 2025-04-01)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000156.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms: 'Redness of the skin', 'Skin that feels warm to the touch', 'Swelling (edema) of a leg or arm', 'Pain or tenderness in a leg or arm'; risk factors include 'Recent surgery (most commonly hip, knee, or female pelvic surgery)'; 'When a clot breaks off and moves through the bloodstream, it is called an embolism'; pulmonary embolism is a complication 'which may be fatal'; 'Contact your provider if you have symptoms of DVT.'"
+      }
+    }
+  },
+  "endings": {
+    "pe": {
+      "label": "A clot on the move",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She stops pedaling, short of breath and anxious, her heart racing: a clot may have reached her lungs. 911 is called."
+    },
+    "safe": {
+      "label": "Cleared and planned together",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"surgeon\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(calfAt) and timeAt(calfAt) <= 300) and isNull(bikeAt) and isNull(fixedAt) and (not isNull(prefAt) and not isNull(sdmAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is being evaluated for a clot and has a rehab plan she can afford and reach."
+    },
+    "safeGaps": {
+      "label": "Planned, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is safe, but the call was slow or the plan was imposed."
+    },
+    "time_up": {
+      "label": "No plan at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "pe",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The surgeon called within 5 minutes of the calf exam",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"surgeon\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"surgeon\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "calfC",
+        "label": "Examined the calf before exercise",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(calfAt) and timeAt(calfAt) <= 300",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not examined first."
+          }
+        ]
+      },
+      {
+        "id": "sdmC",
+        "label": "Chose the plan with her, weighing cost, coverage and transport",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bikeAt) or not isNull(fixedAt)",
+            "score": "missed",
+            "why": "Exercised her or imposed the standard plan."
+          },
+          {
+            "when": "not isNull(prefAt) and not isNull(sdmAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not shared."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked knee motion and her coverage",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(romAt) and not isNull(coverAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(romAt) or not isNull(coverAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized possible deep vein thrombosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"dvt\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"sore\"",
+            "score": "missed",
+            "why": "Swelling, warmth and tenderness after knee surgery need a clot ruled out."
+          },
+          {
+            "when": "dxEnum == \"knee\"",
+            "score": "missed",
+            "why": "A swollen, warm calf is a red flag masquerading as musculoskeletal pain."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: possible DVT first; then a plan chosen together",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Calf exam to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "13:00 to the calf exam",
+        "value": "isNull(calfAt) ? -1 : timeAt(calfAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "Calves: right swollen, warm, tender."
+      },
+      {
+        "at": "~13:01",
+        "text": "Call the surgeon: same-day evaluation."
+      },
+      {
+        "at": "~13:03",
+        "text": "Goals, costs, transport, coverage; knee motion."
+      },
+      {
+        "at": "~13:08",
+        "text": "Choose the plan together; document."
+      }
+    ],
+    "debrief": {
+      "pe": {
+        "headline": "A clot on the move",
+        "body": "A swollen, warm, tender calf after knee replacement is a possible DVT: no vigorous exercise, same-day medical evaluation."
+      },
+      "safe": {
+        "headline": "Cleared and planned together",
+        "body": "You examined the calf first, called the surgeon within minutes, and chose a plan with her that fits her cost, coverage and transport. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Planned, with gaps",
+        "body": "Check whether you examined the calf first and whether the plan was chosen with her."
+      },
+      "time_up": {
+        "headline": "No plan at 14:00",
+        "body": "Screen, call and plan in the visit."
+      }
+    },
+    "modelReasoning": "Plan knee replacement rehab through shared decision-making: weigh her preference against out-of-pocket cost, covered-visit limits and transport when choosing setting and format. First, screen: a swollen, warm, tender calf after knee surgery is a possible deep vein thrombosis, which also rules out vigorous exercise and NMES until cleared. Call the surgeon the same day, then choose the plan together."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "dvtQ": {
+      "during": "leaveT",
+      "ask": "While you finish: which signs suggest a DVT?",
+      "choices": [
+        {
+          "id": "dvt",
+          "label": "Swelling, warmth, redness and tenderness of the leg"
+        },
+        {
+          "id": "stiff",
+          "label": "Knee stiffness alone"
+        },
+        {
+          "id": "bruise",
+          "label": "Bruising around the incision"
+        }
+      ],
+      "expect": "dvt",
+      "explain": "Redness, warmth, swelling and pain or tenderness; recent knee surgery is a risk factor.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Deep vein thrombosis (reviewed 2025-04-01)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000156.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: symptoms: 'Redness of the skin', 'Skin that feels warm to the touch', 'Swelling (edema) of a leg or arm', 'Pain or tenderness in a leg or arm'; risk factors include 'Recent surgery (most commonly hip, knee, or female pelvic surgery)'; 'When a clot breaks off and moves through the bloodstream, it is called an embolism'; pulmonary embolism is a complication 'which may be fatal'; 'Contact your provider if you have symptoms of DVT.'"
+      }
+    },
+    "sdmQ": {
+      "during": "testT",
+      "ask": "While you talk: what does shared decision-making weigh when choosing the rehab setting?",
+      "choices": [
+        {
+          "id": "sdm",
+          "label": "Her preference, out-of-pocket cost, covered visits and transport"
+        },
+        {
+          "id": "std",
+          "label": "The clinic's standard order set"
+        },
+        {
+          "id": "surg",
+          "label": "Only the surgeon's preference"
+        }
+      ],
+      "expect": "sdm",
+      "explain": "Weigh patient preference against out-of-pocket cost, limits on covered visits and transport barriers.",
+      "source": {
+        "cite": "American Physical Therapy Association. Clinical practice guideline for physical therapist management of total knee arthroplasty: revision 2026. Phys Ther 2026, doi:10.1093/ptj/pzag058",
+        "checkedAt": "2026-11-04",
+        "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC13403188/",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, tag TKA-CPG; full text read 2026-11-04), not re-read: plan knee arthroplasty rehab through shared decision-making, weighing patient preference against out-of-pocket cost, limits on covered visits and transport barriers when choosing setting and format (the orthopaedic course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

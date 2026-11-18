@@ -1,0 +1,1016 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "gitops-rollback-feedback-loop",
+  "title": "A bad release under GitOps: rolling back by changing desired state, closing the feedback loop, and what 'continuous' means",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "platform@marlow:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "orders: health Degraded since 13:20 (release v2.4)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineRollback",
+          "text": "{rollback == \"gitRevert\" ? \"Reverted in Git; reconciled to v2.3\" : rollback == \"uiRollback\" ? \"Manual rollback with sync paused\" : rollback == \"kubectlSet\" ? \"Live edit against Git\" : \"\"}",
+          "when": "rollback != \"none\"",
+          "at": "timeAt(rollbackAt)",
+          "error": "rollback == \"kubectlSet\""
+        },
+        {
+          "id": "lineLoop",
+          "text": "{loop == \"notify\" ? \"Notifications on degraded and failed\" : loop == \"watchUi\" ? \"Watched by a person\" : loop == \"ignoreHealth\" ? \"Health signal suppressed\" : \"\"}",
+          "when": "loop != \"none\"",
+          "at": "timeAt(loopAt)",
+          "error": "loop == \"ignoreHealth\""
+        },
+        {
+          "id": "lineContinuous",
+          "text": "{continuous == \"reconciler\" ? \"Reconciled continuously by an agent\" : continuous == \"hourly\" ? \"Scheduled push\" : continuous == \"acceptPush\" ? \"One-time push called GitOps\" : \"\"}",
+          "when": "continuous != \"none\"",
+          "at": "timeAt(continuousAt)",
+          "error": "continuous == \"acceptPush\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nRollback",
+          "label": "orders Application",
+          "spokenLabel": "orders Application",
+          "kind": "Argo CD app",
+          "status": "{rollback == \"gitRevert\" ? \"Reverted in Git; reconciled to v2.3\" : rollback == \"uiRollback\" ? \"Manual rollback with sync paused\" : rollback == \"kubectlSet\" ? \"Live edit against Git\" : \"Waiting\"}",
+          "tone": "rollback == \"gitRevert\" ? \"up\" : rollback == \"uiRollback\" ? \"degraded\" : rollback == \"kubectlSet\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nLoop",
+          "label": "Notifications",
+          "spokenLabel": "Notifications",
+          "kind": "feedback",
+          "status": "{loop == \"notify\" ? \"Notifications on degraded and failed\" : loop == \"watchUi\" ? \"Watched by a person\" : loop == \"ignoreHealth\" ? \"Health signal suppressed\" : \"Waiting\"}",
+          "tone": "loop == \"notify\" ? \"up\" : loop == \"watchUi\" ? \"degraded\" : loop == \"ignoreHealth\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nContinuous",
+          "label": "billing pipeline",
+          "spokenLabel": "billing pipeline",
+          "kind": "CI",
+          "status": "{continuous == \"reconciler\" ? \"Reconciled continuously by an agent\" : continuous == \"hourly\" ? \"Scheduled push\" : continuous == \"acceptPush\" ? \"One-time push called GitOps\" : \"Waiting\"}",
+          "tone": "continuous == \"reconciler\" ? \"up\" : continuous == \"hourly\" ? \"degraded\" : continuous == \"acceptPush\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nRollback",
+          "to": "nLoop",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nLoop",
+          "to": "nContinuous",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Feedback loop and rollback: how observed state informs operators, and how rollback is a change to desired state rather than a manual intervention",
+  "secondaryObjectives": [
+    "Continuous: what 'continuous' means in GitOps -- reconciliation that keeps running, not a one-time deployment"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cgoa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenGitOps, GitOps Principles v1.0.0 (opengitops.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opengitops.dev/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: desired state is declarative, versioned and immutable, pulled automatically by software agents, and continuously reconciled: agents continuously observe actual state and attempt to apply the desired state."
+    },
+    {
+      "cite": "Argo CD documentation, Automated Sync Policy (stable)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-cd.readthedocs.io/en/stable/user-guide/auto_sync/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: with selfHeal: true a live-cluster change that drifts from Git triggers a sync back to Git; rollback cannot be performed against an application with automated sync enabled."
+    },
+    {
+      "cite": "Argo CD documentation, Triggers and Templates Catalog (stable)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/catalog/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: built-in notification triggers include on-health-degraded, on-sync-failed, on-sync-status-unknown and on-deployed."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the delivery platform at Marlow Freight, a fictional logistics company. Argo CD reconciles the orders service from a config repository with automated sync and self-heal. Release v2.4 went out 40 minutes ago and the service is degraded.",
+    "handover": [
+      "Automated sync with prune and selfHeal is on for orders.",
+      "Nobody was told the release degraded; a customer reported it."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-21T14:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "rollback": {
+      "type": "enum",
+      "values": [
+        "none",
+        "gitRevert",
+        "uiRollback",
+        "kubectlSet"
+      ],
+      "init": "none"
+    },
+    "rollbackAt": {
+      "type": "time",
+      "init": null
+    },
+    "loop": {
+      "type": "enum",
+      "values": [
+        "none",
+        "notify",
+        "watchUi",
+        "ignoreHealth"
+      ],
+      "init": "none"
+    },
+    "loopAt": {
+      "type": "time",
+      "init": null
+    },
+    "continuous": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reconciler",
+        "hourly",
+        "acceptPush"
+      ],
+      "init": "none"
+    },
+    "continuousAt": {
+      "type": "time",
+      "init": null
+    },
+    "appgetAt": {
+      "type": "time",
+      "init": null
+    },
+    "gitlogAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((rollback == \"kubectlSet\") ? 1 : 0) + ((loop == \"ignoreHealth\") ? 1 : 0) + ((continuous == \"acceptPush\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rollback == \"none\" or (rollback == \"kubectlSet\") ? 1 : 0) + (loop == \"none\" or (loop == \"ignoreHealth\") ? 1 : 0) + (continuous == \"none\" or (continuous == \"acceptPush\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Release review",
+      "clock": "turns",
+      "actions": [
+        "appget",
+        "gitlog"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "appget": {
+      "label": "argocd app get orders",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(appgetAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "appgetAt",
+          "to": "t"
+        },
+        {
+          "output": "Synced to the commit that set image v2.4; health Degraded for 40 minutes; automated sync with selfHeal on."
+        },
+        {
+          "log": "argocd app get orders.",
+          "kind": "act"
+        },
+        {
+          "finding": "Synced to the commit that set image v2.4; health Degraded for 40 minutes; automated sync with selfHeal on."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "gitlog": {
+      "label": "git log --oneline -3 in the config repo",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(gitlogAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "gitlogAt",
+          "to": "t"
+        },
+        {
+          "output": "The top commit bumps orders to v2.4; the one before it is v2.3, which ran cleanly for two weeks."
+        },
+        {
+          "log": "git log --oneline -3 in the config repo.",
+          "kind": "act"
+        },
+        {
+          "finding": "The top commit bumps orders to v2.4; the one before it is v2.3, which ran cleanly for two weeks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Rolled back by reverting in Git, notifications on degraded and failed syncs, and billing under a continuous reconciler"
+                },
+                {
+                  "value": "summary",
+                  "label": "Release handled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rollback == \"kubectlSet\"",
+              "then": [
+                {
+                  "log": "Check-in 2: self-heal reapplies v2.4 from Git; the degradation returns and two engineers edit the live object again.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "loop == \"ignoreHealth\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a second bad config ships; the dashboard shows Healthy while orders fails for an hour.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "continuous == \"acceptPush\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a hand-edited billing ConfigMap stays wrong for three days; no agent noticed the drift.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_rollback",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: orders is still degraded.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rollbackPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_loop",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: why did a customer notice first?",
+          "kind": "sys"
+        },
+        {
+          "prompt": "loopPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_continuous",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: a team's proposal.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "continuousPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "rollbackPrompt": {
+      "title": "How to roll back",
+      "context": "v2.3 was healthy; v2.4 is not.",
+      "choices": [
+        {
+          "id": "gitRevert",
+          "label": "git revert the v2.4 commit in the config repo and let Argo CD reconcile orders back to v2.3",
+          "effects": [
+            {
+              "set": "rollback",
+              "to": "\"gitRevert\""
+            },
+            {
+              "set": "rollbackAt",
+              "to": "t"
+            },
+            {
+              "log": "Argo CD syncs to the reverted commit; orders runs v2.3.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "In GitOps a rollback is a change to desired state: revert the commit and the reconciler does the rest, with history kept."
+        },
+        {
+          "id": "uiRollback",
+          "label": "Turn off automated sync and use Argo CD's rollback to the previous sync",
+          "effects": [
+            {
+              "set": "rollback",
+              "to": "\"uiRollback\""
+            },
+            {
+              "set": "rollbackAt",
+              "to": "t"
+            },
+            {
+              "log": "Auto-sync is off; the app is rolled back.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It restores service, but Git still says v2.4 and automation is off until someone fixes Git."
+        },
+        {
+          "id": "kubectlSet",
+          "label": "kubectl set image on the live Deployment to v2.3",
+          "effects": [
+            {
+              "set": "rollback",
+              "to": "\"kubectlSet\""
+            },
+            {
+              "set": "rollbackAt",
+              "to": "t"
+            },
+            {
+              "log": "The live Deployment is edited.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Self-heal sees the drift from Git and puts v2.4 back within minutes."
+        }
+      ]
+    },
+    "loopPrompt": {
+      "title": "Nobody saw the degradation",
+      "context": "Argo CD showed Degraded for 40 minutes; no one was told.",
+      "choices": [
+        {
+          "id": "notify",
+          "label": "Subscribe the team channel to Argo CD notifications for on-health-degraded and on-sync-failed, and link the alert to the app's dashboard",
+          "effects": [
+            {
+              "set": "loop",
+              "to": "\"notify\""
+            },
+            {
+              "set": "loopAt",
+              "to": "t"
+            },
+            {
+              "log": "Degraded and failed syncs now reach the team.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Observed state has to reach operators; reconciler notifications close the loop."
+        },
+        {
+          "id": "watchUi",
+          "label": "Ask the release engineer to watch the Argo CD UI after each release",
+          "effects": [
+            {
+              "set": "loop",
+              "to": "\"watchUi\""
+            },
+            {
+              "set": "loopAt",
+              "to": "t"
+            },
+            {
+              "log": "Someone watches the UI.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than nothing, but only while someone is looking."
+        },
+        {
+          "id": "ignoreHealth",
+          "label": "Customize orders' health check to always report Healthy so the dashboard stays green",
+          "effects": [
+            {
+              "set": "loop",
+              "to": "\"ignoreHealth\""
+            },
+            {
+              "set": "loopAt",
+              "to": "t"
+            },
+            {
+              "log": "Health is forced to Healthy.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A green dashboard that cannot turn red hides the next failure."
+        }
+      ]
+    },
+    "continuousPrompt": {
+      "title": "A team calls its pipeline GitOps",
+      "context": "The billing team's CI runs kubectl apply once after each build and calls it GitOps.",
+      "choices": [
+        {
+          "id": "reconciler",
+          "label": "Bring billing under Argo CD: CI only commits the new version to the config repo, and the reconciler keeps comparing and applying desired state",
+          "effects": [
+            {
+              "set": "continuous",
+              "to": "\"reconciler\""
+            },
+            {
+              "set": "continuousAt",
+              "to": "t"
+            },
+            {
+              "log": "Billing moves to a reconciler.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Continuous means an agent keeps reconciling, not a one-time apply after each build."
+        },
+        {
+          "id": "hourly",
+          "label": "Keep CI's apply but run it every hour too",
+          "effects": [
+            {
+              "set": "continuous",
+              "to": "\"hourly\""
+            },
+            {
+              "set": "continuousAt",
+              "to": "t"
+            },
+            {
+              "log": "An hourly apply job is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Drift is fixed hourly at best, and CI still holds cluster credentials."
+        },
+        {
+          "id": "acceptPush",
+          "label": "Accept it as GitOps and remove Argo CD from billing to save resources",
+          "effects": [
+            {
+              "set": "continuous",
+              "to": "\"acceptPush\""
+            },
+            {
+              "set": "continuousAt",
+              "to": "t"
+            },
+            {
+              "log": "Billing deploys by CI apply only.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing watches the live state; a hand edit stays until the next build."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record: how you rolled back, how the team now learns of problems, and what changed for billing.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Rollback",
+          "criteria": "Reverted the v2.4 commit; Argo CD reconciled to v2.3.",
+          "modelAnswer": "We reverted the v2.4 commit in the config repo; Argo CD reconciled orders back to v2.3 and history shows both."
+        },
+        {
+          "label": "Feedback and reconciliation",
+          "criteria": "Notifications on degraded and failed syncs; billing reconciled by Argo CD.",
+          "modelAnswer": "The team is notified on degraded health and failed syncs. Billing's CI now commits to Git and Argo CD reconciles it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rollback == \"uiRollback\") and (loop == \"watchUi\") and (continuous == \"hourly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cgoa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rollbackHarm": {
+      "label": "The bad release came back",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rollback == \"kubectlSet\"",
+      "narrative": "Self-heal restored v2.4 from Git after the hand edit; the outage returned."
+    },
+    "loopHarm": {
+      "label": "Failure hidden",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and loop == \"ignoreHealth\"",
+      "narrative": "With health forced green, the next failure ran an hour unseen."
+    },
+    "continuousHarm": {
+      "label": "Drift unseen for days",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and continuous == \"acceptPush\"",
+      "narrative": "Without a reconciler, a hand edit stayed live for three days."
+    },
+    "target": {
+      "label": "Rolled back the GitOps way",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rollback == \"gitRevert\") and (loop == \"notify\") and (continuous == \"reconciler\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Service recovered in minutes, the team hears about problems first, and billing is reconciled continuously."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rollbackHarm",
+    "loopHarm",
+    "continuousHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rollbackCrit",
+        "label": "Rolled back by changing desired state in Git",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rollback == \"gitRevert\"",
+            "score": "met",
+            "why": "Rollback through desired state."
+          },
+          {
+            "when": "rollback == \"uiRollback\"",
+            "score": "partial",
+            "why": "Manual intervention."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fought the reconciler."
+          }
+        ]
+      },
+      {
+        "id": "loopCrit",
+        "label": "Closed the feedback loop from observed state to the team",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "loop == \"notify\"",
+            "score": "met",
+            "why": "Feedback flows."
+          },
+          {
+            "when": "loop == \"watchUi\"",
+            "score": "partial",
+            "why": "Manual watch."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Blind."
+          }
+        ]
+      },
+      {
+        "id": "continuousCrit",
+        "label": "Kept continuous reconciliation by an agent",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "continuous == \"reconciler\"",
+            "score": "met",
+            "why": "GitOps in fact."
+          },
+          {
+            "when": "continuous == \"hourly\"",
+            "score": "partial",
+            "why": "Push, repeated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not GitOps."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(appgetAt) and not isNull(gitlogAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(appgetAt) or not isNull(gitlogAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the application's status and the config history first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Revert the commit in Git and let the reconciler apply it."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Notify the team on degraded health and failed syncs."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "CI commits to Git; the reconciler keeps applying."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rollbackHarm": {
+        "headline": "Roll back in Git",
+        "body": "Desired state lives in Git; change it there."
+      },
+      "loopHarm": {
+        "headline": "Let observed state speak",
+        "body": "Alert on degraded health and failed syncs."
+      },
+      "continuousHarm": {
+        "headline": "Continuous reconciliation",
+        "body": "An agent keeps desired and actual state matched."
+      },
+      "target": {
+        "headline": "Good: rolled back the GitOps way",
+        "body": "Rollback as desired state, a closed feedback loop and continuous reconciliation."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "In GitOps, rollback is a change to desired state: revert the commit and the reconciler applies it, with history kept. Hand edits fight self-heal, and Argo CD will not roll back an app under automated sync. Observed state informs operators only if it reaches them, so notify on degraded health and failed syncs. Continuous means an agent keeps reconciling; a one-time CI apply is not GitOps."
+  }
+}

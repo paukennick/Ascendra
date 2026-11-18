@@ -1,0 +1,925 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pyauto-test-hits-real-clock-and-api",
+  "title": "Green at noon, red at midnight",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "tests/test_reminders.py, the appointment reminder script, Clearwater Dental (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Release lead, Ana Silva",
+          "text": "The reminder fix can't merge: CI fails at night and passes in the day, and the test texts real patients' phones through the SMS sandbox. Merge window closes at 17:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Failures happen only after 22:00, and the SMS provider shows test sends.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Release",
+          "text": "17:00: the merge window closed with the reminder fix unmerged.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "tests/test_reminders.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "def test_send_due():"
+            },
+            {
+              "id": "c1",
+              "text": "    sent = reminders.send_due()   # real clock, real SMS API, real key",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "def test_send_due(monkeypatch):",
+              "when": "fix == \"patch\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "    monkeypatch.setattr(reminders, 'now', lambda: FIXED_9AM)",
+              "when": "fix == \"patch\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "    calls = []; monkeypatch.setattr(reminders, 'send_sms', lambda to, body: calls.append(to))",
+              "when": "fix == \"patch\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "    monkeypatch.setenv('SMS_API_KEY', 'test-key')",
+              "when": "fix == \"patch\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c6",
+              "text": "    reminders.send_due(); assert calls == ['+1-555-0100']",
+              "when": "fix == \"patch\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c7",
+              "text": "@pytest.mark.flaky(reruns=3)",
+              "when": "fix == \"retry\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c8",
+              "text": "@pytest.mark.skip(reason='flaky')",
+              "when": "fix == \"skip\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Merge window",
+          "value": "17:00"
+        }
+      ]
+    }
+  },
+  "objective": "Replace the network, the clock and environment variables in tests with monkeypatch",
+  "secondaryObjectives": [
+    "Write pytest tests for a script's functions with plain assert statements"
+  ],
+  "sources": [
+    {
+      "cite": "pytest documentation, How to monkeypatch/mock modules and environments",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.pytest.org/monkeypatch.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. monkeypatch 'helps you to safely set/delete an attribute, dictionary item or environment variable', for example replacing a function that makes network requests; 'All modifications will be undone after the requesting test function or fixture has finished.'"
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the appointment reminder script at Clearwater Dental (fictional). Its test calls datetime.now() and the real SMS provider's sandbox with a production API key from the environment. CI fails after 22:00 and passes by day. The merge window closes at 17:00. It is 16:05.",
+    "handover": [
+      "reminders.send_due() takes no arguments; it reads the clock and the API key itself."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "patch",
+        "retry",
+        "skip"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"patch\")"
+    },
+    "correct": {
+      "expr": "(fix == \"patch\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run the test at a simulated 23:00 and read the SMS provider's sandbox log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "clock fixed at 09:00; SMS replaced; no network calls"
+            }
+          ],
+          "else": [
+            {
+              "output": "23:00: AssertionError: 0 reminders (window is 08:00-20:00)\nsandbox log: 3 messages sent with the production key"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The test controls time, the network and the key."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The test depends on the real time of day and makes real network calls with a real key."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the test",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "patch",
+              "label": "monkeypatch the clock, the SMS sender and the API key environment variable"
+            },
+            {
+              "value": "retry",
+              "label": "Mark it flaky and rerun up to 3 times"
+            },
+            {
+              "value": "skip",
+              "label": "Skip the test"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run CI at simulated 09:00, 23:00 and Sunday, with network access blocked",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"patch\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "passes at 09:00, 23:00 and on a weekend; 0 network calls\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"retry\"",
+              "then": [
+                {
+                  "output": "23:00: failed 4 times; 4 more sandbox sends\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"skip\"",
+              "then": [
+                {
+                  "output": "1 skipped (reminder logic untested)\n0 passed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "23:00 failed; network blocked: ConnectionError\n2 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Merge the reminder fix",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Merged: CI green at any hour, no network."
+            }
+          ],
+          "else": [
+            {
+              "output": "Merged without a working test."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why CI failed at night",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The test used the real clock and the real SMS API, so it depended on the time and the network"
+                },
+                {
+                  "value": "c1",
+                  "label": "CI servers are slower at night"
+                },
+                {
+                  "value": "c2",
+                  "label": "The SMS provider was down"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "It passes at any simulated time with the network blocked"
+                },
+                {
+                  "value": "k1",
+                  "label": "It passed once"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "17:00: the merge window closed with the reminder fix unmerged.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the release lead: why CI failed at night, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The test read the real clock (reminders send only 08:00-20:00) and called the real SMS API with a real key.",
+          "modelAnswer": "Real time and real network."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "monkeypatch now(), the SMS sender and the API key environment variable; changes are undone after the test; retries and skips hide it.",
+          "modelAnswer": "Three monkeypatches."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Passes at 09:00, 23:00 and Sunday with the network blocked.",
+          "modelAnswer": "It passes at all three simulated times with no network calls."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Untested fix merged",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The reminder logic ships with no meaningful test, and sandbox texts keep going out."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The fix waits for the next merge window."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The fix merges with a test that runs the same at any hour and never touches the network."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced the night failure and checked the network calls before changing the test",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Replaced the clock, the network and the key with monkeypatch",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Clock, network and key replaced in the test."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"retry\" ? \"Reruns at 23:00 fail the same way and send more texts.\" : fix == \"skip\" ? \"Skipping removes the only check on the reminder logic.\" : \"The test still uses the real clock and network.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "The test passed at every simulated time with the network blocked, after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "At 23:00 the test fails; the sandbox shows real-key sends."
+      },
+      {
+        "at": "4-9 min",
+        "text": "monkeypatch clock, sender, key."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Passes at any time, network blocked."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Merge."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: tests own their inputs",
+        "body": "A test that reads the clock and the network tests the world, not the code. monkeypatch replaces them for the test only."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Untested fix",
+        "body": "Retries resend texts and skips remove the check."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A test that passes by day and fails at night depends on the time of day; one that shows up in the provider's log depends on the network. send_due() reads the clock and sends through the real API with a real key. In the test, monkeypatch reminders.now to a fixed 09:00, replace send_sms with a recorder, and setenv a fake key; pytest undoes them afterwards. Retrying sends more texts; skipping removes the check."
+  }
+}

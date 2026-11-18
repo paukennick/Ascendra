@@ -1,0 +1,1116 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sickle-cell-belly-big-and-pale",
+  "title": "Big belly, pale lips",
+  "objective": "Recognize acute splenic sequestration (sudden enlarging spleen and a sharp hemoglobin fall) and acute chest syndrome as life-threatening sickle cell complications",
+  "secondaryObjectives": [
+    "Recognize and manage anemia, sickle cell crisis, immune deficiencies and myelosuppression (thrombocytopenia, neutropenia)"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "St. Jude Together: Acute Splenic Sequestration (reviewed August 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://together.stjude.org/en-us/treatment-tests-procedures/symptoms-side-effects/acute-splenic-sequestration.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'more common in infants and young children'; signs: 'A spleen that suddenly becomes larger, firmer, or easier to feel', 'Pale skin, lips, or gums', 'Weakness, fatigue, unusual sleepiness', 'Pain or fullness in the upper left side of the abdomen', 'Fast heartbeat'; 'a sudden drop in hemoglobin, hematocrit, and platelets'; it 'can lead to severe anemia, shock, and even death if it is not treated promptly'; 'Treatment may include a red blood cell transfusion, IV fluids'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "18:00 in the PICU. You are the nurse for Jayden, 2 years old, 12 kg, with sickle cell anemia (HbSS), transferred from the ward an hour ago for fever and closer watching. Antibiotics were given in the emergency department.",
+    "handover": [
+      "His baseline hemoglobin is about 8 g/dL. This morning's was 7.6.",
+      "His mother says he 'got really sleepy and pale in the last hour' and cried when she lifted him under the arms.",
+      "Unit policy: the nurse may give an ordered isotonic fluid bolus for poor perfusion and calls the intensivist at once for a sudden fall in hemoglobin or signs of shock; blood is given on the intensivist's order."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "18:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Blood pools in the spleen and circulating volume falls. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows with volume support and transfusion under way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypovolemic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of finding the enlarging spleen (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the red cells to arrive and the transfusion to start."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "spleenAt": {
+      "type": "time",
+      "init": null
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "hgbAt": {
+      "type": "time",
+      "init": null
+    },
+    "chestAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "spleen",
+        "perf",
+        "hgb",
+        "chest"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "recheck"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "seq",
+        "pain",
+        "fever"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "xmatchAt": {
+      "type": "time",
+      "init": null
+    },
+    "opioidAt": {
+      "type": "time",
+      "init": null
+    },
+    "heatAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(150 + 50 * max(0, prog - 0.4) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(96 - 40 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(32 + 10 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(96 - 4 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 170
+          },
+          "announce": {
+            "bands": [
+              150,
+              170
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              90,
+              80
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              30,
+              40
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Fluid bolus: {not isNull(bolusAt)|yesno}. Blood on its way: {route == \"call\"|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The intensivist is at the bedside; red cells are on the way."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "spleen": {
+      "label": "Palpate the abdomen and the spleen",
+      "group": "Assess",
+      "available": "not testPending and isNull(spleenAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"spleen\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "perf": {
+      "label": "Perfusion: capillary refill, pulses, skin and mental status",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hgb": {
+      "label": "Point-of-care hemoglobin",
+      "group": "Assess",
+      "available": "not testPending and isNull(hgbAt) and not isNull(spleenAt) or not isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hgb\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "chest": {
+      "label": "Listen to the chest and check for chest pain",
+      "group": "Assess",
+      "available": "not testPending and isNull(chestAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"chest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give the ordered isotonic fluid bolus for poor perfusion (policy)",
+      "group": "Treat",
+      "available": "isNull(bolusAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "log": "Isotonic bolus running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "xmatch": {
+      "label": "Send a type and crossmatch and a blood count now",
+      "group": "Treat",
+      "available": "isNull(xmatchAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "xmatchAt",
+          "to": "t"
+        },
+        {
+          "log": "Type and crossmatch and a blood count sent; the blood bank is told it is urgent.",
+          "kind": "act"
+        }
+      ]
+    },
+    "opioid": {
+      "label": "Give the ordered opioid for a pain crisis and let him sleep",
+      "group": "Treat",
+      "available": "isNull(opioidAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "opioidAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "The ordered opioid is given; he sleeps more deeply.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "heat": {
+      "label": "Apply a warm pack to his belly for comfort",
+      "group": "Treat",
+      "available": "isNull(heatAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "heatAt",
+          "to": "t"
+        },
+        {
+          "log": "Warm pack applied.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "seq",
+              "label": "Acute splenic sequestration: a suddenly larger spleen, a sharp hemoglobin fall and early shock"
+            },
+            {
+              "value": "pain",
+              "label": "A vaso-occlusive pain crisis"
+            },
+            {
+              "value": "fever",
+              "label": "The fever making him tired"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"seq\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"seq\""
+                },
+                {
+                  "log": "Acute splenic sequestration.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"pain\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"pain\""
+                },
+                {
+                  "log": "Read as a pain crisis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fever\""
+                },
+                {
+                  "log": "Read as fever.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the intensivist now: HbSS, spleen 6 cm (was 2), hemoglobin 4.1 (7.6 this morning), cap refill 4 s, sleepy; bolus running, crossmatch sent"
+            },
+            {
+              "value": "recheck",
+              "label": "Recheck his blood count in the morning"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist comes at once, orders emergency release of red cells as ordered and hematology review; you are told to transfuse as soon as it arrives.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"recheck\""
+                },
+                {
+                  "log": "A morning count is ordered.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to his mother and document the spleen size, hemoglobin and calls; plan to teach spleen checks at home",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His mother hears what is happening and that she will be shown how to feel his spleen; findings and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PICU, bed 4",
+      "clock": "running",
+      "actions": [
+        "spleen",
+        "perf",
+        "hgb",
+        "chest",
+        "bolus",
+        "xmatch",
+        "opioid",
+        "heat",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"spleen\"",
+              "then": [
+                {
+                  "set": "spleenAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Spleen tip now 6 cm below the left costal margin; at admission it was 2 cm. Abdomen full and tender on the left.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"perf\"",
+              "then": [
+                {
+                  "set": "perfAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Capillary refill 4 seconds, thready pulses, pale lips and nail beds, sleepy but rousable.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hgb\"",
+              "then": [
+                {
+                  "set": "hgbAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Hemoglobin 4.1 g/dL (7.6 this morning).",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "chestAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Clear and equal breath sounds; no chest pain; no new oxygen need.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the transfusion starting",
+      "wait": {
+        "skipLabel": "the transfusion starting"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the red cells to arrive and the transfusion to start."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Red cells are running; his perfusion is improving.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is happening to Jayden, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "In a young child with HbSS, a suddenly enlarging spleen with a sharp hemoglobin fall, pallor, sleepiness and poor perfusion is acute splenic sequestration, which can cause shock and death if not treated promptly.",
+          "modelAnswer": "His spleen has tripled and his hemoglobin dropped from 7.6 to 4.1, and he's pale, sleepy and poorly perfused. That's splenic sequestration, and it can kill him."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Gives the ordered isotonic bolus, sends a crossmatch, calls the intensivist at once for transfusion, watches perfusion; does not sedate as a pain crisis.",
+          "modelAnswer": "Run the bolus, send the crossmatch, call the intensivist now for blood, and keep checking his perfusion. Don't give him an opioid and let him sleep."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Splenic sequestration unescalated an hour on is harm here.",
+      "source": {
+        "cite": "St. Jude Together: Acute Splenic Sequestration (reviewed August 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://together.stjude.org/en-us/treatment-tests-procedures/symptoms-side-effects/acute-splenic-sequestration.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'more common in infants and young children'; signs: 'A spleen that suddenly becomes larger, firmer, or easier to feel', 'Pale skin, lips, or gums', 'Weakness, fatigue, unusual sleepiness', 'Pain or fullness in the upper left side of the abdomen', 'Fast heartbeat'; 'a sudden drop in hemoglobin, hematocrit, and platelets'; it 'can lead to severe anemia, shock, and even death if it is not treated promptly'; 'Treatment may include a red blood cell transfusion, IV fluids'."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Hypovolemic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His pressure falls to 58/30, he becomes unresponsive and needs emergency volume and blood through intraosseous access."
+    },
+    "safe": {
+      "label": "Sequestration recognized and treated",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(bolusAt) and not isNull(xmatchAt)) and isNull(opioidAt)",
+      "narrative": "{timeAt(leftAt)|clock}: red cells are running and his perfusion is improving."
+    },
+    "safeGaps": {
+      "label": "Transfused, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: blood is running, but the call was slow, he was sedated as a pain crisis, or the crossmatch waited."
+    },
+    "time_up": {
+      "label": "Unescalated at 19:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "19:00 and no blood is running."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The intensivist called within 5 minutes of finding the spleen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "volC",
+        "label": "Supported volume and sent a crossmatch",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(bolusAt) and not isNull(xmatchAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noOpC",
+        "label": "Did not sedate him as a pain crisis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(opioidAt)",
+            "score": "missed",
+            "why": "Opioid given and he was left to sleep."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Not sedated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked perfusion and the chest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(perfAt) and not isNull(chestAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(perfAt) or not isNull(chestAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read the picture as acute splenic sequestration",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"seq\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"pain\"",
+            "score": "missed",
+            "why": "Pain crises do not drop the hemoglobin like this."
+          },
+          {
+            "when": "dxEnum == \"fever\"",
+            "score": "missed",
+            "why": "The spleen and hemoglobin say otherwise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told his mother and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: acute splenic sequestration; volume, crossmatch, transfusion; call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Spleen to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "18:00 to the bolus",
+        "value": "isNull(bolusAt) ? -1 : timeAt(bolusAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "18:00",
+        "text": "Spleen 6 cm, was 2."
+      },
+      {
+        "at": "~18:01",
+        "text": "Poor perfusion; bolus; crossmatch."
+      },
+      {
+        "at": "~18:02",
+        "text": "Hemoglobin 4.1; call the intensivist."
+      },
+      {
+        "at": "~18:04",
+        "text": "Chest clear; tell his mother; document."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Hypovolemic shock",
+        "body": "A suddenly enlarging spleen with a sharp hemoglobin fall in a young child with sickle cell disease is splenic sequestration. Support volume, crossmatch and call at once."
+      },
+      "safe": {
+        "headline": "Sequestration recognized and treated",
+        "body": "You felt the spleen, linked it to the hemoglobin fall, supported volume, crossmatched and called within minutes, without sedating him. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Transfused, with gaps",
+        "body": "Check how soon you called, whether you treated it as a pain crisis, and whether volume and a crossmatch came first."
+      },
+      "time_up": {
+        "headline": "Unescalated at 19:00",
+        "body": "Splenic sequestration can kill quickly; escalate at once."
+      }
+    },
+    "modelReasoning": "Splenic sequestration is most common in infants and young children with sickle cell disease: the spleen suddenly enlarges and traps blood, with a sudden drop in hemoglobin, hematocrit and platelets, pallor, weakness, left upper abdominal pain and a fast heart rate. It can lead to severe anemia, shock and death if not treated promptly. Support volume, send a crossmatch, call the intensivist at once for red cell transfusion, and watch perfusion; do not treat it as a pain crisis and sedate him."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "seqQ": {
+      "during": "testT",
+      "ask": "While you check: what marks splenic sequestration?",
+      "choices": [
+        {
+          "id": "seq",
+          "label": "A suddenly larger spleen and a sudden drop in hemoglobin, with pallor and a fast heart rate"
+        },
+        {
+          "id": "pain",
+          "label": "Bone pain alone"
+        },
+        {
+          "id": "rash",
+          "label": "A rash and fever"
+        }
+      ],
+      "expect": "seq",
+      "explain": "A spleen that suddenly becomes larger, pale skin and a fast heartbeat, with a sudden drop in hemoglobin; it can lead to shock and death.",
+      "source": {
+        "cite": "St. Jude Together: Acute Splenic Sequestration (reviewed August 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://together.stjude.org/en-us/treatment-tests-procedures/symptoms-side-effects/acute-splenic-sequestration.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'more common in infants and young children'; signs: 'A spleen that suddenly becomes larger, firmer, or easier to feel', 'Pale skin, lips, or gums', 'Weakness, fatigue, unusual sleepiness', 'Pain or fullness in the upper left side of the abdomen', 'Fast heartbeat'; 'a sudden drop in hemoglobin, hematocrit, and platelets'; it 'can lead to severe anemia, shock, and even death if it is not treated promptly'; 'Treatment may include a red blood cell transfusion, IV fluids'."
+      }
+    },
+    "teachQ": {
+      "during": "leaveT",
+      "ask": "While blood runs: what will you teach his family before discharge?",
+      "choices": [
+        {
+          "id": "palp",
+          "label": "How to feel his spleen so they know its normal size, and to come in at once if it grows"
+        },
+        {
+          "id": "none",
+          "label": "Nothing; it won't happen again"
+        },
+        {
+          "id": "fluids",
+          "label": "Only to push fluids"
+        }
+      ],
+      "expect": "palp",
+      "explain": "Families are shown how to feel the child's spleen so they know its normal size.",
+      "source": {
+        "cite": "St. Jude Together: Acute Splenic Sequestration (reviewed August 2026)",
+        "checkedAt": "2026-11-17",
+        "url": "https://together.stjude.org/en-us/treatment-tests-procedures/symptoms-side-effects/acute-splenic-sequestration.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'more common in infants and young children'; signs: 'A spleen that suddenly becomes larger, firmer, or easier to feel', 'Pale skin, lips, or gums', 'Weakness, fatigue, unusual sleepiness', 'Pain or fullness in the upper left side of the abdomen', 'Fast heartbeat'; 'a sudden drop in hemoglobin, hematocrit, and platelets'; it 'can lead to severe anemia, shock, and even death if it is not treated promptly'; 'Treatment may include a red blood cell transfusion, IV fluids'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

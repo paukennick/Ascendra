@@ -7670,3 +7670,1392 @@ SAMHSA SAFE-T (PEP24-01-036, product page only); RCW 71.05.120 (Legislature PDF)
 Med 2012); Abderhalden et al., BMC Psychiatry 2006 (Broset checklist); the Keppra label (revised 8/2023).
 Relayed, not re-read: RCW 70.02.050 and HIPAA FAQ 520 (2026-11-14), 988 (2026-11-10), 42 CFR 482.13(e)
 (2026-11-14), and the exam outlines from the course seeds.
+
+### 22.37 Sim depth for the academic and programming courses (REQ-333)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+The round's rule: a course under 60 objectives gets at least 4 sims, 60 or
+more at least 8, every unit with an objective that fits the selection rule
+gets one, purpose-written cases preferred for a course's top domains, and a
+unit where nothing fits honestly is recorded as no fit. Existing screens only;
+no engine, schema or migration change. Every document is listed by slug in
+`lib/sim/depth-academic.ts` and checked by `lib/sim/depth-academic.test.ts`
+(FAIL-2002 rule).
+
+**New cases (17)**, each with one three-part written-reasoning moment,
+endings in all three classes with `endingOrder` (harm first), three or four
+critical criteria, three KPIs, an expert path, a debrief per ending and six
+or seven goldens rated Good, Mediocre and Bad with every critical criterion
+met and missed (`npm run sim:golden -- steps <name>`):
+
+| Course / slug | Screen | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| MSHI/mshi-a1c-units-quality-dashboard | data | F4 data quality dimensions | A new lab sends A1c as LOINC 59261-8 in mmol/mol; the measure view reads it as %, so "A1c above 9%" jumps from 17.6% to 41.2%. Plausibility and the OBX-6 unit first; convert in the view with the NGSP equation; never rewrite stored results; never drop the lab (640 patients would look untested) | mshi-a1c |
+| MSHI/mshi-misdirected-email-breach-notice | governance board | F3 HIPAA breach notification | A misdirected spreadsheet (1,240 patients, 910 in-state) and a stolen encrypted laptop: four factors, letters, in-state media and HHS within 60 days; the laptop documented as secured PHI with the device record; the COO's per-state reading of the HHS threshold refuted | mshi-breach |
+| MSHI/mshi-ehr-downtime-tabletop | tabletop | F5 EHR safety: identification, downtime, results loop | Unplanned EHR downtime: call it and page staff (not email), unique downtime record numbers, critical results phoned with read-back, drain queues then reconcile; three plan gaps (forms, stale backup, no named lead) owned | mshi-downtime |
+| MSHI/mshi-ehr-go-live-readiness | governance board | F7 EHR implementation life cycle | Go-live criteria agreed before the go/no-go; a severity-1 prescription defect retested; converted allergies validated by sampling (3% error); training tied to access; command center; go on criteria with a bounded slip; 30-day optimization | mshi-golive |
+| MSHI/mshi-syndromic-feed-ili-drop | data | F1 clinical systems feeding public health | ED syndromic ILI share falls 6.1% to 3.4% the week two hospitals change EHRs: completeness and field checks find a silent feed and blank chief complaints; report the same complete facilities (6.4%, rising); never impute counts | mshi-ili |
+| MSHI/mshi-home-bp-app-vetting | governance board | F6 judging an mHealth app's quality, privacy and safety | A vendor's home BP app for 400 patients: advertising kit and no BAA, an unvalidated cuff, an unwatched alert inbox, no access without a smartphone; launch on conditions | mshi-rpm |
+| MSCS/mscs-transfer-workers-deadlock | terminal | Deadlocks and the four conditions | Opposite-direction transfers lock two accounts in opposite orders; a thread dump shows the cycle; a global lock order removes circular wait; a concurrency test proves it; never purge the queue | mscs-deadlock |
+| MSCS/mscs-freezer-bytes-little-endian | data | Binary and hex representation | New gateway sends int16 two's complement little-endian; the decoder reads big-endian unsigned (C6 F8 as 509.36 °C); '<h' gives -18.50 °C; byte order or sign alone still fail; filtering hides a real excursion | mscs-endian |
+| MSCS/mscs-pipeline-dependency-cycle | data | Cycle detection (topological sorting) | Kahn's planner silently drops three jobs on a cycle; DFS finds the back edge; fix the edges to follow the data and make the planner raise | mscs-cycle |
+| MSCS/mscs-renewed-cert-missing-intermediate | terminal | PKI and chains of trust | After renewal the server sends the leaf alone; browsers cope, the partner's client cannot build the path; serve leaf plus intermediate; never switch verification off | mscs-chain |
+| MSCS/mscs-unstable-sort-stage-order | data | Sort stability | A hand-written quicksort replaced the stable second sort, so names within each honor are scrambled; sorted() again; never rename records to force the order | mscs-stable |
+| PYTHON/py-packing-slips-mutable-default | data | The mutable-default-argument pitfall | extras=[] accumulates across calls in a long-running worker; None plus a new list; copy-on-return and clear() both fail a test | py-default |
+| PCEP/pcep-seat-map-shared-rows | data | The shared-row trap of multiplying a nested list | One booking sells a whole column; a comprehension builds each row; list() and a prebuilt row stay shared; never reset bookings | pcep-rows |
+| PCEP/pcep-lunch-balances-float-cents | data | Literals and inexact decimal floats | 312 lunch accounts frozen by float sums (0.30000000000000004); compare whole cents; never overwrite balances | pcep-cents |
+| PCAP/pcap-ai-helper-invented-function | data | Validate AI-generated code; secrets out of prompts | Generated code calls statistics.weighted_mean, which does not exist; fmean(data, weights) checked on the documentation's 87.6 example; an unknown package is a supply-chain harm; the leaked key rotated | pcap-ai |
+| JAVASCRIPT/js-shift-signup-foreach-async | data | async/await with try/catch | forEach does not await, so "All 12 shifts saved" shows before rejections, which go uncaught; for...of with per-save try/catch | js-foreach |
+| PYDATA/pydata-region-merge-duplicated-store | data | Validate a join with validate and indicator | A duplicate key in a lookup inflates revenue 3.1%; validate="m:1" raises; keep each store's latest row; drop_duplicates removes nothing; never delete orders | pydata-merge |
+
+**Bands (37)** register an existing case on another course's objective
+(4.7; the round's rule: where the same decision is taught). Each keeps its
+base's actions, endings, ending order and golden outcomes, and carries as its
+first source a page read 2026-11-17 on this course's objective (the CAHIIM
+master's curriculum PDF, CS2023, a course syllabus, or the language or
+library documentation), then the base's own sources:
+
+- MSHI: the clinic-records ethics conversation (F8) and PHI in application
+  logs (F4 protecting information in design). The first round's SQL NOT IN
+  (F2), control chart (F7) and PfMP rebalance (F10) bands were removed in the
+  continuation and replaced by purpose-written health-setting cases.
+- MSCS: list-to-set profiling (data structure costs), flash-sale lost update
+  (isolation levels), sign-in sequential scan (B-tree indexes), report
+  workers at nice 0 (CPU scheduling), deleted-but-open log on a full /var
+  (file systems), blind SQL injection (attack classes), loan-model split
+  (ML concepts).
+- CMPCBS: profiling (hashing), clinic-records ethics (computing ethics),
+  firewall change back-out (security policy), leaver account (protection
+  mechanisms), the CISM business case (choosing technology), the PfMP
+  rebalance (IT strategy alignment), report workers (operating systems).
+- PTPREREQ: treadmill pressure falls with grade (cardiovascular response to
+  exercise), 6-minute walk desaturation (oxygen-hemoglobin curve), the stroke
+  fall-risk visit (stability and base of support), new bladder symptoms with
+  back pain (dermatomes), central dizziness (brain regions for movement),
+  Parkinson orthostatic drop (baroreceptor reflex), ICU first stand with a new
+  rhythm (conduction system and ECG waves). Clinical bands keep their base's
+  clinical sources and clock.
+- PYAUTO: traceback import (which exceptions to catch), Node env-file silent
+  exit (exit codes for a scheduler), timer backup after a reboot (systemd
+  timers). PYDATA: stock-on-hand semi-additive (resample aggregate), amounts
+  with thousands separators (dtypes). PCEP: profiling (set membership). PCAP:
+  mutable default (constructor defaults), shared rows (nested comprehensions).
+  PYTHON: shared rows (nested data structures). JAVASCRIPT: env-file exit
+  (configuration). SQL: sleeping session holding locks (transactions and
+  atomicity). TSNODE: shipping concatenation (types are erased).
+
+#### Per-course table (production counts from round-1117b; base recount matched)
+
+After the continuation (below): 76 cases and 42 bands, 118 documents.
+
+| Course | Objectives | Before | After | Units covered | No fit |
+|---|---|---|---|---|---|
+| MSHI | 134 | 0 | 12 | F1-F10, all ten | none |
+| MSCS | 113 | 0 | 17 | every unit but one | Final integration (an architecture synthesis written as an essay, not a timed decision on one screen) |
+| CMPCBS | 102 | 1 | 22 | every unit but two | History of Mathematics (historical knowledge, no decision to time); Computational Mathematics Capstone (an independent project) |
+| PTPREREQ | 95 | 1 | 15 | all ten units | none |
+| PYTHON | 50 | 2 | 9 | all nine units | none |
+| JAVASCRIPT | 45 | 2 | 10 | all ten units | none |
+| PYAUTO | 52 | 1 | 11 | all ten units | none |
+| PYDATA | 42 | 1 | 9 | all nine units | none |
+| PCEP | 34 | 1 | 6 | all five units | none |
+| PCAP | 42 | 1 | 7 | all six units | none |
+| SQL | 44 | 3 | 10 | all eight units | none |
+| TSNODE | 37 | 3 | 7 | all seven units | none |
+
+Every course meets the count target, and every unit with an objective that
+fits the selection rule has at least one sim whose main objective is in that
+unit. The three units marked no fit are the only uncovered ones.
+
+**Sources** (each on its document with `checkedAt` and how it was read; all
+2026-11-17 through summarizing fetches of URLs that appeared in a search
+result or a fetched page): the CAHIIM master's curriculum PDF (AMIA F1-F10);
+HHS OCR's Breach Notification Rule page and "Submitting Notice of a Breach";
+HHS OCR's health app scenarios (2016); the SAFER Guides page and the
+Contingency Planning guide PDF; CMS122v13 on eCQI; NGSP's IFCC equation;
+FindACode listings for LOINC 4548-4 and 59261-8 (third-party); HL7
+V2-to-FHIR's OBX ConceptMap; CDC's NSSP page; Virginia's syndromic
+limitations page; the validated BP device listing FAQ; CS2023 (table of
+contents only); RFC 9846 sections 4.5.1; Python 3.15 struct, statistics and
+tutorial errors pages; the Python 3.12 (Indonesian) and 3.10 (Greek) tutorial
+pages (no current English page appeared in a search); the PCEP-30-03 and
+PCAP-31-04 syllabi; pandas 3.1.1 resample; Practical Data Science
+"Validating a merge"; MDN forEach; TypeScript's handbook; PostgreSQL 18's
+transactions tutorial; Node.js v26.13.1 environment variables; systemd.timer
+(Debian, systemd 241); OpenStax A&P 2e 16.5, 19.2, 19.4, 20.4, Biology 2e
+39.4 and College Physics (AP) 9.3; a Lumen spinal nerves page; Bourgeois,
+Information Systems for Business and Beyond (LibreTexts). Marked "to verify"
+on the documents: Weiskopf and Weng 2013 (the page did not load), the
+Python tutorial's default-argument and sequence-multiplication notes, the
+pandas MergeError name, the Python sorting HOWTO, and a Promise.all detail.
+Every organization, person, count and deadline is invented; no patient
+data appears, and the clinical bands add no drug, dose or new clinical claim.
+
+**Findings** (recorded, not worked around):
+
+1. **A test selected PYAUTO documents by course code (FAIL-2480,
+   recurrence of FAIL-2002).** `lib/sim/linux-depth-terminal.test.ts` took
+   every LFCS, LINUXFUND and PYAUTO document, so this round's PYAUTO bands
+   joined its terminal set. It now selects by course and slug.
+2. **A bare enum value in an effect is a name.** `{"set": "fix", "to":
+   "cache"}` reads `cache` as a state name; it must be `"\"cache\""`. Four
+   drafts had it and the validator caught each before a golden was written.
+3. **Braces in labels.** `.catch(() => {})` in learner text is a template
+   slot; the JavaScript case rewords it ("an empty .catch() handler").
+4. **`time_up`** is reached by no golden path in any case, as elsewhere.
+
+#### Continuation (same day): every fitting unit covered
+
+The lead's follow-up asked for every unit with a fitting objective to get a
+sim whose main objective is in that unit, MSHI F9 to be tried on the tabletop
+or governance board, and the three cross-domain MSHI bands to be replaced by
+health-setting cases. **59 new cases** (58 on the data console from one
+skeleton: look, change, an optional data-destroying shortcut, check, ship,
+record; one tabletop), each learner-paced with a three-part write-up, harm
+endings first, three or four critical criteria and seven or eight goldens
+rated Good, Mediocre and Bad:
+
+| Course / slug | Screen | Objective (abridged) | Case: the right change | Steps |
+|---|---|---|---|---|
+| PYTHON/py-class-attribute-shared-cart | data | __init__, self, and instance vs. class attributes | Every new cart already has someone's items: Create it per object in __init__: self.items = [] | py-classattr |
+| PCEP/pcep-audit-log-write-mode | data | Open text files in r, w and a modes inside with, and predict what... | The audit log only ever has one night in it: Open in append mode inside with: open(..., "a", encoding="utf-8") | pcep-filemode |
+| PCEP/pcep-shipping-tiers-unreachable-branch | data | Trace which branch of an if, if-else or if-elif-else chain runs,... | Nobody ever gets free shipping: Test the most specific case first: if total > 100 ... elif total > 50 ... | pcep-elif |
+| PCAP/pcap-local-module-shadows-stdlib | data | Inspect a module with dir() and diagnose an import failure from... | import statistics, and the wrong statistics: Rename the helper file to clinic_stats.py and import it by that name | pcap-shadow |
+| PYTHON/py-generator-used-twice | data | Generators and yield; generator expressions | Total: 0, after a perfect list: Build a list once: gifts = [parse(r) for r in ...] | py-gen |
+| PCAP/pcap-except-order-hides-timeout | data | Order except branches from specific to general, catch several... | Every failure looks like bad data: Put except TimeoutError first (retry), then except ValueError as e (skip with e.args) | pcap-except |
+| PCAP/pcap-csv-encoding-mangled-names | data | Explain ASCII, Unicode code points and UTF-8, convert with ord()... | Renée became RenÃ©e: Open with encoding="utf-8", the encoding the export uses | pcap-encoding |
+| PYAUTO/pyauto-dry-run-type-bool | data | Build a command-line interface with argparse: positional... | --dry-run False, and nothing was deleted: A real flag: action='store_true' (present means dry run); the scheduler drops the word False | pyauto-argparse |
+| PYAUTO/pyauto-greedy-user-field | data | Write regular expressions with character classes, quantifiers,... | One user logged in 4,000 times?: Name each field and use a character class: user=(?P<user>[^ ]+) ip=... result=...$ | pyauto-regex |
+| PYAUTO/pyauto-shell-true-upload-name | data | Prevent shell injection: keep shell=False, and quote with... | A file named 'report;rm -rf ~': Argument list with shell=False (the default), check=True, capture_output=True, text=True and a timeout | pyauto-subprocess |
+| PYAUTO/pyauto-api-first-page-only | data | Handle error status codes, rate limits and pagination | 342 open tickets, and the report says 30: Request 100 per page and follow rel="next" until there is none, raising on error statuses | pyauto-pages |
+| PYAUTO/pyauto-unpinned-dependency-breaks-job | data | Pin and reproduce dependencies with a requirements file or a lock file | Nothing changed, and the job broke: Pin every package to the last good versions with ==, plus hashes, generated from that run's freeze | pyauto-pin |
+| PYAUTO/pyauto-test-hits-real-clock-and-api | data | Replace the network, the clock and environment variables in tests... | Green at noon, red at midnight: monkeypatch the clock, the SMS sender and the API key environment variable | pyauto-monkeypatch |
+| SQL/sql-export-pages-without-order | data | Limit and page results with LIMIT/OFFSET or FETCH FIRST, always... | Some members twice, some never: ORDER BY member_id (the primary key, unique) before LIMIT/OFFSET | sql-limit |
+| SQL/sql-region-revenue-doubled-by-shipments | data | Recognize row multiplication when joining to a many-side table and... | Revenue up 38%, and nothing sold more: Reduce shipments to one region per order first (a CTE), then join and sum | sql-fanout |
+| SQL/sql-branches-with-no-loans-count-one | data | Summarize rows with count, sum, avg, min and max, and tell... | Zero loans, and the report says one: count(l.loan_id) and coalesce(sum(l.fine), 0) | sql-countstar |
+| SQL/sql-union-drops-equal-refunds | data | Combine results with UNION, UNION ALL, INTERSECT and EXCEPT, and... | Two refunds of 49.00, and one was paid: UNION ALL, and carry source and source_id so every payout stays traceable | sql-union |
+| SQL/sql-top-three-ties-row-number | data | Rank rows with row_number, rank and dense_rank, and predict how... | Third place was a tie: rank(): ties share a place, the next place is skipped (the rules) | sql-rank |
+| SQL/sql-erasure-cascades-to-invoices | data | Link tables with FOREIGN KEY constraints and choose ON DELETE... | Erase the customer, keep the invoice: ON DELETE RESTRICT, and change the job to anonymize customers and invoice names instead of deleting | sql-cascade |
+| JAVASCRIPT/js-reminder-buttons-share-var | data | Closures: what they capture and a real use case for one | Every button reminds about the last class: Declare the loop variable with let, so each iteration has its own binding | js-closure |
+| JAVASCRIPT/js-template-shallow-copy | data | Shallow vs. deep copying, and why reference semantics matter | Everyone's new project has Dana's tasks: structuredClone(TEMPLATE): a deep copy | js-shallow |
+| JAVASCRIPT/js-remove-buttons-added-rows | data | Event listeners: bubbling, capturing, delegation, and preventDefault | The Remove button does nothing on new rows: One listener on the list; find the button with event.target.closest('button.remove') | js-delegate |
+| JAVASCRIPT/js-zero-discount-or-default | data | Optional chaining and nullish coalescing | A 0% discount became 10%: client.discount ?? 10 | js-nullish |
+| JAVASCRIPT/js-array-prototype-sum-breaks-export | data | The prototype chain and how method lookup actually works | A row called 'sum' in every export: Remove the prototype method; export sum(xs) as a plain function and update the 6 callers | js-proto |
+| JAVASCRIPT/js-caret-range-minor-breaks-dates | data | npm basics: package.json, scripts, semantic versioning | The build broke, and nobody touched it: Pin 2.3.4, commit package-lock.json, and make CI run npm ci | js-semver |
+| TSNODE/ts-patch-partial-user-role | data | Apply utility types (Partial, Required, Pick, Omit, Record,... | A user made themselves an admin: Type the patch as Partial<Pick<User, name, email, phone>> and copy only those keys at run time | ts-pick |
+| TSNODE/ts-private-token-in-json | data | Write classes with access modifiers, readonly fields, abstract... | The session token is in the support log: Use a JavaScript private field, #token | ts-private |
+| PYDATA/pydata-notebook-deleted-filter-cell | data | Recognize hidden state from out-of-order cells, and restart and... | 81% in the notebook, 64% from scratch: Restart the kernel and run all cells in order; report the result | pydata-kernel |
+| PYDATA/pydata-target-gap-broadcast-square | data | Predict the result shape of an operation from the broadcasting rules | 144 numbers where 12 were expected: Make targets one-dimensional (reshape to 12) and assert the result shape | pydata-broadcast |
+| PYDATA/pydata-account-codes-lose-zeros | data | Load CSV, Excel and JSON data with read_csv and its relatives,... | Account 0042 and account 00042 merged: Read supplier as text with dtype at load time | pydata-dtype |
+| PYDATA/pydata-mean-bar-hides-long-waits | data | Choose a chart type (line, bar, histogram, scatter) that fits the... | Average wait 24 minutes, and the complaints: Histograms of both months with 10-minute bins, a line at 60, labeled axes and a legend | pydata-hist |
+| PYDATA/pydata-unseeded-sample-overwritten-raw | data | Make an analysis rerunnable: raw data kept read-only, pinned... | The auditor can't get your numbers: Restore raw data read-only, write cleaned data elsewhere, seed a default_rng Generator, pin versions, one run-all command | pydata-rerun |
+| MSCS/mscs-dedupe-quadratic-overnight | data | Analyze simple loop and recursive patterns | The dedupe job won't finish before morning: Track seen emails in a set: O(n) time, O(n) extra space, order kept | mscs-bigo |
+| MSCS/mscs-trip-planner-dfs-transfers | data | BFS | Seven transfers for a two-stop trip: Breadth-first search with a queue, marking stops when first reached: O(V + E) | mscs-bfs |
+| MSCS/mscs-usability-test-booking-flow | data | Usability testing: think-aloud protocol, task success rate,... | Two of five finished booking: Report 2/5 success and the failure point, make Continue look active with feedback on selection, and retest with 5 new participants | mscs-usability |
+| MSCS/mscs-mapreduce-average-of-averages | data | MapReduce as a programming model -- why it forces a certain shape... | The average is off, and only on the cluster: Emit (sum, count) pairs; the combiner adds them; the reducer adds and divides once | mscs-mapreduce |
+| CMPCBS/cmpcbs-cpp-stock-count-stops-at-comma | data | Input and output operations | The count stopped at line 418: Read whole lines, parse each (accepting the thousands separator), report bad lines by number, and give no total unless all parse | cmp-cppio |
+| CMPCBS/cmpcbs-cpp-pointer-into-vector | data | Pointers and memory referencing | Patient 12's room shows a stranger's name: Store the index of the bed record and look it up when drawing | cmp-cppptr |
+| CMPCBS/cmpcbs-pilot-p-value-not-proof | data | Statistical inference: estimation and hypothesis testing | p = 0.21, so cancel it?: Report the difference with its 95% CI as inconclusive, and the sample size needed | cmp-pvalue |
+| CMPCBS/cmpcbs-regression-curved-residuals | data | Model diagnostics and checking regression assumptions | R-squared 0.71, and the heat-wave forecast is low: Model demand on heating and cooling degree-days (two terms from 18 C) | cmp-resid |
+| CMPCBS/cmpcbs-float32-meter-stops-counting | data | Error analysis | The meter has read 40,213.5 for three weeks: Bill from the integer pulse count (liters); convert to cubic meters only for display | cmp-float |
+| CMPCBS/cmpcbs-overbooking-expected-value | data | Expected value and discrete probability distributions | Book 23 for 20 chairs?: Largest n with binomial P(arrivals > 20) at or below 0.05: 21 | cmp-binom |
+| CMPCBS/cmpcbs-exponential-adoption-forecast | data | Critiquing model assumptions and limitations | 120,000 users in a town of 40,000: Fit a logistic curve with a carrying capacity, and check it on the latest weeks | cmp-logistic |
+| CMPCBS/cmpcbs-order-quantity-derivative | data | Applications of derivatives, including L'Hopital's Rule | One giant order a year to save on ordering?: Set the derivative of total cost to zero and confirm a minimum: Q* = 949 | cmp-eoq |
+| CMPCBS/cmpcbs-lifetime-value-diverging-series | data | Sequences, infinite series, and convergence tests | A lifetime value that grows forever: Retention only, r = 0.92; check abs(r) < 1; LTV = 12 / (1 - 0.92) = $150 | cmp-series |
+| CMPCBS/cmpcbs-depot-saddle-point | data | Optimization in several variables | The gradient is zero, so it's the best site?: Classify with the second derivative test, then minimize along the boundary: (0, 7.5) | cmp-saddle |
+| CMPCBS/cmpcbs-pool-flush-first-order | data | First-order differential equations | One tank volume replaced, so reopen?: Model the first-order decay, plan for about 22:00 (open next morning), and confirm with a test | cmp-mixing |
+| CMPCBS/cmpcbs-member-id-check-digit | data | Groups and their properties | Swapped digits pass the check: Weighted sum mod 11 with distinct weights 9..2 (ISBN-10 style) | cmp-checkdigit |
+| CMPCBS/cmpcbs-fertilizer-blend-singular-system | data | Systems of linear equations and Gaussian elimination | The blend calls for minus 4 quadrillion kilos: Row-reduce, describe the solution line, keep it nonnegative, and choose the cheapest point (50% A, 50% B) | cmp-gauss |
+| CMPCBS/cmpcbs-access-rule-de-morgan | data | Boolean algebra | Expired badges open the door: allow = not (expired or suspended), that is (not expired) and (not suspended) | cmp-logic |
+| PTPREREQ/ptprereq-quad-strength-test-angle-changed | data | Apply the length-tension relationship (peak tension at about 80 to... | Quadriceps strength fell 25% overnight: Report by test angle, compare only 60-degree results, and restore the 60-degree setup | pt-lengthtension |
+| PTPREREQ/ptprereq-cushion-pressure-contact-area | data | Calculate pressure as force divided by area, and apply it to... | The thickest cushion isn't the one that spreads the load: Rank by average pressure, P = F/A, with the area in square meters | pt-pressure |
+| PTPREREQ/ptprereq-saline-prep-grams-per-liter | data | Calculate molarity and convert between grams, moles and millimoles... | 0.9 grams per liter is not 0.9 percent: 9.0 g NaCl made up to 1 L (or 0.9 g to 100 mL): 0.154 M | pt-molarity |
+| PTPREREQ/ptprereq-app-users-attend-more-correlational | data | Evaluate a plainly described study as correlational or... | App users attend more, so buy it for everyone?: Describe it as an association and run the vendor's trial with random assignment before buying for everyone | pt-correlation |
+| PTPREREQ/ptprereq-histology-slides-swapped-labels | data | Identify which connective tissue (dense regular, dense irregular,... | The tendon slide shows fibers going every which way: Reattach the images to the right slide numbers, keeping the labels and question numbers | pt-tissue |
+| MSHI/mshi-eye-exam-recall-left-join | data | Relational databases, data modelling and SQL: tables linked by... | The recall list skipped everyone who never had an exam: NOT EXISTS an exam in the last 12 months (a correlated subquery) | mshi-recall |
+| MSHI/mshi-ed-registration-rework-loop | data | Process improvement with Lean, Six Sigma and process mining of... | Add a clerk, or remove the loop?: Remove the cause: insurance fields after the provider, registration in parallel; measure again from the log | mshi-mining |
+| MSHI/mshi-telehealth-vendor-weights | data | Strategic planning for health IT and digital health: setting a... | The cheapest platform can't talk to our EHR: Make the plan's priorities must-haves and weight the rest from the plan, using 5-year total cost | mshi-vendor |
+| MSHI/mshi-flag-mapping-interprofessional-tabletop | tabletop | F9 SBAR handoffs with acknowledgment | A result-feed change strips abnormal flags: huddle every profession with one SBAR, hand off to the night on-call by SBAR with read-back and questions, turn friction into roles, deploy the fix only after lab verification; three procedure gaps owned | mshi-f9 |
+
+**Bands added (8)**, same rule as above: PYTHON conditional logic (the PCEP
+shipping tiers), PYTHON text files (the PCEP audit log), PYTHON pinning (the
+PYAUTO unpinned dependency), PYAUTO file encodings (the PCAP CSV encoding),
+TSNODE narrowing by truthiness (the JavaScript zero discount), PTPREREQ hip
+and knee movers (the NASM squat, knees caving), PTPREREQ p-values and Type II
+error (the CMPCBS pilot), MSCS truth tables (the CMPCBS badge rule).
+**Removed (3):** MSHI's SQL NOT IN, control chart and PfMP rebalance bands;
+CMPCBS keeps the PfMP band (Introduction to Information Systems is not one of
+its top two domains).
+
+**Tests.** `depth-academic.test.ts` adds a behavior test for every case on
+the data-case skeleton (each option's check passes exactly when shipping it
+would be right, the as-found version fails, at least one option passes and
+one fails, and the data shortcut spoils even the right fix) and one for the
+MSHI tabletop (IT alone, a chat handoff and an unverified fix are each their
+own harm ending ahead of the target).
+
+**Sources** for the continuation, all read 2026-11-17 through summarizing
+fetches of URLs that appeared in a search result or a fetched page, each on
+its document with what it says: Python tutorial (classes, modules, errors,
+input and output), Unicode HOWTO, argparse, the Python time-complexity page
+(reached by the wiki's redirect), pip repeatable installs, pytest
+monkeypatch, OpenSSF CWE-78, GitHub REST pagination, an Imperial College regex
+page; PostgreSQL 13, 15, 16, 18 and 19 pages (aggregates, window functions,
+subqueries, combining queries, LIMIT); Supabase cascade deletes; a Looker
+fanout article; MDN (nullish coalescing, deep copy, private elements, for...in,
+event bubbling; an MDN closures mirror); npm semver (an old copy) and npm ci;
+the TypeScript handbook (narrowing, classes, utility types in the Korean
+edition); NumPy (broadcasting, Generator), pandas 1.1 IO, Matplotlib
+histograms, a course page on notebook kernel state; NN/g (success rate,
+thinking aloud), UCSD BFS notes, CMU MapReduce averaging notes; cppreference
+(operator>>, push_back); the ASA p-value statement (ScienceDaily); NIST
+e-Handbook residuals; Wikipedia (Kahan summation, check digits); OpenStax
+(Introductory Statistics, Biology, Calculus 1-3 via Lumen for volume 3,
+Chemistry 2e, College Physics 2e, Psychology 2e, A&P 2e via Oregon State and
+the University of Baltimore, Contemporary Mathematics via LibreTexts); Penn
+State's Matrices; Robert Israel's mixing notes; AHRQ TeamSTEPPS SBAR and the
+CUSP teamwork module; Mans et al., process mining in healthcare; HealthIT.gov
+vendor selection. Every organization, person and count is invented; no
+patient data; no drug or dose; the vaccination clinic case is about booking.
+
+**Findings.**
+
+5. **Code lines are literal, labels are templates.** Braces in a code
+   viewer line are code (types.ts), but a backslash in one still trips the
+   FAIL-1440 lint, so two C++ lines were rewritten without escapes.
+6. **A meter and a flag shared an id.** The skeleton named both `altered`;
+   the validator caught it and the meter is now `alteredRows`.
+7. **A fetched page carried instructions for AI agents** (a request to file
+   feedback); they were ignored and only the documentation was used.
+
+### 22.38 Health depth of the 2026-11-17 evening round (REQ-334)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+Scope (round-1117b.md, as changed at 19:55 PT): ADN-RN, BSN-RN, LPN/VN, CCRN
+Neonatal, CCRN Pediatric and the ten physical therapy specialty courses; EMS
+and fitness moved to depth-ems-fitness (REQ-338). Target: 8 sims for a
+course with 60 or more objectives, 4 for the rest, purpose-written cases for
+each course's top domains, bands only where the setting and the license
+level match. No engine, renderer, schema or migration change; engine 1.2;
+existing screens only (bedside, treatment session, and the level 2
+professional-ethics conversation).
+`lib/sim/health-depth-1117.test.ts` pins every document by slug and checks
+the per-course targets. The round's rule is every unit with a fitting
+objective, not only the count (lead, 2026-11-17): each such unit has a sim
+whose main objective is in it, or is listed below as no fit with a reason.
+
+**Shape.** Every new case is built in the round-2 shape of 22.32: tests share
+one timer and one pending slot, a red-flag finding sets `redFlagAt`, the
+escalation is timed against it (5 minutes unless stated), unsafe actions push
+the course toward a conditional harm ending, and handing over to the next
+level of care ends the run. Each has `endingOrder`, three critical criteria
+inside the `target` condition, a reasoning moment, two sourced teaching
+prompts in jsonb key order, a chapter, two KPIs, an expert path, a debrief
+per ending and five golden paths (Good, two Mediocre or Bad with gaps, two
+Bad reaching harm; every ending but `time_up`; every criterion met and
+missed). Drugs appear only as "the ordered" drug with no dose (the pin test
+checks learner text); lab values, feed and fluid volumes are not doses.
+
+**Bands (16).** The patch changes only `objective`, `secondaryObjectives`,
+`sources` (and never the scoring, outcome, endings or `mature` flag; the test
+compares them). A band is made only from a case of the same license level:
+RN cases to the two RN programs, PN cases to LPN/VN, a DPT case to the
+geriatric specialty (the test checks the level).
+
+| Course / band slug | Base | Objective (abridged, unit) |
+|---|---|---|
+| ADNRN/postop-fever-150-graves-meds-stopped-adn | NCLEXRN | Thyroid storm as an emergency (Med-surg I) |
+| ADNRN/oxytocin-tachysystole-late-decels-adn | NCLEXRN | Fetal heart rate baseline and abnormal tracings (Maternal-newborn) |
+| ADNRN/postpartum-hemorrhage-atony-adn | NCLEXRN | PPH at 1,000 mL, quantitative loss, fundus and bladder (Maternal-newborn) |
+| ADNRN/alcohol-withdrawal-ciwa-adn | NCLEXRN | CIWA-Ar and alcohol overdose (Mental health) |
+| ADNRN/after-amputation-im-done-adn (18+) | NCLEXRN | Suicide lethality (Mental health) |
+| ADNRN/eleven-pills-three-falls-sleep-aid-adn | BSNRN | Comprehensive geriatric assessment (Health assessment) |
+| LPNVN/warfarin-inr-high-tarry-stool-lpn | NCLEXPN | Warfarin, vitamin K, INR (Pharmacology) |
+| LPNVN/head-strike-on-apixaban-lpn | NCLEXPN | Rising ICP and Cushing's triad (Med-surg) |
+| LPNVN/clinic-belly-pain-moved-right-lpn | NCLEXPN | Appendicitis recognized and reported (Med-surg) |
+| LPNVN/aide-feeding-thin-liquids-dysphagia-lpn | NCLEXPN | Delegation for the PN (Foundations) |
+| LPNVN/postpartum-check-boggy-fundus-lpn | NCLEXPN | PPH recognized and reported (Maternal, mental health) |
+| LPNVN/rehab-resident-no-use-to-anyone-lpn (18+) | NCLEXPN | Suicide risk factors, report at once (Maternal, mental health) |
+| BSNRN/med-surg-deterioration-sbar-bsn | NCLEXRN | ABCs and Maslow to sort cues (Nursing science) |
+| BSNRN/insulin-given-to-wrong-bed-bsn | NCLEXRN | Risk management and legal exposure (Systems, policy) |
+| BSNRN/preop-consent-after-opioid-bsn | NCLEXRN | Malpractice, consent and negligence (Ethics) |
+| ABPTSGCS/parkinson-freezing-session-geri | DPT | Balance and resistance program in early to mid PD (Intervention) |
+
+**New bedside cases (19).**
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| CCRNNEO/green-vomit-day-three | Endo, GI... (20) | Bilious emesis is malrotation with volvulus: NPO, decompress, surgeon | neo-volvulus |
+| CCRNNEO/yellow-at-twenty-hours | Multisystem (20) | Hour-specific bilirubin by gestation and risk; phototherapy; early encephalopathy | neo-bili |
+| CCRNNEO/floppy-after-cord-prolapse | Neuro (13) | Sarnat exam, cooling within 6 hours, no overheating | neo-hie |
+| CCRNNEO/cpap-baby-sudden-desaturation | Respiratory (15) | Pneumothorax on CPAP: transilluminate, no more pressure, aspiration | neo-ptx |
+| CCRNNEO/sweaty-feeds-liver-edge-down | Cardiovascular (10) | Infant heart failure from a VSD; feeding work; no hyperoxygenation | neo-chf |
+| CCRNNEO/lip-smacking-and-a-pause | Neuro (13) | Subtle seizures; glucose and calcium first; airway; EEG | neo-seizure |
+| CCRNPEDS/sickle-cell-belly-big-and-pale | Endo, Heme... (25) | Acute splenic sequestration: volume, crossmatch, no sedation | peds-sequestration |
+| CCRNPEDS/red-cells-then-crackles | Endo, Heme... (25) | TACO: stop, upright, no more volume, report | peds-taco |
+| CCRNPEDS/wheeze-gone-quiet-and-sleepy | Respiratory (13) | Status asthmaticus tiring; rising CO2; no sedation | peds-asthma |
+| CCRNPEDS/bike-crash-icp-climbing | Neuro (15) | TBI: head up and midline, collar, no prophylactic hyperventilation | peds-tbi |
+| CCRNPEDS/shunt-baby-vomiting-sats-falling | Cardiovascular (11) | Shunt thrombosis in a dehydrated infant | peds-shunt |
+| CCRNPEDS/toddler-woke-after-naloxone-now-sleepy | Multisystem (17) | Methadone outlasts naloxone; repeat, airway, infusion, long observation | peds-opioid |
+| ADNRN/two-weeks-thirsty-glucose-890 | Med-surg I (20) | HHS told from DKA; fluids first; potassium before insulin | adn-hhs |
+| ADNRN/pain-better-then-belly-rigid | Med-surg II (18) | Perforated appendix and peritonitis; no heat or laxative; sepsis screen | adn-appy |
+| LPNVN/iv-arm-cool-and-swollen | Fundamental skills (20) | Infiltration within LPN IV scope: stop, remove, elevate, report | lpn-iv |
+| LPNVN/breakfast-tray-droop-last-seen-well | Med-surg (18) | Stroke: last known well, NPO, 911 and the RN | lpn-stroke |
+| BSNRN/hip-repair-moaning-scale-says-zero | Person-centered care (14) | A plan that fails a patient with dementia; PAINAD; change it | bsn-pain |
+| BSNRN/insulin-pen-teaching-before-noon | Person-centered care (14) | Readiness first; three domains; return demonstration; move discharge | bsn-teach |
+| BSNRN/eleven-pills-three-falls-sleep-aid | Person-centered care (14) | Geriatric screening areas change the night plan | bsn-cga |
+
+**New treatment-session cases (28).** Same shape on the treatment session
+with the physical-therapy profile (`escalateWindow` matches each case's
+report window).
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| ABPTSCCS/walk-test-saturation-eighty-three | Evaluation (30) | Exertional desaturation; stop; titrate to 88-92% | ccs-walk |
+| ABPTSCCS/walk-test-booked-two-weeks-after-mi | Examination (15) | ACS within 30 days is the absolute contraindication | ccs-screen |
+| ABPTSCCS/cardiac-rehab-weight-up-orthopnea | Plan of care (15) | Decompensated heart failure stops exercise | ccs-rehab |
+| ABPTSECS/emg-referral-platelets-thirty-one | Clinical sciences (19) | Platelets under 50,000 defer needle EMG | ecs-screen |
+| ABPTSECS/proximal-weakness-on-statin-cola-urine | Evaluation (25) | Myopathic EMG; possible rhabdomyolysis | ecs-myopathy |
+| ABPTSECS/ulnar-referral-droopy-eyelid-low-snap | Anatomy (21) | SNAPs localize past the ganglion; lower trunk plexopathy with Horner | ecs-plexus |
+| ABPTSGCS/dizzy-on-standing-new-tamsulosin | Examination (25) | Orthostatic hypotension measured correctly; deprescribing | gcs-orthostatic |
+| ABPTSGCS/home-visit-quiet-and-sleepy-today | Evaluation (15) | Sepsis with hypoactive delirium needs referral | gcs-sepsis |
+| ABPTSGCS/bruises-in-stages-son-wont-leave (18+) | Professional roles (15) | Elder abuse forms; see alone; Adult Protective Services | gcs-abuse |
+| ABPTSNCS/tilt-table-pounding-headache-t4 | Intervention (30) | Autonomic dysreflexia: sit up, loosen, kinked catheter | ncs-ad |
+| ABPTSNCS/gait-session-worst-headache-ever | Knowledge (15) | Aneurysmal subarachnoid hemorrhage: stop, 911 | ncs-sah |
+| ABPTSOCS/neck-pain-headache-after-adjustment | Spine (28) | Vertebral artery dissection; no manipulation | ocs-vad |
+| ABPTSOCS/rolled-ankle-cant-take-four-steps | Lower extremity (19) | Ottawa rules first; then early functional rehab | ocs-ankle |
+| ABPTSONC/chemo-day-nine-shivery-at-rehab | Examination (23) | Febrile neutropenia at nadir | onc-fn |
+| ABPTSONC/jaw-wont-open-new-neck-lump | Examination (23) | Atypical trismus with a node | onc-trismus |
+| ABPTSONC/thigh-pain-walking-breast-cancer-history | Evaluation (14) | Possible femoral metastasis; protect and refer | onc-bone |
+| ABPTSPCS/nicu-range-of-motion-sats-dropping | Intervention (20) | Preterm stress cues: pause and contain | pcs-nicu |
+| ABPTSPCS/torticollis-visit-hip-clunk | Examination (20) | Hip screen in a breech infant | pcs-ddh |
+| ABPTSPCS/six-year-old-limp-after-soccer | Evaluation (20) | Legg-Calve-Perthes behind knee pain | pcs-perthes |
+| ABPTSPWCS/postpartum-gap-and-a-hard-bulge | Patient management (55) | Diastasis recti with an incarcerated hernia | pwcs-dra |
+| ABPTSPWCS/urgency-numb-legs-blurred-eye | Patient management (55) | Urge incontinence with neurological signs | pwcs-urge |
+| ABPTSPWCS/second-trimester-dizzy-on-her-back | Patient management (55) | Supine hypotension; pregnancy exercise prescription | pwcs-pregex |
+| ABPTSSCS/lacrosse-ball-to-chest-collapse | Intervention (35) | Commotio cordis: 911, CPR, AED | scs-commotio |
+| ABPTSSCS/header-collision-wants-back-in | Intervention (35) | Concussion: out for the day; danger signs | scs-concussion |
+| ABPTSSCS/runner-groin-pain-hop-test | Assessment (30) | Femoral neck stress fracture with the triad | scs-stressfx |
+| ABPTSWMS/braden-eleven-purple-heel | Clinical sciences (12) | Staging and risk: Braden 11 and a heel deep tissue injury | wms-braden |
+| ABPTSWMS/two-wounds-one-dressing-choice | Interventions (20) | Dressings matched to two wounds; don't occlude infection | wms-dressing |
+| ABPTSWMS/walking-program-plantar-ulcer | Clinical inquiry (10) | Exercise that minimizes weight bearing with an ulcer | wms-dfu |
+
+**Unit-coverage treatment-session cases (10).** Same shape; written so every
+unit with a fitting objective has a main-objective sim.
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| ABPTSGCS/quiet-not-lazy-day-three-hip-fracture | Knowledge (15) | Hypoactive delirium mislabeled as low motivation; polypharmacy | gcs-delirium |
+| ABPTSGCS/stronger-legs-same-fall-risk | Outcomes (5) | Measures across impairment, activity, participation; gait speed under 0.8 m/s | gcs-outcomes |
+| ABPTSSCS/second-stress-fracture-no-period (18+) | Knowledge (20) | Female athlete triad; hold load; team physician | scs-triad |
+| ABPTSECS/too-early-to-test-day-four-weakness | Examination (20) | Early electrodiagnosis in GBS (EAN/PNS 2023, REQ-310 wording); call it in | ecs-gbs |
+| ABPTSPCS/he-used-to-say-ball | Professional roles (16) | Loss of skills; connect the family to early intervention | pcs-ei |
+| ABPTSNCS/treadmill-ordered-freezing-in-doorways | Clinical reasoning (25) | Integrated PD care; cueing and cycling over treadmill; behavior change | ncs-pd |
+| ABPTSOCS/two-buses-and-a-copay-after-tka | Clinical reasoning (10) | Shared decision-making on setting and cost; a possible DVT first | ocs-tka |
+| ABPTSCCS/eighteen-meters-better-letter | EBP (10) | +18 m is below the 30 m MCID; accurate report; 88-92% target | ccs-mcid |
+| ABPTSCCS/she-pulls-him-up-by-the-arms | Professional behaviors (5) | Teach-back for patient and wife after sternotomy; wound signs first | ccs-teach |
+| ABPTSONC/twenty-percent-smaller-by-a-different-tape | Outcomes (5) | Same measurement method or no comparison; cellulitis signs | onc-lymph |
+
+**Professional-ethics conversations (5).** Lead decision (2026-11-17):
+screens are not profession-locked, so the nursing professional units use the
+level 2 session screen built from `ISC2CC/cc-ethics-shared-credentials` (the
+learner text, sources, criteria labels, endings and debrief replaced; the
+mechanics unchanged). A colleague, manager or bed manager asks for something
+that breaches the code or policy, then makes a second ask; the expert asks
+first, declines with a route that keeps the other person's goal, refuses the
+second ask, uses the channel (privacy officer, charge nurse, IRB office,
+house supervisor), keeps the relationship and writes a factual note.
+Endings: upheld, costly, breached.
+
+| Course / slug | Unit | Teaches | Steps |
+|---|---|---|---|
+| BSNRN/coworker-asks-for-your-login-famous-patient | Informatics | Shared login, minimum necessary, report a known access | bsn-privacy |
+| BSNRN/handover-argument-skip-the-pump-check | Teamwork | Constructive conflict; keep the two-nurse PCA check; no false co-signature | bsn-conflict |
+| BSNRN/quality-project-really-a-study | EBP | QI versus research; IRB determination; no identifiers on a shared drive | bsn-irb |
+| CCRNNEO/consent-through-the-twelve-year-old | Professional caring | Advocacy: no minor interpreter; a qualified interpreter now | neo-interpreter |
+| CCRNPEDS/bed-manager-wants-unstable-child-moved | Professional caring | Systems thinking: surge bed via the house supervisor; verbal handoff | peds-transfer |
+
+- **Scope.** The ICU nurse acts on unit policy and the intensivist's or
+  nurse practitioner's orders; the RN on standing orders and protocols in
+  the brief; the LPN collects data, holds and reports, and works under the
+  facility's named IV scope; the physical therapist acts within the clinic's
+  named policy (911, the referring provider, the oncology triage line,
+  Adult Protective Services) and tells the referrer.
+- **18+.** The two suicide-risk bands keep their base's `mature: true`; the
+  elder abuse case and the female athlete triad case (disordered eating) are
+  marked `mature: true` (REQ-327).
+- **Sources**, read 2026-11-17 through summarizing fetches with quotes
+  (URLs from searches): AFP 2000 on neonatal bilious vomiting; AFP 2023 on
+  neonatal hyperbilirubinemia; OPQIC's posting of the AAP therapeutic
+  hypothermia report (secondary); Merck Manual consumer page on newborn
+  pneumothorax (2025); MSD Manual Professional on neonatal seizures (2025);
+  FPnotebook on pediatric heart failure (secondary); WisTech Open Health
+  Promotion 17.5 and 1.7; St. Jude Together on splenic sequestration (2026);
+  the Massachusetts Hemovigilance Program's TACO summary (NHSN definition);
+  Children's Mercy PICU asthma guide; the Brain Trauma Foundation's pediatric
+  TBI summary page (2019 guideline not opened); WikEM on congenital heart
+  disease (secondary); ACEP Toxicology on pediatric methadone ingestion
+  (2019); CCJM 2025 on the 2024 hyperglycemic crises consensus; Nurse.com on
+  appendicitis; LOUIS IV Therapy for Practical Nurses ch. 7; CDC stroke signs
+  (2026); GVSU PAINAD notes; AFP 2018 geriatric assessment; USA Lacrosse
+  commotio cordis guideline (2023); CDC HEADS UP danger signs (2025); ACEP
+  Now 2022 on cervical artery dissection; CMAJ 2012 on autonomic dysreflexia
+  (Canadian; no US guideline opened); MedlinePlus on subarachnoid hemorrhage,
+  rhabdomyolysis and umbilical hernia; AFP 2012 on ankle sprains; Roswell
+  Park on Pancoast tumors; AFP 2007 on long bone metastases; DOJ Elder
+  Justice red flags (2023) and the Eldercare Locator abuse fact sheet; Emory
+  on preterm infant behavior; Provider Magazine 2017 on NPUAP staging.
+  For the unit-coverage cases, read 2026-11-17 the same way: CDC Learn the
+  Signs. Act Early (reviewed 2026-02-17); MedlinePlus heart bypass surgery
+  discharge (reviewed 2024-07-14) and deep vein thrombosis (reviewed
+  2025-04-01); NCI Lymphedema and Cancer Treatment (updated 2024-03-06).
+  For the conversations: the NSO summary of the 2025 ANA Code; HHS OCR on
+  the minimum necessary requirement; the OHRP quality improvement FAQs; the
+  American Dental Association's summary of the HHS Section 1557 rule on
+  minor interpreters (a secondary summary); and the Medical Solutions summary
+  of Joint Commission Sentinel Event Alert 58 on hand-offs (secondary).
+  Relayed from pt-abpts.ts with its read dates: the EAN/PNS 2023 GBS
+  guideline (read 2026-11-17, REQ-310; European, no US guideline on timing
+  found), the APTA Parkinson (2022), TKA (2026) and lymphedema (2017, 2020)
+  guidelines, the World Falls Guidelines (2022), and StatPearls chapters on
+  delirium, polypharmacy, the triad, stress fractures, GBS, developmental
+  milestones, DVT, the 6-minute walk and oxygen therapy.
+  Relayed with their dates, not re-read: the CCRN handbook and NCLEX test
+  plans and AACN Essentials from the course seeds and earlier cases; the
+  StatPearls chapters tagged in pt-abpts.ts (read 2026-11-04) for the ABPTS
+  objectives' own wording; the base cases' sources for every band. Disease
+  courses, effect sizes and local waits are authored teaching values marked
+  `FLAG`.
+- **Findings while authoring.** FAIL-2490: six objective titles were
+  copied from a truncated listing and one secondary came from another
+  course; the linter does not check catalog membership, the pin test did.
+  A teaching choice id must start with a letter (`30`, `150` refused). A
+  treatment-session minor criterion must be missed by some golden path, so
+  a bad path must skip every test it lists. `time_up` is reached by no
+  golden path (the linter's warning, as before); actions that need a prior
+  step draw the "never available" warning although goldens use them.
+
+**Per-course table (counted from the seed on the branch).** "Units covered"
+counts units with a fitting objective that are some sim's main objective.
+
+| Course | Objectives | Sims before | Sims after | Target | Units with a fitting objective covered | Left (fits but no main sim) |
+|---|---|---|---|---|---|---|
+| ADNRN | 178 | 2 | 10 | 8 | 6 of 6 | none |
+| BSNRN | 179 | 2 | 11 | 8 | 10 of 10 | none |
+| LPNVN | 176 | 2 | 10 | 8 | 5 of 5 | none (Anatomy has no fitting objective) |
+| CCRNNEO | 136 | 2 | 9 | 8 | 6 of 6 | none |
+| CCRNPEDS | 135 | 2 | 9 | 8 | 6 of 6 | none |
+| ABPTSCCS | 47 | 1 | 6 | 4 | 5 of 5 | none |
+| ABPTSECS | 37 | 1 | 5 | 4 | 4 of 4 | none |
+| ABPTSGCS | 48 | 1 | 7 | 4 | 6 of 6 | none |
+| ABPTSONC | 47 | 1 | 5 | 4 | 4 of 4 | none |
+| ABPTSPCS | 44 | 1 | 5 | 4 | 4 of 4 | none |
+| ABPTSPWCS | 35 | 1 | 4 | 4 | 1 of 1 | none |
+| ABPTSSCS | 40 | 1 | 5 | 4 | 3 of 3 | none |
+| ABPTSWMS | 52 | 1 | 4 | 4 | 4 of 4 | none |
+| ABPTSNCS | 43 | 2 | 5 | 4 | 4 of 4 | none |
+| ABPTSOCS | 50 | 2 | 5 | 4 | 4 of 4 | none |
+
+**Open (for the next round or for Nick).**
+- No fit (no objective in the unit passes the generator's selection screen,
+  so no main-objective sim; counted 2026-11-18 from the seed): BSN-RN Patient
+  safety and quality improvement; LPN/VN Anatomy, physiology and basic
+  pathophysiology; CCS Diagnosis and prognosis, Outcomes, and the diagnosis
+  frequency table; ECS Diagnosis, prognosis and interventions; ONC Knowledge
+  areas, Professional roles; PCS Knowledge areas, Outcomes; PWCS Knowledge
+  areas, Professional practice expectations; SCS Professional roles, Patient
+  outcomes; WMS Foundation sciences, Behavioral sciences, Diagnosis and
+  prognosis; OCS Upper extremity. Every other unit in scope (71 of 89, 15
+  courses) has a sim whose main objective is in it.
+- The five conversations reuse one template; a second ethics template (the
+  governance board or tabletop) would vary the mechanics if more nursing
+  professional-unit sims are wanted.
+
+### 22.39 Depth for the AWS, Azure and Google Cloud courses (REQ-335)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still ... Some still have 1
+or two. Let's build those out more robustly." The round's target per course:
+every unit with an objective that fits the selection rule gets a sim whose
+main objective is in it; fewer than 60 objectives, at least 4 sims; 60 or
+more, at least 8; heaviest units first; purpose-written cases preferred to
+cross-level bands for a course's top two domains; a unit where nothing fits
+is recorded as no fit. This builder (depth-cloud) took every AWS, Azure (AZ*,
+DP*, AI200, AI901, PL300, SC500) and Google Cloud course, fewest sims first.
+No engine, renderer, schema or migration change: engine 1.2, the terminal
+screen or the data console for every new case, and bands that carry other screens. The list is
+`lib/sim/depth-cloud.ts`; `lib/sim/depth-cloud.test.ts` selects every
+document by slug (FAIL-2002) and runs the same checks as `it-cloud.test.ts`
+(22.30): an active objective of its own course that no other sim of the
+course sits on, `endingOrder`, endings in all three classes with a debrief
+each, at least five goldens reaching every ending but `time_up` and rating
+Good, Mediocre and Bad with the expert path at `target` and every critical
+criterion both met and missed, no lint error, the course outline read on
+2026-11-17 as the first source, no permission-only body's marks outside
+`sources`, and a band's actions, endings, ending order and golden outcomes
+equal to its base's. A behavior test per new case checks the decision it
+teaches: the harmful shortcut causes harm, the plausible no-op leaves the
+deadline missed, and the right change makes it.
+
+**How the terminal cases are built.** Each terminal case is a compact spec turned into
+the 22.29/22.30 terminal pattern by a factory in the builder's scratchpad
+(`depth-cloud/factory2.py` on top of the REQ-320 factory): learner-paced
+`turns` phase; one `work` wait per command; a deadline as an `interruptsSkip`
+trigger; four or five commands to read the evidence (two of them key), one
+right change, one lasting step (prevention, alerting or the process gap), a
+harmful shortcut and a plausible no-op; a verify command; endings harm (the
+shortcut), harm (deadline missed), target and recovered ("held, with gaps")
+in that order; four criteria (diagnosis and the fix critical); a three-part
+write-up; six goldens (expert Good, shortcut Bad, no-op Bad, fix-only
+Mediocre, late Bad, blind Bad). The committed JSON is the source of truth.
+Teaching timings carry an "Author's scenario timing (REQ-335)" source (FLAG:
+not measured values). Every case names a fictional organization.
+
+**What was built.** 81 new cases (71 terminal, 10 data console) and 82 bands, 163 documents in all, on 35 courses, in two rounds: the first on 2026-11-17, the second on 2026-11-18 after the coordinator asked for every course to meet the rule, for purpose-written cases on top domains held by cross-family bands, and for a source verification pass. Every course now meets its target and every unit has a sim whose main objective is in it. Every case and band is listed in `lib/sim/depth-cloud.ts`; each document's `sources` carry the course outline first, then the vendor pages read for the case with what was quoted and what is an authored rendering.
+
+**New cases (81).** On the terminal screen, except the ten marked (data), which use the data console.
+
+| Course | Slug | Title | Main objective (abridged) |
+|---|---|---|---|
+| AWSDEA | s3-eventbridge-rule-never-fires | Outage: the invoice workflow never starts after the move to EventBridge | Setting up event triggers: Amazon S3 Event Notifications and EventBri… |
+| AWSDEA | redshift-idle-transaction-blocks-load | Outage: the nightly load and every dashboard wait on one idle session | Managing locks that block data access in Amazon Redshift and Amazon R… |
+| AWSDEA | athena-todays-partition-missing | Outage: today's clicks are in S3 but Athena returns zero rows | Synchronizing partitions with a data catalog |
+| AWSDEA | dynamodb-backfill-throttles-checkout | Outage: a history backfill starves the live loyalty table | Throttling and rate limits in DynamoDB, Amazon RDS, and Kinesis, and… |
+| AWSDEA | glue-join-skewed-on-guest-key | Late: the nightly Glue join runs three hours on one task | Implementing mechanisms that handle data skew |
+| AWSSAP | sqs-visibility-shorter-than-work | Incident: customers charged twice after the invoice PDF change | Event-driven architectures and their messaging guarantees: idempotenc… |
+| AWSSAP | onprem-cannot-resolve-private-zone | Cutover: the data center cannot resolve the new database's private name | Hybrid DNS: Route 53 Resolver endpoints, private hosted zones, split-… |
+| AWSSAP | region-scp-blocks-global-services | Launch: a new data-residency guardrail blocks every deployment | Policy enforcement with service control policies (SCPs) and resource… |
+| AWSSAP | cross-account-share-kms-denied | Deadline: the analytics account cannot read the encrypted data share | Encryption at rest with customer managed KMS keys and automatic key r… |
+| AZ120 | fence-agent-lost-role-before-maintenance | Maintenance: the HANA cluster cannot fence, two hours before host maintenance | Configuring an Azure fence agent or STONITH Block Device (SBD) |
+| AZ120 | migration-wave-blocked-by-vm-family-quota | Migration wave: the HANA VMs fail to deploy on quota, hours before the export | Assessing constraints imposed by subscription models and quota limits |
+| AZ120 | hana-log-writes-slow-no-write-accelerator | Month-end: HANA commits crawl on the new M-series VM | Configuring Write Accelerator |
+| AZ120 | hana-vip-unreachable-tcp-timestamps | Morning: HANA is up but no application server can reach its virtual IP | Designing and implementing load balancing for high availability |
+| AZ120 | baseline-policy-denies-hana-vm-size | Build night: the company's baseline policy denies the HANA VM size | Designing and implementing governance and compliance using Azure Poli… |
+| AZ140 | tls-inspection-breaks-session-hosts | Shift change: every session host goes Unavailable after a firewall change | Monitoring and troubleshooting network connectivity |
+| AZ140 | start-vm-on-connect-after-rg-move | Morning: engineers' desktops stay off after the resource group move | Implementing the Start VM on Connect feature |
+| AZ140 | scaling-plan-utc-forces-logoff-midshift | Mid-morning: a new scaling plan is about to sign out the whole claims floor | Implementing autoscaling in host pools |
+| AZ140 | one-minute-disconnect-limit-kills-field-sessions | Storm response: field adjusters lose their work every time the signal drops | Configuring session timeout properties |
+| AZ140 | bad-image-version-spreads-to-new-hosts | Rollout: a new session host image breaks the claims app on every new host | Planning and implementing lifecycle management for session host images |
+| DP300 | public-access-off-reporting-resolves-public-ip | Board pack: the reporting server cannot reach the database after public access… | Configuring private links and service endpoints |
+| DP300 | plan-regression-order-search-query-store | Peak hour: the order search query flips to a bad plan | Monitoring using Query Store |
+| DP300 | app-pinned-to-old-primary-after-geo-failover | After the outage: orders fail because one app still points at the old primary | Configuring failover groups |
+| DP300 | log-backup-job-failing-expired-sas | Disk alert: the transaction log is filling because the log backup job has faile… | Troubleshooting SQL Server Agent jobs |
+| DP300 | lrs-cutover-tail-backup-not-restored | Cutover night: the log-tail backup is uploaded but the managed instance never r… | Troubleshooting a migration |
+| DP300 | deploy-script-truncates-rates-table | Mid-day: a deployment script emptied the rates table, while orders keep coming | Performing a database restore to a point in time |
+| DP300 | managed-identity-login-fails-new-database | Go-live: the invoicing app's managed identity cannot log in to the new database | Troubleshooting authentication and authorization issues |
+| AZ140 | ca-policy-targets-arm-provider-feed-fails | Onboarding day: a new MFA policy leaves Windows App with an empty feed | Planning and implementing Microsoft Entra Conditional Access policies… |
+| GCPMLE | new-model-version-took-all-traffic | Release: a new fraud model took 100% of traffic and blocks good payments | Implementing model rollout strategies -- A/B testing, canary deployme… |
+| GCPMLE | retrain-pipeline-trains-on-broken-feed | Continuous training: tonight's retrain is about to deploy a model trained on a… | Validating data and models as part of a pipeline |
+| GCPMLE | eta-model-skew-miles-not-km | Monitoring alert: delivery ETAs drift after a mobile app release | Monitoring for training-serving skew, data drift, concept drift, and… |
+| DP900 | delete-without-where-open-transaction | Uncommitted: a DELETE without WHERE is still open in a colleague's session | Common SQL statements |
+| DP900 | auditor-needs-archived-invoices-today | Audit: the invoices the auditor needs by 15:00 are in the Archive tier | Features of Azure Blob storage |
+| DP900 | year-end-report-runs-on-checkout-database | Sale day: a year-over-year report is slowing checkout on the same database | Features of analytical workloads |
+| GCPDBE | new-feature-query-seq-scan-orders | Release: a new 'recent orders' query scans 80 million rows on every page view | Assessing slow-running queries, database locking, and missing indexes |
+| GCPDBE | dms-cutover-delay-never-reaches-zero | Cutover night: replication delay will not reach zero before the promotion | Developing and executing a migration strategy: zero/near-zero downtim… |
+| GCPDBE | reporting-query-stalls-read-replica | Stale stock: the storefront's read replica is 25 minutes behind | Deploying and scaling read replicas |
+| GCPNET | cloud-nat-port-exhaustion-payment-api | Flash sale: payments time out because Cloud NAT runs out of ports | Configuring static and dynamic port allocation for Cloud NAT |
+| GCPNET | cdn-serves-wrong-price-after-fix | Pricing error: the origin is fixed, but the CDN keeps selling jackets at 0.99 | Invalidating cached content in Cloud CDN |
+| GCPNET | psa-range-full-before-launch | Launch day: the new database cannot be created because the private services ran… | Planning connectivity to managed services: private services access, P… |
+| GCPNET | ha-vpn-bgp-down-after-router-swap | Monday 07:10: HA VPN tunnels are up, but no routes after the branch router swap | Implementing BGP attributes on Cloud Router: ASN, route priority/MED,… |
+| GCPNET | peered-vpc-no-route-to-onprem | Month-end: the analytics VPC cannot reach the on-premises ledger through the hub | Configuring custom route import/export over VPC Network Peering and N… |
+| GCPNET | folder-policy-deny-blocks-app-to-db | Outage: a new folder firewall policy cuts the orders app off from its database | Using Connectivity Tests to diagnose route and firewall misconfigurat… |
+| GCPSEC | cmek-old-version-scheduled-for-destruction | Report day: half the BigQuery tables fail after a key cleanup | Managing encryption keys for CMEK and EKM: rotation, revocation, impo… |
+| GCPSEC | service-account-key-on-public-repo | Exposure: a service account key is on a public repository | Securing, auditing, and mitigating service account key usage |
+| GCPSEC | unsigned-hotfix-blocked-by-binauthz | Hotfix: an unsigned image is blocked, and someone wants the policy off | Configuring Binary Authorization to secure GKE clusters or Cloud Run |
+| GCPSEC | vpcsc-blocks-partner-delivery-export | Deadline: the perimeter blocks the nightly export to the partner's bucket | Identifying use cases for, and configuring, VPC Service Controls |
+| AZ700 | expressroute-bgp-drops-over-prefix-limit | Outage: the ExpressRoute private peering keeps dropping after a routing change | Diagnosing and resolving ExpressRoute connection issues |
+| AZ400 | oidc-deploy-fails-after-environment-rename | Release: production deploys fail after the GitHub environment was renamed | Implementing and managing secrets and secretless authentication -- fo… |
+| AI200 | orders-dead-lettered-after-schema-bug | Morning after: 3,200 orders sit in the dead-letter queue | Handling poison messages through the dead-letter queue and resubmitti… |
+| AI200 | cosmos-query-without-partition-key-429 | Launch: the new 'my orders' panel throttles the whole Cosmos DB container | Querying Cosmos DB for NoSQL from the SDK with a partition key that k… |
+| AWSDVA | prod-alias-left-on-latest | Incident: a developer's test deploy is serving production | Lambda aliases as application environments |
+| GCPDEVOPS | drain-bad-region-from-global-lb | Incident: one region's backends return errors, and the error budget is burning | Draining or redirecting traffic to mitigate an incident |
+| GCPDEVOPS | cost-exclusion-hides-checkout-errors | Blind spot: a cost-saving log exclusion hides checkout's payment errors | Optimizing logs: filtering, sampling, exclusions, cost management, so… |
+| AZ700 | snat-exhaustion-carrier-api-before-cutoff | Cut-off: label requests to the carrier API time out on SNAT exhaustion | Identifying use cases for Azure NAT Gateway, and implementing it |
+| AWSANS | vpn-large-responses-hang-pmtud-blocked | Cutover: small queries work over the VPN, but every large report hangs | Network performance metrics and reachability constraints, including r… |
+| AZ400 | storage-key-in-history-before-open-source | Open-sourcing at 16:00: a storage account key sits in the repository's history | Removing specific data from source control |
+| AWSSCS | miner-instance-evidence-before-scale-in | Evidence: a compromised web instance is due to be scaled in at 22:00 | Capturing and storing system and application logs as forensic artifac… |
+| PL300 | merge-duplicates-double-region-revenue (data) | Board pack: two regions' revenue doubled after a merge | Combining queries with merge (a join) and append (a union) |
+| PL300 | return-rate-trend-on-a-pie-chart (data) | Ops review: is the return rate rising? The page answers with a pie chart | Picking the visual type that fits a comparison, trend, composition or… |
+| AWSAIF | ticket-labels-change-on-every-run (data) | Routing: the same ticket gets a different category every time | Inference parameters and what they change: temperature, input and out… |
+| AWSAIF | manual-in-every-prompt-triples-bill (data) | Cost: the policy assistant's bill tripled since the manual went into every prom… | Token-based pricing, and how it drives both cost and inference perfor… |
+| AWSAIF | guardrail-blocks-payroll-questions (data) | Help desk: the guardrail blocks every question about pay | Using Amazon Bedrock Guardrails to enforce responsible-AI features |
+| GCPGAIL | hr-assistant-grounded-on-the-web (data) | Leave policy: the HR assistant quotes other employers' rules | Describing grounding in LLMs, and differentiating grounding with firs… |
+| AI901 | hotel-reviews-hide-staff-complaints (data) | Guest feedback: staff complaints vanish inside positive reviews | Common text analysis techniques: keyword extraction, entity detection… |
+| GCPGAIL | claims-assistant-pilot-on-an-api-key (data) | Go-live: a claims assistant built on an AI Studio API key goes to production | Choosing between Agent Studio and Google AI Studio |
+| GCPMLE | bqml-churn-predictions-without-training-transforms (data) | Retention campaign: every customer scores as likely to churn | Generating predictions using BigQuery ML |
+| GCPMLE | partner-dataset-shares-raw-emails (data) | Data share: the partner's modeling dataset carries raw customer emails | Ensuring data privacy and handling PII |
+| AZ700 | appgw-502-after-login-on-root | Enrollment opens at 09:00: every request through Application Gateway returns 502 | Configuring health probes |
+| AZ400 | release-gate-unlinked-prs-new-repo | Release at 17:00: the traceability gate finds 14 pull requests with no work ite… | Configuring integration between Azure Boards and GitHub repositories |
+| AZ400 | debug-logging-hits-daily-cap-blind | Blind: Application Insights went silent at 11:20, mid-incident | Configuring collection of telemetry using Azure Monitor Application I… |
+| AZ400 | prod-stage-skips-environment-approval | Audit at 16:00: production deploys have been skipping the approval check | Designing and implementing checks and approvals using YAML-based envi… |
+| SC500 | arc-servers-missing-from-security-dcr | Blind spot: the brute-force rule is silent while new servers take password spra… | Collecting syslog, CEF and Windows Security events with data collecti… |
+| AWSANS | new-vpc-attachment-not-propagated | Go-live: the new analytics VPC cannot reach the shared services through the tra… | Using route tables and automatic propagation to direct traffic |
+| AWSANS | egress-allowlist-blocks-new-payment-api | Cutover: the new payment provider's API is blocked at the egress firewall | Securing outbound traffic flows from AWS: Network Firewall, proxies,… |
+| AWSMLA | vpc-endpoint-cannot-load-model-from-s3 | Launch: the fraud model's endpoint in the private VPC never comes up | Configuring SageMaker AI endpoints inside a VPC |
+| AWSMLA | tuning-job-early-stopping-never-fires | Budget: the tuning job has burned 70% of the month's GPU budget, and early stop… | Reducing training time with early stopping and distributed training |
+| AWSMLA | long-term-bedrock-key-in-app-logs | Exposure: a long-term Bedrock API key is in the support app's shared logs | Choosing a credential type to reach foundation models: Amazon Bedrock… |
+| GCPSEC | eu-patient-data-created-in-us | Residency: EU patient data landed in a US bucket the day before the regulator's… | Configuring compliance-supporting controls: Assured Workloads, organi… |
+| GCPDEV | integration-tests-share-staging-firestore | Release freeze at 17:00: integration tests fail at random because every build s… | Executing automated integration tests in Cloud Build |
+| GCPDEV | eventarc-trigger-wrong-region-for-bucket | Uploads pile up: the thumbnail service never hears about new photos | Invoking Cloud Run services with triggers: Eventarc, Pub/Sub |
+| AWSANS | failover-record-without-health-check | Region down: DNS failover never happens, and the booking site stays dark | Amazon Route 53 features: alias records, traffic policies, resolvers,… |
+
+**Bands (82).** Merge patches over a base case: the course outline first, the base's technical sources, a new main objective, no secondaries.
+
+| Course | Band (base course) | Main objective (abridged) |
+|---|---|---|
+| AWSDEA | phi-in-application-logs-dea (AWSDVA) | Data masking and anonymization to satisfy compliance law or company policy |
+| AWSDEA | rds-update-without-where-pitr-dea (AWSSOA) | Protecting data with appropriate resiliency and availability |
+| AWSSAP | nat-gateway-bill-spike-sap (AWSSAA) | Reducing data transfer cost: private connectivity, VPC endpoints versus NAT gateways, AZ-… |
+| AWSSAP | canary-rollback-dlq-sap (AWSDVA) | Deployment strategies with rollback: blue/green, canary, rolling |
+| AWSSAP | dynamodb-backfill-throttles-checkout-sap (AWSDEA) | Controlled remediation with safety limits: circuit breakers, rate limits, bulkheads, retr… |
+| AZ120 | stale-udr-to-retired-nva-az120 (AZ700) | Designing and implementing network flow control |
+| AZ140 | stale-udr-to-retired-nva-az140 (AZ700) | Implementing and managing network security for connections to Azure Virtual Desktop, incl… |
+| AWSDVA | sqs-visibility-shorter-than-work-dva (AWSSAP) | Asynchronous processing with Amazon SQS |
+| AWSDVA | s3-eventbridge-rule-never-fires-dva (AWSDEA) | Amazon S3 Event Notifications as an event source |
+| AWSDVA | dynamodb-backfill-throttles-checkout-dva (AWSDEA) | Retry with backoff when a call fails |
+| AWSDVA | cross-account-share-kms-denied-dva (AWSSAP) | Using encryption keys to encrypt and decrypt data with AWS KMS |
+| AWSSAA | sqs-visibility-shorter-than-work-saa (AWSSAP) | Decoupling with queues and pub/sub: Amazon SQS and Amazon SNS |
+| AWSSAA | cross-account-share-kms-denied-saa (AWSSAP) | Encrypting data at rest with AWS KMS, and writing key policies that hold |
+| AWSSAA | dynamodb-backfill-throttles-checkout-saa (AWSDEA) | Selecting a throttling strategy and bandwidth allocation |
+| AWSSCS | cross-account-share-kms-denied-scs (AWSSAP) | Creating and managing encryption keys and certificates across one or many Regions with KM… |
+| AWSSCS | region-scp-blocks-global-services-scs (AWSSAP) | Organization policies that manage permissions: service control policies, resource control… |
+| AWSANS | onprem-cannot-resolve-private-zone-ans (AWSSAP) | Inbound and outbound resolver endpoints, and when each is required |
+| AWSDOP | region-scp-blocks-global-services-dop (AWSSAP) | Service control policies in AWS Organizations |
+| AZ900 | auditor-needs-archived-invoices-today-az900 (DP900) | Storage tiers |
+| AZ900 | baseline-policy-denies-hana-vm-size-az900 (AZ120) | The purpose of Azure Policy |
+| AZ900 | ca-policy-targets-arm-provider-feed-fails-az900 (AZ140) | Microsoft Entra Conditional Access |
+| AZ104 | auditor-needs-archived-invoices-today-az104 (DP900) | Configuring storage tiers |
+| AZ104 | start-vm-on-connect-after-rg-move-az104 (AZ140) | Assigning roles at different scopes |
+| AZ104 | public-access-off-reporting-resolves-public-ip-az104 (DP300) | Configuring private endpoints for Azure PaaS |
+| AZ104 | baseline-policy-denies-hana-vm-size-az104 (AZ120) | Implementing and managing Azure Policy |
+| AZ305 | deploy-script-truncates-rates-table-az305 (DP300) | Recommending a backup and recovery solution for databases |
+| AZ400 | bad-image-version-spreads-to-new-hosts-az400 (AZ140) | Designing and implementing a versioning strategy for pipeline artifacts |
+| SC500 | public-access-off-reporting-resolves-public-ip-sc500 (DP300) | Reaching PaaS services privately with private endpoints and exposing your own services wi… |
+| SC500 | tls-inspection-breaks-session-hosts-sc500 (AZ140) | Inspecting and filtering traffic centrally with Azure Firewall rules and policies |
+| SC500 | baseline-policy-denies-hana-vm-size-sc500 (AZ120) | Enforcing guardrails with built-in and custom Azure Policy definitions |
+| SC500 | managed-identity-login-fails-new-database-sc500 (DP300) | Replacing stored credentials with system- or user-assigned managed identities |
+| AZ700 | public-access-off-reporting-resolves-public-ip-az700 (DP300) | Integrating Private Link and Private Endpoint with DNS |
+| AZ700 | hana-vip-unreachable-tcp-timestamps-az700 (AZ120) | Creating and configuring an Azure Load Balancer |
+| AZ700 | tls-inspection-breaks-session-hosts-az700 (AZ140) | Configuring Azure Firewall rules |
+| GCPACE | cloud-nat-port-exhaustion-payment-api-ace (GCPNET) | Using Cloud DNS and Cloud NAT |
+| GCPACE | folder-policy-deny-blocks-app-to-db-ace (GCPNET) | Managing VPC firewall rules and Cloud NGFW policies day-to-day |
+| GCPACE | cmek-old-version-scheduled-for-destruction-ace (GCPSEC) | Configuring customer-managed encryption keys (CMEK) |
+| GCPACE | new-feature-query-seq-scan-orders-ace (GCPDBE) | Using diagnostic tools to investigate an application issue: Cloud Trace, Cloud Profiler,… |
+| GCPACE | peered-vpc-no-route-to-onprem-ace (GCPNET) | Establishing network connectivity: Cloud VPN, VPC Network Peering, Cloud Interconnect |
+| GCPPCA | vpcsc-blocks-partner-delivery-export-pca (GCPSEC) | Designing security controls: auditing, VPC Service Controls, context-aware access, organi… |
+| GCPPCA | cmek-old-version-scheduled-for-destruction-pca (GCPSEC) | Managing customer-managed encryption keys with Cloud KMS |
+| GCPPCA | dms-cutover-delay-never-reaches-zero-pca (GCPDBE) | Choosing data and system migration/management tooling |
+| GCPPCA | folder-policy-deny-blocks-app-to-db-pca (GCPNET) | Building security protection into network topology: intrusion protection, access control,… |
+| GCPDEV | unsigned-hotfix-blocked-by-binauthz-pcd (GCPSEC) | Securing application artifacts with Binary Authorization |
+| GCPDEVOPS | unsigned-hotfix-blocked-by-binauthz-devops (GCPSEC) | Applying software supply chain security: Binary Authorization, the SLSA framework |
+| GCPPDE | dms-cutover-delay-never-reaches-zero-pde (GCPDBE) | Planning migration and validation to Google Cloud: BigQuery Data Transfer Service, Databa… |
+| GCPPDE | retrain-pipeline-trains-on-broken-feed-pde (GCPMLE) | Designing data validation into a pipeline |
+| GCPPDE | cmek-old-version-scheduled-for-destruction-pde (GCPSEC) | Designing data security: encryption and key management |
+| GCPPDE | reporting-query-stalls-read-replica-pde (GCPDBE) | Designing data replication and failover: Cloud SQL, Redis clusters |
+| GCPNET | vpcsc-blocks-partner-delivery-export-net (GCPSEC) | Configuring restricted Google Cloud services with VPC Service Controls perimeters |
+| GCPSEC | folder-policy-deny-blocks-app-to-db-sec (GCPNET) | Configuring security properties of a VPC network, VPC peering, Shared VPC, and firewall r… |
+| GCPSEC | cloud-nat-port-exhaustion-payment-api-sec (GCPNET) | Using Cloud NAT to enable outbound traffic |
+| GCPSEC | peered-vpc-no-route-to-onprem-sec (GCPNET) | Designing private connectivity between VPC networks and projects: Shared VPC, VPC peering… |
+| AWSCLF | ec2-status-check-recovery-clf (AWSSOA) | High availability, elasticity, and agility as three distinct advantages, not synonyms |
+| AWSCLF | canary-rollback-dlq-clf (AWSDVA) | Benefits of automation |
+| AWSCLF | dynamodb-backfill-throttles-checkout-clf (AWSDEA) | NoSQL: Amazon DynamoDB |
+| AWSCLF | sqs-visibility-shorter-than-work-clf (AWSSAP) | Application integration: Amazon SQS, Amazon SNS, Amazon EventBridge |
+| AWSAIF | fraud-model-drift-aif (AWSMLA) | MLOps fundamentals: experimentation, repeatable processes, scalable systems, technical de… |
+| AWSAIF | endpoint-scaling-latency-aif (AWSMLA) | Types of inferencing: batch, real-time, asynchronous, serverless |
+| AWSDOP | dynamodb-backfill-throttles-checkout-dop (AWSDEA) | Identifying and remediating scaling issues |
+| AWSDVA | kinesis-poison-record-blocks-shard-dva (AWSDEA) | Managing streaming data with AWS services such as Amazon Kinesis and Amazon Data Firehose |
+| AI901 | loan-data-bias-ai901 (AWSMLA) | Considerations for fairness in an AI solution |
+| GCPGAIL | retrain-pipeline-trains-on-broken-feed-gail (GCPMLE) | Explaining the characteristics and importance of data quality and accessibility: complete… |
+| GCPGAIL | eta-model-skew-miles-not-km-gail (GCPMLE) | Identifying the stages of the ML lifecycle -- data ingestion, data preparation, model tra… |
+| GCPCDL | drain-bad-region-from-global-lb-cdl (GCPDEVOPS) | How Google Cloud's global network -- regions, zones, and edge locations -- supports a dig… |
+| GCPCDL | streaming-window-drops-late-rides-cdl (GCPPDE) | Why real-time streaming analytics matters for a modern business |
+| GCPCDL | retrain-pipeline-trains-on-broken-feed-cdl (GCPMLE) | Why high-quality, accurate data is a prerequisite for a working AI model, and the dimensi… |
+| GCPCDL | dms-cutover-delay-never-reaches-zero-cdl (GCPDBE) | Cloud migration vocabulary: workload, discovery and assessment, retire, retain, rehost, r… |
+| GCPCDL | reporting-query-stalls-read-replica-cdl (GCPDBE) | Databases versus data warehouses versus data lakes, and what each is for |
+| GCPPCA | new-model-version-took-all-traffic-pca (GCPMLE) | Managing deployment and release |
+| GCPPCA | ha-vpn-bgp-down-after-router-swap-pca (GCPNET) | Applying troubleshooting and root-cause-analysis best practices |
+| GCPPDE | new-feature-query-seq-scan-orders-pde (GCPDBE) | Troubleshooting a poorly performing query |
+| GCPPDE | eta-model-skew-miles-not-km-pde (GCPMLE) | Preparing data for ML feature engineering, training, and serving with BigQuery ML |
+| GCPDEVOPS | peered-vpc-no-route-to-onprem-devops (GCPNET) | Designing shared networking: Shared VPC, VPC Network Peering, Network Connectivity Center… |
+| GCPDEVOPS | service-account-key-on-public-repo-devops (GCPSEC) | Creating and managing service accounts |
+| GCPDEVOPS | cloud-run-exhausts-sql-connections-devops (GCPDBE) | Monitoring application and agent performance |
+| AWSDOP | miner-instance-evidence-before-scale-in-dop (AWSSCS) | Governance and security controls at scale: AWS Config, Control Tower, Security Hub, Amazo… |
+| AWSSAA | glue-join-skewed-on-guest-key-saa (AWSDEA) | Transforming data with AWS Glue, including format changes such as CSV to Parquet |
+| AZ900 | app-pinned-to-old-primary-after-geo-failover-az900 (DP300) | Benefits of high availability and scalability in the cloud |
+| AZ305 | cosmos-query-without-partition-key-429-az305 (AI200) | Recommending a solution for storing semi-structured data |
+| GCPACE | service-account-key-on-public-repo-ace (GCPSEC) | Creating and managing short-lived service account credentials |
+| SC500 | containerapp-keyvault-revision-sc500 (AI200) | Securing AKS, Container Registry, Container Instances and Container Apps, and acting on D… |
+
+**Data console cases (round 2).** Ten cases use the existing data console
+instead of the terminal: two PL-300 (a Power Query merge on a lookup with
+duplicate keys; a trend question answered with a line chart and a ratio
+measure, the visual decision taken as a described choice with a described
+result), three AWS AI Practitioner (temperature and a fixed label set; input
+tokens and retrieval; a Bedrock Guardrails denied topic), two Generative AI
+Leader (grounding on first-party data; the enterprise Agent Platform against an
+AI Studio key), AI-901 opinion mining, and two Google Cloud ML Engineer
+(BigQuery ML TRANSFORM; deterministic de-identification). They are built by the
+REQ-333 data-case helper adapted to this list: look, one change chosen from
+three graded options (right, partial, wrong), an optional destructive
+shortcut, a check, ship, record; seven or eight goldens each. A behavior test
+per data case checks that the right option ships a right result and a wrong
+option ships a wrong one.
+
+**Cross-family bands.** Bands from another exam family on a course's top two
+domains (by weight, ties broken by outline order) were replaced as the main
+coverage there by purpose-written cases and kept as extra coverage: the SecAI+
+agent case on AWS AI Practitioner moved from Applications of Foundation Models
+to the governance domain's agent identity objective, and on Generative AI
+Leader from Gen AI Offerings to the security considerations objective in
+Business Strategies; new cases now hold those top domains. AI-901 has only two
+units, so its three cross-family bands stay in AI Concepts beside the new
+purpose-written opinion mining case. Other bands from another family sit
+outside the top two domains (the Security+ case on AWS Security Specialty's
+Incident Response, the SecAI+ cases on Machine Learning Engineer's operations
+domain beside a purpose-written credential case).
+
+**Source verification (round 2, read 2026-11-18).** For each fact a case's
+scoring depends on, the vendor's own page was read (docs.aws.amazon.com,
+learn.microsoft.com, cloud.google.com and their regional mirrors), using URLs
+from search results or fetched pages only. Each case's source note now says
+what the page states, or marks text as an authored rendering (CLI output,
+error text, log lines). Corrections made where the docs did not support the
+case: the AWS Security Specialty forensics case detaches the instance from its
+Auto Scaling group instead of putting it in Standby (FAIL-2502: Standby's
+effect on scale-in is not documented; detaching is); the Redshift case says a
+reboot interrupts the load rather than rolls it back (FAIL-2503); the
+ExpressRoute case clears the BGP sessions after fixing the advertisement,
+because the docs do not say the session returns on its own; the AZ-400
+history-scrub case uses the documented permission name 'Force push (rewrite
+history, delete branches and tags)'. Statements still not confirmed keep a
+visible "to verify" in their source note: Pacemaker's refusal to move
+resources without fencing (general behavior, not in the Azure guide); HANA's
+sub-millisecond log-write expectation (SAP's guidance); in-flight transactions
+on an Azure SQL failover; foreign key locking under read committed snapshot;
+the Cloud Router return-path advertisement for a peered VPC; a replacement HA
+VPN gateway's new IPs; the PSA overlap effect; the Firestore emulator start
+commands; the Azure Boards re-save step; the Sentinel SecurityEvent table name;
+Query Insights' features; and the Spark skew-splitting practice. Bands built
+on other builders' bases carry those bases' notes unchanged.
+
+**Exam guides (round 2).** The official AWS guides were read on
+docs.aws.amazon.com under aws-certification: SAP-C03, DVA-C03 and MLA-C02 match
+the seed's units in name and weight (MLA-C02 writes "Foundation Model (FM)";
+SAP-C03's Domain 1 has 34 skills and MLA-C02's Domain 4 has 25, the same counts
+and topics as the seed units); CLF-C02's Domain 1 confirms "Identifying
+benefits of automation" and "advantages of high availability, elasticity, and
+agility". These four courses' documents now cite the official guides. Other
+domains were compared by name and weight only. Google's HTML exam guide pages
+for Associate Cloud Engineer and Digital Leader are stale; the PDFs linked from
+the certification pages are current and match the seed (FAIL-2504), so the seed
+is unchanged and those bands cite the PDFs.
+
+**Defects found and fixed (failure ledger).** FAIL-2500: the Athena case's
+action id `parts` (a server-only key) failed the client-leak check; renamed,
+with a regression test over every REQ-335 action and state id. FAIL-2501: the
+AZ-700 SNAT case's `awk '{print $1}'` was read as a template expression;
+braces doubled before the first commit. FAIL-2502, FAIL-2503, FAIL-2504 as
+above. FAIL-2505: the reworded forensics fix label ran to 208 characters, over the
+schema's 200; documents.test.ts caught it, the label is 128 characters, and the
+builder's factory now refuses longer labels. FAIL-2506:
+`depth-cloud.test.ts` failed `tsc` (TS2774, an always-defined helper used as a
+condition); fixed. The remaining `tsc` error, in `lib/test-discovery.test.ts`
+(`globSync` from `node:fs`), is unchanged from `origin/master`.
+
+**Per course, before and after.** Before is the count on `origin/master` when the round started; after counts this branch. Target: fewer than 60 objectives, 4 sims; 60 or more, 8. "Units with a sim" counts units holding a sim whose main objective is in it.
+
+| Course | Before | After | Target | Met | Units with a sim | Units without (reason) |
+|---|---|---|---|---|---|---|
+| AWSDEA | 1 | 8 | 8 | yes | 4/4 | every unit |
+| AWSSAP | 1 | 8 | 8 | yes | 5/5 | every unit |
+| AZ120 | 1 | 8 | 8 | yes | 4/4 | every unit |
+| AZ140 | 1 | 8 | 8 | yes | 4/4 | every unit |
+| DP300 | 1 | 8 | 8 | yes | 5/5 | every unit |
+| DP900 | 1 | 4 | 4 | yes | 4/4 | every unit |
+| GCPDBE | 1 | 4 | 4 | yes | 4/4 | every unit |
+| GCPMLE | 1 | 6 | 4 | yes | 6/6 | every unit |
+| GCPNET | 1 | 8 | 8 | yes | 6/6 | every unit |
+| GCPSEC | 1 | 9 | 8 | yes | 5/5 | every unit |
+| AI200 | 2 | 4 | 4 | yes | 4/4 | every unit |
+| AI901 | 2 | 5 | 4 | yes | 2/2 | every unit |
+| AWSDVA | 2 | 8 | 8 | yes | 4/4 | every unit |
+| AZ400 | 2 | 8 | 8 | yes | 5/5 | every unit |
+| AZ700 | 2 | 8 | 8 | yes | 5/5 | every unit |
+| AZ900 | 2 | 6 | 4 | yes | 3/3 | every unit |
+| GCPDEVOPS | 2 | 8 | 8 | yes | 5/5 | every unit |
+| GCPGAIL | 2 | 6 | 4 | yes | 4/4 | every unit |
+| GCPPDE | 2 | 8 | 8 | yes | 5/5 | every unit |
+| PL300 | 2 | 4 | 4 | yes | 4/4 | every unit |
+| SC500 | 2 | 8 | 4 | yes | 4/4 | every unit |
+| AWSAIF | 3 | 8 | 8 | yes | 5/5 | every unit |
+| AWSANS | 3 | 8 | 8 | yes | 4/4 | every unit |
+| AWSMLA | 3 | 8 | 8 | yes | 4/4 | every unit |
+| AZ305 | 3 | 5 | 4 | yes | 4/4 | every unit |
+| GCPACE | 3 | 9 | 8 | yes | 4/4 | every unit |
+| GCPCDL | 3 | 8 | 8 | yes | 6/6 | every unit |
+| GCPDEV | 3 | 6 | 4 | yes | 4/4 | every unit |
+| GCPPCA | 3 | 9 | 8 | yes | 6/6 | every unit |
+| AWSCLF | 4 | 8 | 8 | yes | 4/4 | every unit |
+| AWSSCS | 4 | 8 | 8 | yes | 6/6 | every unit |
+| AWSDOP | 5 | 8 | 8 | yes | 6/6 | every unit |
+| AZ104 | 5 | 9 | 8 | yes | 5/5 | every unit |
+| AWSSAA | 6 | 10 | 8 | yes | 4/4 | every unit |
+| AWSSOA | 8 | 8 | 4 | yes | 5/5 | every unit |
+
+**Decisions for Nick.** (1) Whether AI-901's three cross-family bands (two SecAI+ cases and an AWS ML case) should stay as extra coverage beside the new case in its two-unit course. (2) Whether the twelve statements still marked 'to verify' (listed above) need a vendor confirmation before release or can ship as flagged.
+
+### 22.40 Depth for the CNCF ecosystem, CompTIA, security and project-management courses (REQ-336)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still ... Some still have 1
+or two. Let's build those out more robustly." The lead's robust rule: every
+unit with an objective that fits the selection rule gets a sim whose main
+objective is in that unit; at least 4 sims per course (8 at 60 objectives or
+more); purpose-written cases preferred for a course's top two domains; a unit
+where nothing fits honestly is recorded as no fit. This section covers the 41
+courses of the depth-infra-sec-pm builder (CNCF ecosystem, CompTIA and
+security, project management). Counts were recounted from the seed on
+origin/master b2c02f34 before starting, with `activeUnits` (which leaves out
+any unit with a retiredAt, so CySA+ counts only its four CS0-004 units).
+
+**What this adds.** No new screen, no migration, engine 1.2, every document
+learner-paced. New cases are review-paced: the learner moves one review on at a
+time (a ten-minute check-in on the terminal and console, a day on the service
+desk and the Sprint board, a week or a fortnight on the governance board and
+the predictive dashboard, an inject on the tabletop); before the first review
+two inspect tasks read the evidence; at each review one decision arrives as a
+prompt with three choices: one meets the criterion, one is partly right, and
+one causes harm (each harm choice has its own harm ending, ordered first).
+After the last review the learner writes the record (an honest record or a
+one-line summary) and a two-part reflection. Every case has a critical
+criterion per decision, an evidence criterion (both inspect tasks), a record
+criterion, KPIs for the screen's profile, and seven golden paths (expert;
+partly right on the first decision; partly right on the last with a one-line
+record; every decision partly right; one per harm choice), so the goldens rate
+Good, Mediocre and Bad and reach every ending but time_up. The screens are
+generated from the decisions as each screen's bindings expect: governance
+board (risks against appetite, stakeholders, docket), terminal (nodes, links
+and lines), security console (alerts, events, assets), project dashboard in
+predictive mode (SPI and CPI derived from the decisions) and Sprint mode (the
+scrum profile), tabletop (injects, roles, communications), service desk
+(tickets against the organization's priority matrix) and data console (quality
+flags and a checks table). Profiles and thresholds are each screen's default
+profile at its default thresholds. The golden steps reuse
+`scripts/sim-golden/pm2-helpers.ts`. `lib/sim/depth-isp.ts` lists every
+document by slug; `lib/sim/depth-isp.test.ts` checks registration, objectives,
+goldens, bands, the claim words, the behavior of every new case (the expert
+choices reach target with no harm; each harm choice, with every other decision
+right, reaches its own harm ending; a partly right first decision is
+recovered), the robust rule for all 41 courses, a purpose-written case in each course's top two domains (units ranked by weight, ties counted), and source quality (no non-outline source left marked to verify, apart from two NIST pages two bands inherit; every WebFetch reading has an address and a read date).
+
+Bands (4.7) register a case on another course's objective that it teaches,
+with this course's outline first. Cross-level bands, flagged as in 22.29
+finding 3: a Cilium policy case on CKS's NetworkPolicy objective, a CKS
+hardening case on KCSA's threat-model objective, a Prometheus dashboard case on
+KCNA's SLO objective, Security+ phishing and ransomware incidents on CySA+
+CS0-004 identity-indicator and contain-and-recover objectives, an ISACA-level
+tabletop on CySA+'s communication-plan objective and an ISACA-level risk exception on
+SecurityX GRC, PenTest+ scope and Security+ cloud cases on CEH, a PMI-SP Monte
+Carlo case on PMI-RMP quantitative analysis, a PMI-RMP monitoring case on PgMP
+governance, a PgMP stakeholder case on PfMP communications, a PMI-PBA change
+case and a PMI-ACP increment case on CAPM, a SecAI+ compliance case on
+PMI-CPMAI's privacy objective, and the PMP fit-out on PMI-PMOCP's People
+objective. Permission-only marks stay out of sim text (the ITIL Foundation
+cases say "service management"; the CSSGB cases name no ASQ mark; CEH cases
+name no EC-Council mark); `certMarkProblems` passes on every document.
+
+**Before and after** (sims per course by registration; objective counts from
+the seed):
+
+| Course | Objectives | Target | Sims before | Sims after | Added (scenario / band) |
+|---|---|---|---|---|---|
+| CAPA | 16 | 4 | 1 | 4 | 3 / 0 |
+| CBA | 20 | 4 | 1 | 4 | 3 / 0 |
+| CCA | 27 | 4 | 1 | 4 | 3 / 0 |
+| CGOA | 27 | 4 | 1 | 5 | 3 / 1 |
+| CKS | 28 | 4 | 1 | 4 | 2 / 1 |
+| ICA | 18 | 4 | 1 | 4 | 3 / 0 |
+| KCA | 31 | 4 | 1 | 4 | 3 / 0 |
+| OTCA | 22 | 4 | 1 | 4 | 3 / 0 |
+| PCA | 30 | 4 | 1 | 4 | 3 / 0 |
+| CKAD | 33 | 4 | 2 | 4 | 2 / 0 |
+| CNPA | 27 | 4 | 2 | 6 | 4 / 0 |
+| CNPE | 18 | 4 | 2 | 6 | 4 / 0 |
+| KCSA | 41 | 4 | 2 | 5 | 2 / 1 |
+| KCNA | 32 | 4 | 3 | 5 | 1 / 1 |
+| APLUS_CORE1 | 34 | 4 | 1 | 4 | 3 / 0 |
+| APLUS_CORE2 | 28 | 4 | 2 | 4 | 2 / 0 |
+| DATAAI | 26 | 4 | 2 | 5 | 3 / 0 |
+| PENTESTPLUS | 22 | 4 | 2 | 4 | 2 / 0 |
+| SECAIPLUS | 15 | 4 | 2 | 5 | 3 / 0 |
+| SECURITYX | 19 | 4 | 2 | 5 | 2 / 1 |
+| AUTOOPSPLUS | 14 | 4 | 3 | 6 | 3 / 0 |
+| CYSAPLUS | 56 | 4 | 3 | 9 | 3 / 3 |
+| DATAPLUS | 18 | 4 | 3 | 5 | 2 / 0 |
+| TECHPLUS | 29 | 4 | 3 | 6 | 3 / 0 |
+| LINUXFUND | 48 | 4 | 3 | 4 | 1 / 0 |
+| CEH | 35 | 4 | 3 | 7 | 2 / 2 |
+| CSPP | 21 | 4 | 1 | 4 | 3 / 0 |
+| ITIL5FND | 47 | 4 | 1 | 4 | 3 / 0 |
+| PFMP | 34 | 4 | 1 | 5 | 3 / 1 |
+| PGMP | 35 | 4 | 1 | 5 | 3 / 1 |
+| PMIPBA | 28 | 4 | 1 | 4 | 3 / 0 |
+| PMIPMOCP | 23 | 4 | 1 | 7 | 5 / 1 |
+| PMISP | 27 | 4 | 1 | 5 | 4 / 0 |
+| CSSGB | 43 | 4 | 2 | 4 | 2 / 0 |
+| PMICP | 16 | 4 | 2 | 5 | 3 / 0 |
+| PMICPMAI | 31 | 4 | 2 | 6 | 3 / 1 |
+| PMIRMP | 20 | 4 | 2 | 6 | 3 / 1 |
+| CAPM | 30 | 4 | 3 | 7 | 2 / 2 |
+| CSM | 44 | 4 | 3 | 6 | 2 / 1 |
+| PMIACP | 24 | 4 | 3 | 7 | 4 / 0 |
+| PSMI | 37 | 4 | 3 | 5 | 2 / 0 |
+
+| Course / slug | Kind | Main objective (start) |
+|---|---|---|
+| CAPA/argocd-prune-moved-database | scenario | Configure synchronization in Argo CD: manual and automated sync, prune... |
+| CAPA/rollouts-analysis-gate-passes-bad-canary | scenario | Design AnalysisTemplates and AnalysisRuns: metric providers (Prometheu... |
+| CAPA/argo-events-upload-storm | scenario | Build event flows from the Argo Events components: EventSource types (... |
+| CBA/backstage-upgrade-mismatched-packages | scenario | Download and install dependencies for a Backstage project with NPM/Yar... |
+| CBA/backstage-production-catalog-wiped | scenario | Plan and deploy Backstage to production: PostgreSQL instead of SQLite,... |
+| CBA/backstage-catalog-ingestion-gaps | scenario | Troubleshoot entity ingestion: processing errors, orphaned entities, s... |
+| CCA/cilium-default-deny-breaks-dns | scenario | Interpret Cilium network policies and their intent: endpointSelector, ... |
+| CCA/cilium-wireguard-cross-node-plaintext | scenario | Configure encryption of traffic in transit with Cilium: WireGuard and ... |
+| CCA/cluster-mesh-failover-overlapping-cidr | scenario | Configure service discovery and load balancing across clusters with Cl... |
+| CGOA/gitops-claim-review-push-pipeline | scenario | Evaluate a design against the four principles and identify which are v... |
+| CGOA/gitops-store-fleet-patterns | scenario | Architecture patterns: in-cluster versus external reconcilers, hub-and... |
+| CGOA/argocd-prune-moved-database-cgoa | band of CAPA/argocd-prune-moved-database | State drift and state reconciliation: how the actual state diverges an... |
+| CGOA/gitops-rollback-feedback-loop | scenario | Feedback loop and rollback: how observed state informs operators, and ... |
+| CKS/restricted-profile-payments-rollout | scenario | Write a hardened container securityContext: runAsNonRoot, readOnlyRoot... |
+| CKS/image-admission-unsigned-critical-cve | scenario | Secure your supply chain: permit only approved registries with admissi... |
+| CKS/cilium-default-deny-breaks-dns-cks | band of CCA/cilium-default-deny-breaks-dns | Use network security policies to restrict cluster-level access: defaul... |
+| ICA/istio-strict-mtls-allow-policy-lockout | scenario | Configure authorization with AuthorizationPolicy: ALLOW, DENY and CUST... |
+| ICA/istio-503s-stale-proxies-missing-subset | scenario | Troubleshoot configuration with istioctl analyze, istioctl x describe ... |
+| ICA/istio-canary-revision-upgrade | scenario | Plan and perform an Istio upgrade, canary (revision-based) or in-place... |
+| KCA/kyverno-webhook-timeouts-node-drain | scenario | Configure the controllers with flags and the kyverno ConfigMap: webhoo... |
+| KCA/kyverno-match-exclude-blocks-deletes | scenario | Select resources with match and exclude: kinds, names, namespaces, sel... |
+| KCA/kyverno-hostpath-exception-scope | scenario | Configure PolicyExceptions: exempting specific resources from specific... |
+| OTCA/otel-collector-oom-fanout-pii | scenario | Design pipelines: batching, retries and queues, fan-out to multiple ex... |
+| OTCA/otel-instrumentation-plan-checkout | scenario | Choose automatic (agent and library) versus manual instrumentation for... |
+| OTCA/otel-missing-traces-pipeline-debug | scenario | Debugging pipelines: the debug exporter, Collector internal telemetry ... |
+| PCA/prometheus-relabel-drops-targets-cardinality | scenario | Configuration and scraping: prometheus.yml global settings, scrape_con... |
+| PCA/checkout-dashboard-misleading-latency-alert | scenario | Design dashboards: panels that match the metric type, rate windows, un... |
+| PCA/metrics-naming-route-label-review | scenario | Structuring and naming metrics: the _total, _seconds and _bytes conven... |
+| CKAD/quota-rejects-new-pods-oomkilled | scenario | Understand requests, limits and quotas: how ResourceQuota and LimitRan... |
+| CKAD/stuck-rollout-helm-upgrade-failed | scenario | Understand Deployments and perform rolling updates and rollbacks: stra... |
+| CNPA/platform-ingress-outage-tabletop | scenario | Plan incident response in platform engineering: on-call for the platfo... |
+| CNPA/platform-metrics-dora-review | scenario | Measure platform initiatives with DORA metrics: deployment frequency, ... |
+| CNPA/platform-as-product-golden-path | scenario | Platform engineering goals, objectives and approaches: reducing cognit... |
+| CNPA/platform-pipeline-supply-chain | scenario | Secure CI/CD pipelines: supply chain controls, signed artifacts, SBOMs... |
+| CNPE/opencost-rightsizing-review | scenario | Use cost management solutions for right-sizing and scaling: OpenCost a... |
+| CNPE/platform-deploys-failing-webhook-quota | scenario | Diagnose and remediate platform issues and incident scenarios: from al... |
+| CNPE/crossplane-database-claim-api | scenario | Design and create CustomResourceDefinitions for platform services: Ope... |
+| CNPE/tekton-pipeline-updates-git | scenario | Build and configure CI/CD pipelines integrated with Kubernetes: Tekton... |
+| KCSA/secret-read-by-unknown-serviceaccount | scenario | Audit logging: audit stages and levels, writing a policy, what to log ... |
+| KCSA/restricted-profile-payments-rollout-kcsa | band of CKS/restricted-profile-payments-rollout | Malicious code execution and compromised applications in containers: w... |
+| KCSA/kubelet-anonymous-alwaysallow | scenario | Kubelet security: the 10250 API, anonymous authentication and Webhook ... |
+| KCNA/checkout-dashboard-misleading-latency-alert-kcna | band of PCA/checkout-dashboard-misleading-latency-alert | Observability: designing SLIs, SLOs and alerts, and the difference bet... |
+| KCNA/pending-pods-requests-taints-selectors | scenario | Scheduling: how kube-scheduler filters and scores nodes using resource... |
+| APLUS_CORE1/office-server-raid-psu-printer | scenario | Installing and configuring storage devices: SATA and NVMe SSDs, HDDs, ... |
+| APLUS_CORE1/soho-router-forwarding-guest-wifi | scenario | Configuring a SOHO network: static vs. DHCP addressing, NAT, firewall ... |
+| APLUS_CORE1/developer-vm-resources-host-starved | scenario | Configuring and troubleshooting resource allocation for a client-side ... |
+| APLUS_CORE2/windows-update-failure-restore-backup | scenario | Configuring and troubleshooting Windows Update, backup, and system res... |
+| APLUS_CORE2/laptop-bitlocker-uac-firewall | scenario | Configuring Windows security settings: Windows Defender/Firewall, BitL... |
+| DATAAI/churn-model-selection-leakage | scenario | Analyzing experiment and testing results to justify a final model reco... |
+| DATAAI/pricing-ab-test-significance | scenario | Temporal models compared and contrasted: time series (AR, MA, ARIMA), ... |
+| DATAAI/loan-default-trees-forest-boosting | scenario | Tree-based supervised machine-learning concepts: decision trees, rando... |
+| PENTESTPLUS/pentest-password-spray-lockouts | scenario | Password attacks: cracking, spraying, credential stuffing concepts... |
+| PENTESTPLUS/pentest-recon-ot-printer-scope | scenario | Active reconnaissance: port scanning, service enumeration with Nmap... |
+| SECAIPLUS/ai-hiring-screener-compliance | scenario | The impact of compliance on AI business use and development: the EU AI... |
+| SECAIPLUS/ai-claims-model-lifecycle-security | scenario | The importance of security throughout the AI life cycle: business use-... |
+| SECAIPLUS/ai-assistant-soc-triage-guardrails | scenario | Using AI to automate security tasks: low-code/no-code scripting, AI-as... |
+| SECURITYX/risk-appetite-exception-securityx | band of CISM/cism-risk-appetite-exception | Enterprise risk management frameworks and risk treatment strategies... |
+| SECURITYX/threat-intel-campaign-enterprise-hunt | scenario | Enterprise-scale threat management and threat intelligence integration... |
+| SECURITYX/devsecops-pipeline-iot-fleet-crypto | scenario | Secure software development lifecycle and DevSecOps integration... |
+| AUTOOPSPLUS/pipeline-blue-green-slo-iam | scenario | Continuous delivery techniques: canary, blue-green, rolling, and in-pl... |
+| AUTOOPSPLUS/shared-repo-revert-semver-hotfix | scenario | Source control practices: Git remote/local operations, branching strat... |
+| AUTOOPSPLUS/terraform-drift-state-lock | scenario | Configuration management techniques: drift detection, remediation, and... |
+| CYSAPLUS/phish-to-account-takeover-cysa | band of SECPLUS/phish-to-account-takeover | Given a scenario, analyze identity-based indicators (IAM account compr... |
+| CYSAPLUS/ransomware-file-server-cysa | band of SECPLUS/ransomware-file-server | Given a scenario, contain and recover: isolating affected targets, rem... |
+| CYSAPLUS/ransomware-tabletop-cysa | band of CISM/cism-ransomware-tabletop | Communication plan (stakeholder identification, legal team, public rel... |
+| CYSAPLUS/container-cve-compensating-controls | scenario | Mitigation strategies (attack surface management, secure coding best p... |
+| CYSAPLUS/vuln-reporting-kpis-inhibitors | scenario | Vulnerability scan reports, compliance findings, and risk scorecards -... |
+| CYSAPLUS/network-indicators-rogue-scan-beacon | scenario | Given a scenario, analyze network-related indicators: rogue devices, e... |
+| DATAPLUS/branch-sales-merge-duplicates-outliers | scenario | Exploration: finding missing values, duplication, redundancy, and outl... |
+| DATAPLUS/delivery-times-skew-rates-correlation | scenario | Applying basic statistical techniques to data... |
+| TECHPLUS/browser-passwords-ai-assistant-help | scenario | Web browser features: private browsing, add-ons, password management, ... |
+| TECHPLUS/office-wifi-printer-new-ap | scenario | Wireless networks: 802.11 standards, speed, and interference considera... |
+| TECHPLUS/laptop-hotel-wifi-phones-encryption | scenario | Encryption: data at rest, data in transit, HTTPS, VPNs, and mobile dev... |
+| LINUXFUND/ssh-keys-listening-port-copy | scenario | Configure key-based SSH login with ssh-keygen and ssh-copy-id... |
+| CEH/pentest-scope-boundary-ceh | band of PENTESTPLUS/pentest-scope-boundary | Distinguish ethical hacking from attacking: written authorization, sco... |
+| CEH/cloud-iam-backdoor-ceh | band of SECPLUS/cloud-iam-backdoor | Analyze cloud threats and cloud hacking techniques, and apply cloud se... |
+| CEH/weak-crypto-findings-legacy-portal | scenario | Recognize cryptanalysis and cryptographic attacks, and choose counterm... |
+| CEH/authorized-recon-osint-exposure | scenario | Plan passive footprinting with search engines, web services, social ne... |
+| CSPP/cspp-flood-resilient-clinic | scenario | Defining sustainability, regeneration, and resilience in project envir... |
+| CSPP/cspp-prism-solar-farm-lifecycle | scenario | Applying PRiSM life cycle phases to a scenario: staffing, deliverables... |
+| CSPP/cspp-highway-sustainability-plan-bribery | scenario | Evaluating aspects of a Sustainability Management Plan against a scena... |
+| ITIL5FND/payroll-service-utility-warranty-sla | scenario | Analyzing a service description for its utility, warranty, user experi... |
+| ITIL5FND/hr-portal-rollout-four-dimensions | scenario | Analyzing a failed rollout for the dimension that was neglected... |
+| ITIL5FND/booking-service-lifecycle-activities | scenario | Planning how a new digital service moves through the lifecycle activit... |
+| PFMP/pfmp-bank-portfolio-escalation | scenario | Managing and escalating issues to appropriate decision-makers for time... |
+| PFMP/pfmp-council-portfolio-risk-reserve | scenario | Recommending and obtaining approval for a portfolio management reserve... |
+| PFMP/pfmp-university-portfolio-plan | scenario | Building a portfolio management plan covering roles, escalation proced... |
+| PFMP/pgmp-hospital-stakeholder-risks-pfmp | band of PGMP/pgmp-hospital-stakeholder-risks | Analyzing internal and external stakeholders (meetings, interviews, su... |
+| PGMP/airport-baggage-residual-secondary-risks-pgmp | band of PMIRMP/airport-baggage-residual-secondary-risks | Regularly evaluating new and existing risks against strategic objectiv... |
+| PGMP/pgmp-hospital-stakeholder-risks | scenario | Evaluating stakeholder-identified risks and incorporating them into th... |
+| PGMP/pgmp-ports-business-case-alignment | scenario | Assessing initial program objectives, requirements, and risks against ... |
+| PGMP/pgmp-benefits-sustainment-transition | scenario | Building a sustainment plan (processes, metrics, tools) so benefits co... |
+| PMIPBA/pba-requirement-change-impact | scenario | Managing requirement changes by assessing impact, dependencies, and ri... |
+| PMIPBA/pba-deployed-solution-evaluation | scenario | Evaluating the deployed solution against the original business case an... |
+| PMIPBA/pba-requirements-management-plan | scenario | Developing a requirements management plan: stakeholders, roles/respons... |
+| PMIPMOCP/pmo-service-catalog-slas | scenario | Designing and implementing PMO services: a needs assessment, a service... |
+| PMIPMOCP/pmo-phased-service-rollout | scenario | Managing PMO services in production: phased rollout for high-impact se... |
+| PMIPMOCP/pmo-opm-competency-framework | scenario | Elevating organizational project management (OPM): assessing current c... |
+| PMIPMOCP/pmo-team-competency-kpis | scenario | Assessing and improving PMO team competencies: a role-specific compete... |
+| PMIPMOCP/clinic-fitout-schedule-variance-pmocp | band of PMP/pmp-clinic-fitout-schedule-variance | Leveraging technical skills to deliver results: process optimization, ... |
+| PMIPMOCP/pmo-mandate-charter-sponsor | scenario | Stewarding the PMO mandate: defining scope and authority, drafting a P... |
+| PMISP/hospital-wing-monte-carlo-milestone | scenario | Performing schedule risk analysis (what-if scenarios, Monte Carlo simu... |
+| PMISP/data-center-schedule-plan-integration | scenario | Integrating scheduling-related components into the broader project man... |
+| PMISP/schedule-status-to-steering-committee | scenario | Providing verbal/written schedule status updates and corrective-action... |
+| PMISP/approved-mitigations-schedule-baseline | scenario | Incorporating approved risk-mitigation activities into the schedule un... |
+| CSSGB/define-charter-dpmo-claims | scenario | Writing a project charter: problem statement, scope, primary and conse... |
+| CSSGB/fmea-dispatch-takt-lean | scenario | Building a basic FMEA and calculating and interpreting risk priority n... |
+| PMICP/school-build-change-orders | scenario | Building and managing a change-order process: timing it appropriately ... |
+| PMICP/school-build-stakeholders-culture | scenario | Managing stakeholders effectively: identifying and assessing stakehold... |
+| PMICP/transit-depot-interface-points | scenario | Implementing interface management: planning interface points (IPs) acr... |
+| PMICPMAI/ai-triage-feasibility-risk | scenario | Evaluating initial AI feasibility: technical viability, data availabil... |
+| PMICPMAI/ai-model-selection-interpretability | scenario | Overseeing AI/ML model technique and algorithm selection: supervised/u... |
+| PMICPMAI/ai-hiring-screener-compliance-cpmai | band of SECAIPLUS/ai-hiring-screener-compliance | Overseeing a privacy and security plan: PII governance protocols, encr... |
+| PMICPMAI/returns-forecast-data-readiness | scenario | Determining whether available data meets solution needs, and conveying... |
+| PMIRMP/rail-signalling-risk-plan | scenario | Documenting a risk management plan: roles/responsibilities (RACI), a r... |
+| PMIRMP/airport-baggage-residual-secondary-risks | scenario | Monitoring residual and secondary risks resulting from implemented res... |
+| PMIRMP/hospital-wing-monte-carlo-milestone-rmp | band of PMISP/hospital-wing-monte-carlo-milestone | Performing quantitative analysis: sensitivity analysis (Monte Carlo, d... |
+| PMIRMP/stadium-roof-qualitative-analysis | scenario | Performing qualitative analysis: classifying risks in an RBS, applying... |
+| CAPM/increment-goal-early-feedback-pilot-capm | band of PMIACP/increment-goal-early-feedback-pilot | Preparing and executing task-management steps: interpreting success cr... |
+| CAPM/pba-requirement-change-impact-capm | band of PMIPBA/pba-requirement-change-impact | Using a requirements traceability matrix or product backlog... |
+| CAPM/community-center-issue-risk-scope | scenario | Telling apart an issue, a risk, an assumption, and a constraint, and r... |
+| CAPM/library-app-requirements-techniques | scenario | Matching a requirements-gathering technique to a scenario: user storie... |
+| CSM/po-delegates-backlog-to-analyst-csm | band of PSMI/po-delegates-backlog-to-analyst | Deciding who stays accountable when the Product Owner delegates Produc... |
+| CSM/sprint-review-demo-to-working-session | scenario | Running a Sprint Review as a working session with stakeholders that ca... |
+| CSM/undone-work-end-of-sprint | scenario | Deciding what happens to work that does not meet the Definition of Don... |
+| PMIACP/agile-team-conflict-root-cause | scenario | Facilitating conflict management: identifying a conflict's root cause ... |
+| PMIACP/increment-goal-early-feedback-pilot | scenario | Managing increments: aligning each increment to business priorities, d... |
+| PMIACP/blameless-retro-psychological-safety | scenario | Fostering psychological safety: promoting a no-blame culture, encourag... |
+| PMIACP/wip-limits-flow-interruptions | scenario | Optimizing flow: limiting work in progress at every level, shielding t... |
+| PSMI/po-delegates-backlog-to-analyst | scenario | Deciding who stays accountable when the Product Owner delegates Produc... |
+| PSMI/scrum-master-task-assigner-status-daily | scenario | Recognizing Scrum anti-patterns -- the Scrum Master as task assigner, ... |
+
+**Units with a fitting objective.** Every unit of these 41 courses with an
+objective that fits the selection rule now has a sim whose main objective is in
+it (`depth-isp.test.ts`, "the robust rule"); no unit is recorded as no fit.
+
+**Top two domains.** Every top-two domain now has a purpose-written case. The
+first pass covered the domains that had no sim at all (CNPE Platform APIs,
+SecAI+ AI-assisted Security, SecurityX Security Engineering, CEH
+Reconnaissance); KCA and CKAD's ties at the second weight have one in a tied
+domain. A second pass (the lead's follow-up the same evening) added 24 cases for
+the top-two units that had only band coverage, one per unit, with the bands
+kept as extra coverage: CGOA GitOps Terminology (rollback as a change to desired
+state, the feedback loop, what continuous means); CNPA Core Fundamentals
+(platform as a product, an optional golden path, product measures) and
+Observability, Security and Conformance (OIDC pipeline identity, signed
+provenance verified at admission, SBOM attestations); CNPE GitOps and CD (a
+Tekton pipeline that updates Git, runAfter and workspaces, finally tasks); KCSA
+Cluster Component Security (kubelet anonymous access, Webhook authorization,
+least-privilege monitoring); KCNA Kubernetes Fundamentals (Pending Pods:
+requests, taints and tolerations, node selectors); AutoOps+ Coding (git
+revert, semantic versioning, hotfix branches) and System Configuration
+(Terraform drift, state locking, remote state); CySA+ Security Operations
+(rogue device, enumeration, a beacon on an unexpected port); DataAI Machine
+Learning (random forest, early stopping, permutation importance); Data+ Data
+Analysis (median for skewed data, rates, correlation versus cause); Tech+
+Infrastructure (Wi-Fi survey, wired fixed devices, a current WPA3 access
+point) and Security (encryption at rest, in transit and on phones); PMI-PMOCP
+Strategic Elements (mandate, charter, sponsor); PMI-SP Monitoring and
+Controlling (approved mitigations by change request, a new baseline, honest
+variance); PMI-CP Contracts (interface points, classification, settlement);
+PMI-CPMAI Data Needs (readiness against need, a phased plan, business terms);
+PMI-RMP Risk Analysis (RBS, agreed matrix, urgency); CAPM Fundamentals (issue,
+risk, assumption, constraint; scope gaps) and Business Analysis (workshop,
+observation, survey and user stories); CSM Events (a Sprint Review as a working
+session) and Artifacts (undone work at Sprint end); PMI-ACP Mindset
+(psychological safety) and Delivery (WIP limits, interruptions, flow metrics).
+Tech+ Security's and the PM courses' second units counted separately, so the
+lead's 18 named domains are 24 units. Linux Fundamentals has no unit weights.
+
+**Sources** (read 2026-11-17). Each case's first source is its course's
+outline. CBA, KCA, CCA, CNPE and ICA outlines were re-read today on the
+certification bodies' pages (WebFetch); the others reuse the reading the
+course's earlier sims cite, with its date. Every fact a technical case's
+scoring depends on (a command, flag, field or behavior) now cites the primary
+page, read with WebFetch at a URL that came up in WebSearch, and the
+third-party listings marked "to verify" were dropped: Argo CD (Sync Options,
+Sync Phases and Waves, Automated Sync Policy, Diffing, notification triggers),
+Argo Rollouts (Analysis), Argo Events (data filters, parameterization,
+JetStream EventBus), Backstage (Keeping Backstage Updated, Database,
+Composability, Life of an Entity, GitHub Discovery), Cilium (DNS-based
+policies, WireGuard, Gateway API, Cluster Mesh setup, Global Services, Service
+Affinity), Istio (AuthorizationPolicy reference, mTLS migration, proxy-status,
+IST0101, canary upgrades), Kyverno (High Availability, Installation,
+Troubleshooting 1.15, Policy Settings 1.12, Selecting Resources, Policy
+Exceptions), OpenTelemetry (memory_limiter, exporterhelper, Resiliency,
+Internal telemetry, Troubleshooting, attributes processor, Java and Python
+zero-code, context propagation, HTTP semantic conventions), Prometheus
+(Configuration, naming, histograms), Grafana ($__rate_interval), Google SRE
+(Alerting on SLOs, Postmortem Culture), kubernetes.io (Resource Quotas, Pod QoS,
+Assign Memory, rolling updates, Pod Security Admission and Standards, namespace
+labels, Secrets good practices, Validating Admission Policy, Auditing,
+encryption at rest, VPA, priority and preemption, kubelet authn/authz,
+scheduling, taints), Helm (rollback, upgrade), Sigstore policy-controller,
+Trivy, Syft, Tekton, OpenGitOps, CNCF Platforms white paper and Maturity
+Model, DORA metrics, OpenCost specification, SLSA levels, GitHub OIDC,
+semver.org, git-revert, Terraform (state locking, refresh-only), scikit-learn
+ensembles, the NIST/SEMATECH e-Handbook and the Wi-Fi Alliance WPA3 overview.
+Every case also cites the author's scenario figures (fictional organizations
+and teaching figures). PMI, service-management, quality and most CompTIA
+cases rest on the course outlines and the author's scenarios.
+
+**Corrections from the primary pages.** Five cases changed where the primary
+page contradicted them: Kyverno's match without an operations list covers only
+CREATE and UPDATE, so the KCA case's policy now lists DELETE explicitly;
+Backstage removes orphaned entities by default, so the CBA case's config sets
+orphanStrategy: keep; Cilium verifies WireGuard with cilium-dbg status and a
+capture on cilium_wg0, so the CCA case's commands match; DORA's current model
+names failed deployment recovery time and adds rework rate, now in the CNPA
+case; and the CKAD case no longer says a Helm rollback is a new revision,
+which the helm rollback page does not state. Two unverifiable details were
+removed rather than kept: Kyverno image-verification caching (the KCA case)
+and STALE proxies meaning an overloaded istiod (the ICA case now cites the
+istiod memory evidence in its own log).
+
+**Still marked to verify** (not reachable with the tools here, listed for a
+later pass): the PMI outlines for PMI-PMOCP, PMI-CPMAI, PgMP, PMI-PBA and
+PMI-CP (no pmi.org page came up in search; the cited copies stay marked), the
+CompTIA A+ Core 2 page and the Tech+ FC0-U71 PDF, and NIST SP 800-61r3 and SP
+800-84 (inherited by two bands from other builders' bases); their fetches were
+blocked when a permission prompt went unanswered. Also blocked and not needed
+after other primary pages covered the facts: the OpenGitOps glossary on
+GitHub, prometheus.io's alerting practices page and Kyverno's 1.18
+verify-images page.
+
+**Findings for Nick** (no code defect, so no FAIL entry):
+
+1. **CySA+ sims are on CS0-004 objectives only.** The CS0-003 units carry
+   retiredAt 2026-12-23 and the app lists them until then, but `activeUnits`
+   (the robust rule's count) already leaves them out, so every CySA+ sim here
+   teaches a CS0-004 objective. A learner still sitting CS0-003 before
+   2026-12-22 sees these sims under the V4 units only.
+2. **Cross-level bands** as listed above; each teaches the band's objective, at
+   the base's level.
+3. **Decision cases on technical screens.** The CNCF cases put decisions on the
+   terminal as prompts after inspect commands, not as typed command sequences
+   like 22.10's outages. They teach the configuration decisions the objectives
+   name; hands-on command drills would need command-driven cases (a later
+   round).
+
+### 22.41 Mental health depth of the 2026-11-17 round (REQ-337, depth-mh)
+
+Nick (2026-11-17, 19:51 PT): "Courses have no sims still ... Some still have 1 or two. Let's build those out more robustly." Scope: EPPP, NCE, the Washington psychology jurisprudence course, and NCMHCE and the two ASWB courses where under the target. Target (round-1117b): a sim whose main objective is in every unit that has a fitting objective; at least 4 sims under 60 objectives, 8 at 60 or more; heaviest units first; purpose-written cases for a course's top two domains; a unit with nothing that honestly fits is recorded as no fit.
+
+**Screen and profile.** All on the existing client `session` screen with the `clinical-session` profile, learner-paced `turns`, engine 1.2 with `endingOrder` (as 22.5, 22.12, 22.22). No new screen, engine, schema or migration. The mental health courses are gated per course (REQ-259); the sims that touch suicide, abuse or sexual misconduct also carry `mature: true` (REQ-327), and their bands inherit it.
+
+**Per course** (counts by main objective, recounted from the seed on base b2c02f34):
+
+| Course | Objectives | Target | Before | After | Units covered after | No fit |
+|---|---|---|---|---|---|---|
+| WAPSYCHJP | 33 | 4 | 1 | 4 | III ethics rules, IV confidentiality, V mandatory reporting, VI discipline | I licensure and the board, II CE and renewal: licensing and CE rules, not a client session (labs) |
+| EPPP | 93 | 8 | 3 | 9 | I biological, II cognitive-affective, IV lifespan, V assessment, VI treatment, VIII ethics and law | III social and cultural bases (no objective passes the screen; theory comparisons); VII research methods (study design, statistics and program evaluation are desk work, not a client session) |
+| NCE | 57 | 4 | 3 | 6 | I ethics, II intake, III clinical focus, IV treatment planning, V skills | VI core attributes: no objective passes the screen (each meets at most one criterion) |
+| NCMHCE | 57 | 4 | 4 | 6 | I ethics (band), II intake, III clinical focus (band), IV planning, V skills | VI core attributes: as NCE |
+| ASWBCLINICAL | 73 | 8 | 4 | 8 | I, II, III | none |
+| ASWBMASTERS | 71 | 8 | 5 | 9 | I, II, III | none |
+
+**Cases** (15 authored, 7 bands; heaviest units first within each course):
+
+| Course (unit) | Slug | Objective (short) | What it teaches |
+|---|---|---|---|
+| WAPSYCHJP (III, 30) | `wajp-client-hired-by-your-practice` | Recognize multiple relationships that impair objectivity and end them properly | Her new job is at your own practice (billing, payroll): an administrative and financial relationship (WAC 246-924-357); the gym is incidental (APA 3.05(a)); her choice; an ending with notice and a referral outside the practice; nothing told to your partner without authorization |
+| EPPP (VIII) band | `eppp-client-hired-by-your-practice` | Identify and manage multiple relationships ... | The same session |
+| WAPSYCHJP (V, 15) 18+ | `wajp-adult-disclosure-children-at-risk` | Report suspected child abuse ... on time and to the right agency | An adult's own childhood abuse is not reportable on its own, but the same man now lives with two children: report at the first opportunity, within 48 hours (RCW 26.44.030(2), (1)(h)); tell her first; her own history is hers |
+| EPPP (VIII) band 18+ | `eppp-adult-disclosure-children-at-risk` | Protect confidentiality and privilege ... including mandated reporting of abuse | The same session |
+| WAPSYCHJP (VI, 10) 18+ | `wajp-former-psychologist-misconduct` | Identify unprofessional conduct under the UDA and the psychology-specific grounds | A former psychologist's sexual relationship two months after therapy: misconduct (WAC 246-924-358, five years; RCW 18.130.180(23)); no duty to report a client's account (WAC 246-16-235) and no disclosure without her authorization; her choice to file, with help |
+| EPPP (VI, 15) | `eppp-video-session-client-out-of-state` | Deliver telepsychology appropriately | She logs in from another state: location and callback number first, privacy, the visited state's rules before more sessions, the emergency plan updated, the video drops at minute 20 |
+| EPPP (II, 13) | `eppp-driving-fear-came-back` | Apply classical conditioning ... | Return of fear after a break and on a new route (spontaneous recovery, renewal; not reinstatement), generalization and discrimination; varied exposure with her consent |
+| EPPP (IV, 12) | `eppp-memory-worries-after-his-wife-died` | Distinguish normal cognitive aging from mild neurocognitive disorder and dementia | Walter first, his consent for his daughter's view; warning signs beyond aging; a nightly anticholinergic sleep aid and bereavement as reversible contributors; workup before any diagnosis |
+| EPPP (I, 10) | `eppp-herbal-booster-on-sertraline` | Recognize the effects of substances ... and interaction risks | St. John's wort added to sertraline; serotonin-related signs read as medical, not anxiety; the prescriber the same day; no change to the prescription by the psychologist |
+| NCE (III, 29) 18+ | `nce-stress-and-insomnia-after-the-shop-closed` | Recognize depression, hopelessness and ruminative thinking and the risk they carry | Depression behind 'stress and insomnia', rumination, hopelessness; a direct suicide question once there is trust; elevated, not imminent; a safety plan and follow-up in three days |
+| NCMHCE (III) band 18+ | `ncmhce-stress-and-insomnia-after-the-shop-closed` | the same title | The same session |
+| NCE (V, 30) | `nce-text-in-session-brother-killed` | Provide crisis intervention and contain intense feelings | News of a sudden death at minute 15: stabilize first, no grief processing or agenda, an unsafe drive caught, her sister, the next hours written down |
+| NCE (IV, 9) | `nce-eight-weeks-flat-scores` | Review progress ... and revise the treatment plan using assessment results | Eight flat GAD-7 scores reviewed with him; maintainers named; options and his choice; measurable goals; keep measuring |
+| NCMHCE (V, 30) | `ncmhce-panic-cbt-session-five` | Apply theory-based interventions ... within a treatment plan | CBT for panic: the catastrophic belief tested without reassurance, clearance confirmed, ambivalence explored, interoceptive exposure by her choice, homework |
+| ASWBCLINICAL (III, 32) 18+ | `aswbc-walk-in-after-the-fire` | Provide crisis intervention and stabilize a client in acute distress | Roberts' stages at a walk-in: ground, ask about risk and the children, sort problems, link her to lodging with her, a 48-hour plan, follow-up |
+| ASWBMASTERS (III) band 18+ | `aswbm-walk-in-after-the-fire` | the same title | The same session, a licensed (not clinical) social worker in the brief |
+| ASWBCLINICAL (I, 36) 18+ | `aswbc-refusing-admission-for-his-dog` | Protect client self-determination ... and recognize when imminent risk limits it | A capable man refusing admission: capacity (Appelbaum) and suicidal intent checked, no hold (RCW 71.05.153), the barrier (his dog) solved with his consent, his choice |
+| ASWBMASTERS (I) band 18+ | `aswbm-refusing-admission-for-his-dog` | the same title | The same session |
+| ASWBMASTERS (II, 33) | `aswbm-fifteen-asks-without-her-parents` | Assess a client's capacity for decisions ... including emancipation and age of consent | A 15-year-old can consent to outpatient counseling herself (RCW 71.34.530); capacity for the decision, not her age; honest confidentiality limits; no call home |
+| ASWBCLINICAL (II) band | `aswbc-fifteen-asks-without-her-parents` | the same title | The same session, an LICSW in the brief |
+| ASWBCLINICAL (I, 36) | `aswbc-subpoena-in-a-custody-fight` | Explain confidentiality and privileged communication ... and how HIPAA protects health information | An attorney's subpoena is not a court order: tell her, release nothing without her authorization or an order (RCW 70.02.060; 45 CFR 164.512(e)), a written response, NASW 1.07(j) if ordered, the record left as written |
+| ASWBMASTERS (I) band | `aswbm-subpoena-in-a-custody-fight` | the same title | The same session |
+
+Each authored case has one unscored prediction card, one written-reasoning moment, three to five critical criteria plus the alliance, KPIs with expert values, an expert path, a debrief per ending, and five to eight golden paths (Good, Mediocre, Bad; every ending but `time_up`, every criterion met and missed), built by `npm run sim:golden -- steps <const>` from `scripts/sim-golden/*.steps.ts` (each base exports `paths()` for its band). Bands patch objective, secondary objectives and sources only; the four ASWB bands also patch `brief.situation` so the learner holds that course's license.
+
+**Checked by** `lib/sim/mh-depth.test.ts`: schema, engine 1.2, the session screen and profile; each main objective in the unit it covers, and secondary objectives the course's own; sources dated and saying how they were read, every case citing its profession's code and every legal case the statute or regulation itself; learner text free of permission-only marks, non-US spelling, review claims and doses, and, for 18+ cases, the REQ-329 pattern-level word list; goldens; a behavior test per case (expert to target, a named harm path to its harm ending, a rupture to a walk-out, and documenting the right answers without doing the work never reaches the target); the target count per course; the case list against the registry block.
+
+**Content rules.** Suicide, abuse and sexual misconduct stay at the pattern level: direct questions without asking for details, means asked about without naming any, no method anywhere a learner reads. No dose is named. No sim claims a review by anyone. Washington law is the setting where a state is needed.
+
+**Sources** (each sim's `sources` say how they were read; read 2026-11-17 unless noted): WAC 246-924-357 and -358, WAC 246-16-220 and -235 and the chapter's combined PDF, RCW 18.130.180, RCW 26.44.030 (PDF), RCW 70.02.060, 70.02.240, 71.34.530 and 71.05.153 (Legislature pages); DOH's complaint-process FAQ; the APA Ethics Code (apa.org) and APA's telepsychology checklist; a summary (not the text) of APA's 2024 telepsychology guidelines; the Senate bill report on HB 1286 (PSYPACT mechanism only); the NASW Code of Ethics (socialworkers.org; amendments voted 2026-11-18, recheck by 2026-12-15); the 2014 ACA Code of Ethics (a state board's copy); HHS HIPAA FAQ 706; Craske et al. 2014 (PMC); NIA's Forgetfulness AgePage (2020); the AFP summary of the 2023 AGS Beers Criteria; the ZOLOFT label (8/2023) and NCCIH's St. John's wort page; Beck et al. 1985 (abstract); Nolen-Hoeksema et al. 2008 (abstract); the PHQ-9 and GAD-7 scoring guides; NICE CG113 (GAD key priorities and panic information); the NHS Scotland Matrix CBT-for-panic page; NCTSN's PFA page; an OJP abstract for Roberts' seven stages; the AMA Journal of Ethics summary of Appelbaum 2007. Relayed, not re-read: the C-SSRS screen, Stanley-Brown and 988 (2026-11-10/11), the NBCC and ASWB outlines (2026-11-11, 2026-11-14), the jurisprudence course's chapter 246-924 and 70.02 notes and DOH's reference list (2026-11-14), the EPPP content areas (2026-11-10).
+
+**Findings** (recorded, not worked around):
+
+1. **FAIL-2520 (recurrence of FAIL-2002).** `EPPP_SESSION_DOCUMENTS`, `ASWB_SESSION_DOCUMENTS` and `WAJP_SESSION_DOCUMENTS` were selected by course, so any new sim in those courses broke the first-wave tests. They are now selected by slug.
+2. **Two main objectives the keyword screen misses.** WAPSYCHJP V "Report suspected child abuse ... on time and to the right agency" (the screen finds only 'time') and EPPP IV "Distinguish normal cognitive aging ..." (no word matches). Both meet the rule on substance; `SCREEN_OVERRIDES` in the test records why. For Nick to confirm.
+3. **A reserved enum value.** A note-field option named `none` collides with the generator's initial value and the validator rejects the document ("duplicate enum values"); the options are named otherwise.
+4. **`time_up`** stays unreached in every case, as in 22.5, 22.12 and 22.22.
+
+**Decisions for Nick.** (a) The two screen overrides above. (b) Rupture-repair and countertransference sessions would teach NCE/NCMHCE unit VI well, but no objective there passes the screen; left as no fit. (c) The telepsychology case deliberately does not say which states belong to the psychology compact; it teaches checking the visited state's rules.
+
+### 22.42 EMS and fitness depth of the 2026-11-17 round (REQ-338)
+
+Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health
+Informatics. Some still have 1 or two. Let's build those out more robustly."
+The robust rule of the round: every unit with an objective that fits the
+selection rule gets a sim whose main objective sits in it; a course under 60
+objectives has at least 4 sims (8 from 60); the heaviest units first; a unit
+where nothing fits honestly is recorded as no fit. This builder's courses:
+the four NREMT levels on the bedside screen, and the personal trainer,
+nutrition coach and strength and conditioning courses on the client trainer
+screen. No engine, renderer, schema or migration change; engine 1.2
+throughout; every case on an existing screen. `lib/sim/ems-fitness-depth.test.ts`
+pins every document by slug and checks each course against the target.
+
+**Scope of practice (EMS).** Each case keeps to its level under the National
+EMS Scope of Practice Model 2019 with Change Notices 1.0 and 2.0 (DOT HS 813
+151, 2021; read 2026-11-17, no newer model found) and the NASEMSO National
+Model EMS Clinical Guidelines v3.0 (2022; NASEMSO's page, read 2026-11-17,
+still presents Version 3 as current). The EMR measures by hand and cools,
+positions, controls bleeding and hands over; it transports nothing and checks
+no glucose. The EMT adds pulse oximetry, glucose, oral glucose, destination
+choice and a refusal process with medical direction. The AEMT adds IV access
+and fluids, nebulized albuterol and CPAP, capnography, aspirin, sublingual
+nitroglycerin and 12-lead acquisition and transmission (the receiving
+physician interprets it). The paramedic adds rhythm interpretation,
+synchronized cardioversion, needle decompression and IO access. Out-of-scope
+or harmful choices are offered as traps (approaching an energized car,
+oral fluids to a confused runner, accepting a confused man's refusal,
+nitroglycerin after sildenafil with a marginal pressure, an unsynchronized
+shock, intubating against a POLST, epinephrine before decompression in a
+traumatic arrest).
+
+**Drugs** appear only at labeled doses: aspirin 324 mg chewed, nitroglycerin
+0.4 mg sublingual, albuterol 2.5 mg nebulized (NASEMSO's 5 mg is above the
+inhalation solution's label, so the case uses 2.5 mg repeated), adenosine
+6 mg then 12 mg rapid IV, epinephrine 1 mg only as a trap. Sedation before
+cardioversion is "per the agency protocol" with no drug or dose.
+
+#### New cases (bedside, EMS)
+
+| Course / slug | Unit (weight) | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NREMTEMR/emr-line-down-on-the-car | Scene Size-up and Safety (21) | Recognize an electrical hazard and keep yourself and bystanders out of danger | Assume the line is live; 35 ft perimeter and the utility in 2 min; stop the onlooker; driver stays in, then jumps clear feet together when the car smokes | emr-wire |
+| NREMTEMR/emr-finish-line-confused-runner | Secondary Assessment (6) | Recognize heat stroke and begin active cooling | Confusion means heat stroke; ice-water tub at once; no thermometer, so cool until alert; nothing by mouth; cool first, transport second | emr-heat |
+| NREMTEMR/emr-head-cut-wants-to-drive-home | Operations (12) | Implied consent; when a patient lacks capacity to refuse | Head injury plus alcohol, disoriented: no valid refusal; keep him engaged, keys with a friend, a deputy, no restraint alone; airway when he fades | emr-capacity |
+| NREMTEMT/emt-head-bump-on-a-blood-thinner | Secondary Assessment (7) | History findings that change urgency or destination | Apixaban plus a head strike at 79: field triage yellow, trauma center; reassess GCS; side and suction when she vomits | emt-fall |
+| NREMTEMT/emt-low-sugar-now-says-no | Operations (12) | Capacity, risks, medical direction, documenting a refusal | Confused at 46 mg/dL: no capacity, oral glucose, recheck; alert: capacity back; glipizide risk, medical direction; never force | emt-refusal |
+| NREMTAEMT/aemt-copd-tripod-cpap | Airway (11) | Asthma and COPD with nebulized bronchodilators and CPAP | Albuterol early, CPAP 5 to 10, oxygen titrated not 15 L/min, capnography; drowsy and EtCO2 rising: CPAP off, BVM, intercept | aemt-copd |
+| NREMTAEMT/aemt-chest-pressure-pill-last-night | Cardiology (13) | When a nitrate is contraindicated or risky | Sildenafil last night and a pressure of 102: no nitroglycerin; aspirin, 12-lead transmitted, IV; inferior STEMI with RV involvement; PCI center | aemt-nitro |
+| NREMTAEMT/aemt-belly-pain-fainted-in-bathroom | Clinical Judgment (33) | Clinical judgment steps for abdominal pain with shock | Cues to hypotheses: ruptured ectopic; flat, carried, short scene, IV and boluses en route with reassessment; the surgical ED, not her clinic | aemt-ectopic |
+| NREMTPARAMEDIC/medic-racing-heart-pressure-falling | Clinical Judgment (36) | Prioritize, act and evaluate for an unstable tachycardia | Unstable by every AHA sign: pads, SYNC checked, sedation if no delay, synchronized shock; no Valsalva; an unsynchronized shock causes VF | medic-svt |
+| NREMTPARAMEDIC/medic-assisted-living-fever-confused | Medical/OB/GYN (26) | Recognize sepsis and septic shock; fluids early | Pneumonia with MAP 60: 500 mL boluses toward 65, lungs checked between each, about 30 mL/kg at most, sepsis alert | medic-sepsis |
+| NREMTPARAMEDIC/medic-polst-selective-daughter-wants-everything | EMS Operations (10) | Consent, capacity and advance directives such as POLST | Valid POLST: no CPR, Selective Treatments; CPAP and transport, no intubation; explain to the daughter; medical direction | medic-polst |
+| NREMTPARAMEDIC/medic-chest-stab-pulse-lost | Trauma (8) | Recognize traumatic arrest and treat its reversible causes | Bilateral decompression first (pulse back), vented seal, scoop and go to Level I; no medical-arrest epinephrine | medic-trauma |
+
+#### New cases (trainer, fitness)
+
+| Course / slug | Unit (weight) | Objective (abridged) | Core of the case | Steps |
+|---|---|---|---|---|
+| NASMCPT/cpt-low-glucose-mid-intervals | Professional Development (10) | Legal and risk-management basics: emergency response | Type 1 diabetes, shaking mid-intervals: stop, 15 g fast carbohydrate, recheck at 15 min, no more intervals; cannot swallow: nothing by mouth, his glucagon, 911; no insulin advice; incident report | cpt-lowglucose |
+| NASMCPT/cpt-six-weeks-off-make-it-up | Client Relations (15) | Handling lapses without losing the client | Barriers without blame; activity guidelines; half volume after six weeks off; an if-then fallback; dark urine on day 2 means medical care today | cpt-lapse |
+| NASMCPT/cpt-watch-zone-on-a-beta-blocker | Basic and Applied Sciences (15) | Exercise physiology: acute responses | Metoprolol blunts the heart rate, so the watch's zone overstates effort; RPE and the talk test; stop for lightheadedness; no medication advice | cpt-beta |
+| NASMCPT/cpt-twenty-four-weeks-leaking-fluid | Program Design (20) | Program design for special populations (prenatal) | Modified session (talk test, incline, no Olympic lifts); fluid leakage and cramping: stop and call labor and delivery triage now | cpt-prenatal |
+| NASMCNC/cnc-losing-too-fast-and-thirsty | Practical Nutrition Coaching (25) | Weight management with a modest deficit; when weight change is a referral question | 11 lb in a month while eating more, thirsty, up at night: her physician this week; no diagnosis, no diabetic plan, no tighter deficit | cnc-weightloss |
+| NSCACSCS/cscs-first-day-back-collapse-in-heat | Organization and Administration (8) | Unsafe training: temperature-induced illness | Day one after five weeks: half volume, 1:4, tub ready; confusion: 911, immersion within a minute, out at 38.9 C on the athletic trainer's reading inside 30 min | cscs-heat |
+| NSCACSCS/cscs-shuttle-test-trait-on-file | Program Implementation (12) | Administering testing: readiness and rest between trials | Sickle cell trait: no timed all-out shuttles early; readiness check finds a cold, so held out; a slump with soft muscles: stop, 911, oxygen | cscs-sickle |
+| NSCACSCS/cscs-winter-return-gut-check-squats | Program Design (23) | Exercise selection for the training period and injury-risk reduction | The head coach's 100-squat gut check after a break: a 50% transition week instead, explained; dark urine on day 2: hospital now | cscs-return |
+
+#### Bands (4.7)
+
+Each band changes only objective, secondary objectives, sources and (for a
+different role) the brief; actions, scoring and endings are the base's, which
+the test compares, so the scope is identical.
+
+| Course / band slug | Base | Objective (abridged) |
+|---|---|---|
+| ACECPT/ace-low-glucose-mid-intervals | NASMCPT low glucose | Emergency response within scope, incident documentation |
+| ACSMCPT/acsm-low-glucose-mid-intervals | NASMCPT low glucose | Risk management, emergency procedures and documentation |
+| NCCPTCPT/nccpt-low-glucose-mid-intervals | NASMCPT low glucose | Trainer and client safety: emergency protocols |
+| NSCACPT/nscacpt-low-glucose-mid-intervals | NASMCPT low glucose | Emergency action plans and incident documentation |
+| ACECPT/ace-six-weeks-off-make-it-up | NASMCPT lapse | Recognizing and responding to lapses |
+| ACSMCPT/acsm-six-weeks-off-make-it-up | NASMCPT lapse | Educating on activity guidelines and self-monitoring |
+| NCCPTCPT/nccpt-six-weeks-off-make-it-up | NASMCPT lapse | Monitoring progress and recognizing over-training |
+| ACECPT/ace-watch-zone-on-a-beta-blocker | NASMCPT beta-blocker | Leveraging technology in program monitoring |
+| NSCACPT/nscacpt-watch-zone-on-a-beta-blocker | NASMCPT beta-blocker | Special populations within medical recommendations |
+| NCCPTCPT/nccpt-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Modifications for prenatal and hypertensive clients |
+| ACECPT/ace-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Modifying programs for changing health conditions |
+| ACSMCPT/acsm-twenty-four-weeks-leaking-fluid | NASMCPT prenatal | Progressions and modifications for special populations |
+| NREMTEMT/emt-line-down-on-the-car | NREMTEMR downed line | Recognize scene hazards and decide whether the scene is safe (brief: an EMT on the first engine) |
+| NREMTAEMT/aemt-low-sugar-now-says-no | NREMTEMT refusal | Consent, refusal and capacity in the field (brief: an AEMT; IV dextrose only if he could not swallow) |
+
+Not banded on purpose: the nutrition coach's greens-and-warfarin case for the
+trainers' supplement objectives (its text speaks as a coach throughout, and a
+band may not change actions); EMS cases across levels where the higher level
+would act differently (the AEMT shock case for the paramedic, who adds TXA;
+the paramedic STEMI case for the AEMT, who does not interpret a 12-lead).
+
+#### Coverage, before and after
+
+| Course (objectives) | Sims before | After | Units with a main-objective sim (after) | No fit |
+|---|---|---|---|---|
+| NREMTEMR (43) | 2 | 5 | all 5: Scene Size-up, Primary Assessment, Secondary Assessment, Treatment and Transport, Operations | none |
+| NREMTEMT (59) | 2 | 5 | all 5 (Scene Size-up by the downed-line band) | none |
+| NREMTAEMT (39) | 2 | 6 | all 6 (EMS Operations by the refusal band) | none |
+| NREMTPARAMEDIC (59) | 2 | 6 | all 6 | none |
+| ACECPT (21) | 2 | 6 | all 4: Onboarding and Assessments, Program Design (beta-blocker), Modification and Progression (lapse, prenatal), Risk Management (low glucose) | none |
+| ACSMCPT (20) | 2 | 5 | all 4: Consultation, Programming (squat; prenatal), Leadership and Education (lapse), Legal and Professional (low glucose) | none |
+| NASMCPT (31) | 2 | 6 | 5 of 6: Sciences (beta-blocker), Client Relations (lapse), Assessment, Program Design (prenatal), Professional Development (low glucose) | Exercise Technique: technique coaching with nothing time-critical unfolding and no objective passing the screen; the squat case covers it as secondary |
+| NASMCNC (29) | 3 | 4 | all 4 (Practical Nutrition Coaching by the weight-loss case) | none |
+| NCCPTCPT (25) | 2 | 5 | 4 of 6: Intake, Program Design (prenatal), Technique (squat; lapse), Professional Practice (low glucose) | Applied Science and Nutrition: knowledge units with no objective passing the screen; the nutrition decisions are taught in the coach's own scope |
+| NSCACPT (18) | 2 | 4 | all 4: Consultation, Program Planning (beta-blocker), Execution, Safety (low glucose) | none |
+| NSCACSCS (37) | 1 | 4 | 4 of 7: Program Design (return from break), Exercise Technique, Program Implementation (sickle cell trait), Organization and Administration (heat) | the three Scientific Foundations units (exercise science, sport psychology, nutrition), as briefed |
+| **Total** | **22** | **56** | 20 new cases and 14 bands | |
+
+**Sources** (each document says how each was read): read 2026-11-17: the
+2019 Scope of Practice Model record and PDF (DOT HS 813 151); NASEMSO v3.0 in
+the Iowa HHS copy (Patient Refusals, Hypoglycemia, Hyperthermia, Electrical
+Injuries, Tachycardia with a Pulse, Shock, DNR/Advance Directives, Traumatic
+Cardiac Arrest, OB/GYN and Abdominal Pain, Respiratory Distress and Airway,
+Head Injury) and NASEMSO's own page; the ACS field triage handout (2021);
+ESFI on downed lines (modified 2025-02-20); the AHA 2025 adult
+tachyarrhythmia algorithm (accessible text); the National POLST Form (May
+2025); the ADA hypoglycemia infographic (2025 Standards); the CSCCa and NSCA
+joint transition-period guidelines (Strength Cond J 2019; first 100,000
+characters); the NSCA task-force introduction (2017; recommendations not
+read); the Korey Stringer Institute on exertional sickling; CDC on diabetes
+symptoms (RestoredCDC archive of the 2024 page) and on weight loss (2025);
+ODPHP's top 10 of the Physical Activity Guidelines (2025-11-19); Porcari,
+"Ask ACE" on beta-blockers (2024); a Perinatology.com summary of the 2019
+Canadian pregnancy guideline and ACOG Committee Opinion 804 (the guidelines
+themselves were not read). Relayed, not re-read: NASEMSO's ACS/STEMI section
+(REQ-241, 2026-11-11), the NREMT test plans and the fitness exam outlines
+from the course seeds. Every rate, delay and effect size is the author's
+teaching figure and says so (FLAG where no source gives a number).
+
+**Findings while authoring** (FAIL-2530, FAIL-2531; caught by the validator
+before any golden was written): a trainer case reused one id for a reading
+and a rule (the screen's ids share one namespace), and three noProgress
+rationales were too short for the validator. Both are pinned by the REQ-338
+test. Also caught and fixed while building: string concatenation inside a
+template slot (the expression language has none; written as two slots), a
+tile color outside the schema's list, a heat case whose patient warmed again
+after leaving the tub, and golden scripts that waited on the wrong timer.
+`time_up` is reached by one golden path (EMR heat stroke with no ambulance
+requested) and by none of the others, as in earlier rounds.

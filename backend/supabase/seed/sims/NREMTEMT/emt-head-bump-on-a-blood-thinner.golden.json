@@ -1,0 +1,421 @@
+{
+  "slug": "emt-head-bump-on-a-blood-thinner",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: primary assessment, a full history (apixaban), vital signs and GCS; the risk explained; to the trauma center; on her side and suctioned when she vomits, re-measured, hospital notified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "yellow",
+          "choice": "anti",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 6,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "trauma"
+          },
+          "seq": 7,
+          "tick": 150
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 150
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 10,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 11,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 12,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 13,
+          "tick": 780
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "meds": "met",
+          "dest": "met",
+          "reassess": "met",
+          "airway": "met",
+          "consent": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "scene": 150
+        },
+        "stateHash": "e0cbaf2180d57955"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "closest",
+      "title": "History and vital signs, the risk explained, but to the closest community hospital; she vomits on the way and is turned and re-measured",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "yellow",
+          "choice": "anti",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 3,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 4,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "local"
+          },
+          "seq": 5,
+          "tick": 150
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 150
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 210
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 9,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 10,
+          "tick": 780
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "meds": "met",
+          "dest": "partial",
+          "reassess": "met",
+          "airway": "met",
+          "consent": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "scene": 150
+        },
+        "stateHash": "7f76839a37f79041"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noMedsNoRecheck",
+      "title": "Never asks about medications; talks her into going 'to be safe'; trauma center; turned when she vomits but never re-measured",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 3,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "trauma"
+          },
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 7,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 8,
+          "tick": 720
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "meds": "missed",
+          "dest": "met",
+          "reassess": "missed",
+          "airway": "met",
+          "consent": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "scene": 60
+        },
+        "stateHash": "2e57fbaf10fd822a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "aspirated",
+      "title": "History and the trauma center, but nobody turns her when she vomits",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "yellow",
+          "choice": "anti",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "explain",
+          "seq": 3,
+          "tick": 90
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "trauma"
+          },
+          "seq": 4,
+          "tick": 90
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "side",
+          "seq": 7,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "suction",
+          "seq": 8,
+          "tick": 780
+        }
+      ],
+      "expect": {
+        "ending": "aspirated",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "meds": "met",
+          "dest": "met",
+          "reassess": "missed",
+          "airway": "missed",
+          "consent": "met",
+          "notify": "missed"
+        },
+        "kpis": {
+          "scene": 90
+        },
+        "stateHash": "c5aac022456deb4a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "signedRefusal",
+      "title": "Primary assessment and vital signs, then her refusal signed without asking about medications or explaining the risk",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refuse",
+          "seq": 3,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "leftHome",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "meds": "missed",
+          "dest": "missed",
+          "reassess": "na",
+          "airway": "na",
+          "consent": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "scene": -1
+        },
+        "stateHash": "3b6f155fbbec24e8"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

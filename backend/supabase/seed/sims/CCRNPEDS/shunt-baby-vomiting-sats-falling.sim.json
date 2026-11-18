@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "shunt-baby-vomiting-sats-falling",
+  "title": "Sats falling, murmur gone",
+  "objective": "Recognize thrombosis risk in congenital heart disease and treat sudden loss of a systemic-to-pulmonary shunt as an emergency",
+  "secondaryObjectives": [
+    "Explain why right-to-left shunting in cyanotic defects barely responds to supplemental oxygen, and the risks of chronic hypoxemia such as polycythemia, thrombosis and stroke"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "WikEM: Congenital Heart Disease (no edit date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://wikem.org/wiki/Congenital_Heart_Disease",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Blalock-Taussig shunt should maintain flow murmur'; 'Loss of flow murmur alongside profound hypoxia relative to baseline saturations' should prompt consideration of shunt obstruction; 'Definitive treatment is surgical'; steps listed include a 'Heparin bolus' and 'Notify cardiology, CT surgeon, ECMO'. Secondary, physician-edited."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in the pediatric cardiac ICU. You are the nurse for Theo, 7 weeks old, with pulmonary atresia, who had a modified Blalock-Taussig shunt placed at 10 days. He was admitted this morning with two days of vomiting and diarrhea; his usual saturation is 78-82%.",
+    "handover": [
+      "At 08:00 his saturation was 79% with a loud continuous shunt murmur. IV fluids are running at maintenance as ordered.",
+      "He has had few wet diapers. At 12:50 his monitor started reading in the low 60s.",
+      "Unit policy: the nurse gives oxygen and an ordered isotonic fluid bolus for poor perfusion, and calls the cardiac intensivist at once for a fall in saturation from baseline or loss of the shunt murmur; anticoagulation, cardiology, the surgeon and ECMO are activated by the intensivist."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.024,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Pulmonary blood flow falls as the shunt clots. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.005,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once the team anticoagulates and plans to reopen the shunt. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypoxic arrest. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The cardiac intensivist called within 5 minutes of the fading murmur (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for anticoagulation, an echo and the catheter or surgical team to be ready."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "murmurAt": {
+      "type": "time",
+      "init": null
+    },
+    "probeAt": {
+      "type": "time",
+      "init": null
+    },
+    "hydrationAt": {
+      "type": "time",
+      "init": null
+    },
+    "perfAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "murmur",
+        "probe",
+        "hydration",
+        "perf"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "wait"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "shunt",
+        "probe",
+        "chronic"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "o2At": {
+      "type": "time",
+      "init": null
+    },
+    "bolusAt": {
+      "type": "time",
+      "init": null
+    },
+    "probeSwapAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrictAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(165 + 20 * max(0, prog - 0.5) - 90 * max(0, prog - 0.9) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(74 - 20 * max(0, prog - 0.7))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.5)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(56 + 16 * max(0, prog - 0.45))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(max(30, (isNull(o2At) ? 64 : 66) - 50 * max(0, prog - 0.45)))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "low": 100,
+            "high": 190
+          },
+          "announce": {
+            "bands": [
+              180,
+              190
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              65,
+              55
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 70
+          },
+          "announce": {
+            "bands": [
+              60,
+              70
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 70
+          },
+          "announce": {
+            "bands": [
+              75,
+              70,
+              60
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Oxygen: {not isNull(o2At)|yesno}. Fluid bolus: {not isNull(bolusAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The cardiac intensivist is at the bedside; cardiology and the surgeon are coming."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "murmur": {
+      "label": "Listen for the shunt murmur",
+      "group": "Assess",
+      "available": "not testPending and isNull(murmurAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"murmur\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "probe": {
+      "label": "Check the oximeter probe, the trace and his color",
+      "group": "Assess",
+      "available": "not testPending and isNull(probeAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"probe\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "hydration": {
+      "label": "Hydration: fontanel, mucous membranes, diapers, the last hematocrit",
+      "group": "Assess",
+      "available": "not testPending and isNull(hydrationAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hydration\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "perf": {
+      "label": "Perfusion: capillary refill and pulses",
+      "group": "Assess",
+      "available": "not testPending and isNull(perfAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"perf\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "o2": {
+      "label": "Give oxygen",
+      "group": "Treat",
+      "available": "isNull(o2At) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "o2At",
+          "to": "t"
+        },
+        {
+          "log": "Oxygen on; his saturation barely changes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "bolus": {
+      "label": "Give the ordered isotonic fluid bolus for poor perfusion (policy)",
+      "group": "Treat",
+      "available": "isNull(bolusAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bolusAt",
+          "to": "t"
+        },
+        {
+          "log": "Isotonic bolus running.",
+          "kind": "act"
+        }
+      ]
+    },
+    "probeSwap": {
+      "label": "Swap the probe and wait for a better reading before calling anyone",
+      "group": "Treat",
+      "available": "isNull(probeSwapAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "probeSwapAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Probe swapped; the reading is the same.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "restrict": {
+      "label": "Hold his IV fluids because his heart is fragile",
+      "group": "Treat",
+      "available": "isNull(restrictAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "restrictAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "IV fluids held.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why are his saturations falling?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "shunt",
+              "label": "Shunt thrombosis: saturation far below his baseline with the murmur fading, in a dehydrated, polycythemic infant: an emergency"
+            },
+            {
+              "value": "probe",
+              "label": "A probe problem"
+            },
+            {
+              "value": "chronic",
+              "label": "His usual cyanosis; oxygen will fix it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"shunt\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"shunt\""
+                },
+                {
+                  "log": "Shunt thrombosis.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"probe\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"probe\""
+                },
+                {
+                  "log": "Read as probe.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"chronic\""
+                },
+                {
+                  "log": "Read as usual.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the cardiac intensivist now: BT shunt, saturation low 60s from a baseline of about 80, murmur almost gone, dehydrated, hematocrit 56; oxygen and bolus started"
+            },
+            {
+              "value": "wait",
+              "label": "Recheck his saturation in 30 minutes after the fluids"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist comes at once, orders anticoagulation as ordered, and calls cardiology, the cardiac surgeon and the ECMO team; an echo is under way.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"wait\""
+                },
+                {
+                  "log": "A recheck is planned.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell his parents and document the saturation trend, murmur and calls",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "His parents are told; the saturation trend, murmur change and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Cardiac ICU, bed 5",
+      "clock": "running",
+      "actions": [
+        "murmur",
+        "probe",
+        "hydration",
+        "perf",
+        "o2",
+        "bolus",
+        "probeSwap",
+        "restrict",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"murmur\"",
+              "then": [
+                {
+                  "set": "murmurAt",
+                  "to": "t"
+                },
+                {
+                  "log": "The continuous shunt murmur is soft and intermittent now, almost gone.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"probe\"",
+              "then": [
+                {
+                  "set": "probeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Good trace on two sites; he is visibly more cyanotic and mottled.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"hydration\"",
+              "then": [
+                {
+                  "set": "hydrationAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sunken fontanel, dry mouth, one wet diaper since 06:00; this morning's hematocrit 56%.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "perfAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Capillary refill 4 seconds; femoral pulses weak.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the trip to the catheterization lab",
+      "wait": {
+        "skipLabel": "the trip to the catheterization lab"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for anticoagulation, an echo and the catheter or surgical team to be ready."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for the catheterization lab to reopen the shunt, with ECMO on standby.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Theo's saturation falling, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A shunt-dependent infant with saturation far below baseline and a fading shunt murmur has shunt obstruction until proven otherwise; dehydration and polycythemia raise thrombosis risk, and supplemental oxygen barely helps a lesion with too little pulmonary flow.",
+          "modelAnswer": "He depends on that shunt for lung blood flow, he's way below his baseline, and the murmur's almost gone. He's dry and his hematocrit is 56, so he's set up to clot it. Oxygen won't do much."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Gives oxygen and the ordered fluid bolus, does not hold fluids or wait on the probe, and calls the cardiac intensivist at once for anticoagulation and cardiology, surgery and ECMO.",
+          "modelAnswer": "Oxygen on, give the fluid bolus, don't hold fluids or fiddle with the probe, and call the cardiac intensivist right now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Suspected shunt thrombosis unescalated an hour on is harm here.",
+      "source": {
+        "cite": "WikEM: Congenital Heart Disease (no edit date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Congenital_Heart_Disease",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Blalock-Taussig shunt should maintain flow murmur'; 'Loss of flow murmur alongside profound hypoxia relative to baseline saturations' should prompt consideration of shunt obstruction; 'Definitive treatment is surgical'; steps listed include a 'Heparin bolus' and 'Notify cardiology, CT surgeon, ECMO'. Secondary, physician-edited."
+      }
+    }
+  },
+  "endings": {
+    "arrest": {
+      "label": "Hypoxic arrest",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His saturation falls into the 30s, his heart rate drops below 60 and compressions start while ECMO is called."
+    },
+    "safe": {
+      "label": "Shunt thrombosis caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(restrictAt) and (not isNull(o2At) and not isNull(bolusAt)) and isNull(probeSwapAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he is anticoagulated and on his way to have the shunt reopened."
+    },
+    "safeGaps": {
+      "label": "Escalated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is being treated, but the call was slow, fluids were held, or you waited on the probe."
+    },
+    "time_up": {
+      "label": "Unescalated at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00 and the shunt is still clotting."
+    }
+  },
+  "endingOrder": [
+    "arrest",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The cardiac intensivist called within 5 minutes of the fading murmur",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "supportC",
+        "label": "Gave oxygen and fluid for dehydration and poor perfusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(restrictAt)",
+            "score": "missed",
+            "why": "Fluids held."
+          },
+          {
+            "when": "not isNull(o2At) and not isNull(bolusAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "noDelayC",
+        "label": "Did not delay for a better reading",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(probeSwapAt)",
+            "score": "missed",
+            "why": "Waited on the probe."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "No delay."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked the probe, hydration and perfusion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(probeAt) and not isNull(hydrationAt) and not isNull(perfAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(probeAt) or not isNull(hydrationAt) or not isNull(perfAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read it as shunt thrombosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"shunt\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"probe\"",
+            "score": "missed",
+            "why": "Two good traces and visible cyanosis."
+          },
+          {
+            "when": "dxEnum == \"chronic\"",
+            "score": "missed",
+            "why": "He is far below baseline and oxygen barely helps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the parents and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: shunt thrombosis; dehydration and polycythemia; oxygen barely helps; fluid and call",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Fading murmur to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "13:00 to the bolus",
+        "value": "isNull(bolusAt) ? -1 : timeAt(bolusAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "Listen: the shunt murmur is almost gone."
+      },
+      {
+        "at": "~13:01",
+        "text": "Oxygen; bolus for dehydration."
+      },
+      {
+        "at": "~13:02",
+        "text": "Call the cardiac intensivist."
+      },
+      {
+        "at": "~13:04",
+        "text": "Probe, hydration, perfusion; tell his parents; document."
+      }
+    ],
+    "debrief": {
+      "arrest": {
+        "headline": "Hypoxic arrest",
+        "body": "A shunt-dependent infant whose saturation falls well below baseline with a fading murmur has a clotting shunt. Oxygen barely helps; give fluid for dehydration and call at once."
+      },
+      "safe": {
+        "headline": "Shunt thrombosis caught",
+        "body": "You listened for the murmur, trusted the reading, gave oxygen and fluid, and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Escalated, with gaps",
+        "body": "Check how soon you called, whether you held fluids or waited on the probe, and whether oxygen and fluid were given."
+      },
+      "time_up": {
+        "headline": "Unescalated at 14:00",
+        "body": "Sudden loss of a shunt is an emergency; call at once."
+      }
+    },
+    "modelReasoning": "A Blalock-Taussig shunt should keep its flow murmur. Loss of the murmur with profound hypoxia relative to baseline means shunt obstruction: an emergency treated with anticoagulation and a catheter or surgical procedure, with ECMO ready. Dehydration and polycythemia from chronic hypoxemia raise thrombosis risk; oxygen barely improves a cyanotic lesion with too little pulmonary blood flow. Give oxygen and the ordered fluid bolus, do not hold fluids, and call the cardiac intensivist at once."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "o2Q": {
+      "during": "leaveT",
+      "ask": "While he goes to the lab: why did oxygen barely help?",
+      "choices": [
+        {
+          "id": "flow",
+          "label": "Too little blood reaches the lungs, so more oxygen in the lungs adds little"
+        },
+        {
+          "id": "probe",
+          "label": "The probe is wrong"
+        },
+        {
+          "id": "lungs",
+          "label": "His lungs are full of fluid"
+        }
+      ],
+      "expect": "flow",
+      "explain": "With little pulmonary blood flow through a failing shunt, supplemental oxygen barely changes saturation; restoring flow is the treatment.",
+      "source": {
+        "cite": "WikEM: Congenital Heart Disease (no edit date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Congenital_Heart_Disease",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Blalock-Taussig shunt should maintain flow murmur'; 'Loss of flow murmur alongside profound hypoxia relative to baseline saturations' should prompt consideration of shunt obstruction; 'Definitive treatment is surgical'; steps listed include a 'Heparin bolus' and 'Notify cardiology, CT surgeon, ECMO'. Secondary, physician-edited."
+      }
+    },
+    "murQ": {
+      "during": "testT",
+      "ask": "While you listen: what does loss of the shunt murmur with falling saturation mean?",
+      "choices": [
+        {
+          "id": "obs",
+          "label": "Shunt obstruction: an emergency"
+        },
+        {
+          "id": "ok",
+          "label": "The shunt is healing"
+        },
+        {
+          "id": "none",
+          "label": "Nothing in particular"
+        }
+      ],
+      "expect": "obs",
+      "explain": "Loss of the flow murmur with profound hypoxia relative to baseline should prompt consideration of shunt obstruction; definitive treatment is surgical.",
+      "source": {
+        "cite": "WikEM: Congenital Heart Disease (no edit date shown)",
+        "checkedAt": "2026-11-17",
+        "url": "https://wikem.org/wiki/Congenital_Heart_Disease",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Blalock-Taussig shunt should maintain flow murmur'; 'Loss of flow murmur alongside profound hypoxia relative to baseline saturations' should prompt consideration of shunt obstruction; 'Definitive treatment is surgical'; steps listed include a 'Heparin bolus' and 'Notify cardiology, CT surgeon, ECMO'. Secondary, physician-edited."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

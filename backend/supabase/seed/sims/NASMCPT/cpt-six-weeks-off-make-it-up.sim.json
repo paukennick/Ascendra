@@ -1,0 +1,1253 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-six-weeks-off-make-it-up",
+  "title": "Six weeks off and a plan to make it up",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Priya Shah, 41",
+        "presentation": "{not isNull(quitAt) ? \"Gone: she cancelled her package.\" : not isNull(urineAt) and isNull(sentAt) ? \"Messaging you: thighs swollen, can't straighten her arms, urine like cola.\" : not isNull(doneAt) ? \"Two weeks back: tired but proud.\" : rapport <= 3 ? \"Arms folded, eyes on the floor.\" : \"Back after six weeks away, apologizing before she sits down.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gRapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "polite",
+            "open"
+          ]
+        },
+        {
+          "id": "gReady",
+          "label": "Confidence",
+          "spokenLabel": "Her confidence she can keep going",
+          "value": "ready",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "low",
+            "mixed",
+            "high"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "rLoad",
+          "label": "Planned volume",
+          "spokenLabel": "Planned training volume against her old program",
+          "value": "{plan == \"reentry\" ? \"about half, 2 sessions a week\" : plan == \"old\" ? \"her old program, 3 sessions a week\" : plan == \"catchup\" ? \"daily sessions plus 3 hours on Saturday\" : \"not set\"}",
+          "flag": "(plan == \"old\" or plan == \"catchup\")"
+        },
+        {
+          "id": "rSym",
+          "label": "After training",
+          "spokenLabel": "How she is after training",
+          "value": "{not isNull(urineAt) ? \"severe pain and swelling, dark urine\" : not isNull(doneAt) ? \"normal soreness\" : \"not trained yet\"}",
+          "when": "not isNull(weeksAt)",
+          "flag": "not isNull(urineAt)"
+        }
+      ],
+      "intake": {
+        "label": "Her file",
+        "items": [
+          {
+            "id": "h1",
+            "question": "Before the break",
+            "answer": "Four months, 3 sessions a week; goblet squat 3 x 10 at 20 kg, rows, 25 minutes of intervals.",
+            "when": "true"
+          },
+          {
+            "id": "h2",
+            "question": "PAR-Q+",
+            "answer": "All NO, updated today.",
+            "when": "true"
+          },
+          {
+            "id": "h3",
+            "question": "Why she stopped",
+            "answer": "Her mother's hip surgery: she cares for her most evenings now, and shifts at work changed. She felt she had 'failed'.",
+            "when": "not isNull(barriersAt)",
+            "flag": "true"
+          },
+          {
+            "id": "h4",
+            "question": "What she asks for",
+            "answer": "'Let's make up for it: every day this week, and I'll do three hours on Saturday.'",
+            "when": "true",
+            "flag": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "two",
+          "label": "Two-week check-in",
+          "result": "Four of four sessions and three short home walks; one evening lost to her mother's appointment, covered by her ten-minute fallback.",
+          "when": "not isNull(doneAt)"
+        },
+        {
+          "id": "dark",
+          "label": "Day 2 message",
+          "result": "'My thighs are swollen and rock hard, I can't straighten my arms, and my pee is the color of cola.'",
+          "when": "not isNull(urineAt)",
+          "flag": "true"
+        }
+      ],
+      "program": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Re-entry: two sessions a week at about half her old volume and lighter loads, rising over four weeks; a 10-minute home walk on caregiving days",
+            "when": "plan == \"reentry\""
+          },
+          {
+            "label": "Her old program, full volume, 3 sessions a week",
+            "when": "plan == \"old\""
+          },
+          {
+            "label": "Catch-up: a session every day plus 3 hours on Saturday",
+            "when": "plan == \"catchup\""
+          },
+          {
+            "label": "If-then plan for the next disruption: a 10-minute fallback session",
+            "when": "not isNull(lapsePlanAt)"
+          },
+          {
+            "label": "Self-monitoring: training log, effort 0-10, and the warning signs to report",
+            "when": "not isNull(monitorAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jStart",
+          "text": "Two weeks on the plan began.",
+          "when": "not isNull(weeksAt)",
+          "at": "timeAt(weeksAt)"
+        },
+        {
+          "id": "jUrine",
+          "text": "She reported dark urine and severe muscle pain.",
+          "when": "not isNull(urineAt)",
+          "at": "timeAt(urineAt)"
+        },
+        {
+          "id": "jSent",
+          "text": "Sent for same-day medical care.",
+          "when": "not isNull(sentAt)",
+          "at": "timeAt(sentAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rBlame",
+          "label": "A lapse is not a failure",
+          "text": "Explore what got in the way; blame and lectures make dropping out more likely.",
+          "met": "not isNull(blameAt)"
+        },
+        {
+          "id": "rReturn",
+          "label": "Back after time off",
+          "text": "Start well below the old volume and build back up; never 'make up' missed sessions.",
+          "met": "(plan == \"old\" or plan == \"catchup\")"
+        },
+        {
+          "id": "rRed",
+          "label": "Dark urine with severe muscle pain or swelling",
+          "text": "Stop training and get medical care today.",
+          "met": "not isNull(urineAt) and isNull(sentAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Facilitating lifestyle change and handling lapses without losing the client",
+  "secondaryObjectives": [
+    "Behavior-change models and motivational techniques that sustain adherence",
+    "Building and maintaining the professional client-trainer relationship: rapport, active listening and communication strategies"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Basic and Applied Sciences 15%, Client Relations and Behavioral Coaching 15%, Assessment 16%, Program Design 20%, Exercise Technique and Training Instruction 24%, Professional Development and Responsibility 10%",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "U.S. Department of Health and Human Services (ODPHP). Top 10 Things to Know About the Second Edition of the Physical Activity Guidelines for Americans (content updated 2025-11-19)",
+      "checkedAt": "2026-11-17",
+      "url": "https://odphp.health.gov/our-work/physical-activity/current-guidelines/top-10-things-know",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: adults need 'at least 150 to 300 minutes of moderate-intensity aerobic activity, like brisk walking or fast dancing, each week' and 'muscle-strengthening activity, like lifting weights or doing push-ups, at least 2 days each week'; 'move more and sit less'; 'any amount of physical activity has some health benefits'."
+    },
+    {
+      "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+    },
+    {
+      "cite": "NSCA. Inter-Association Task Force for Preventing Sudden Death in Collegiate Conditioning Sessions (introduction page, May 2017; citing Casa DJ, et al. J Athl Train. 2012;47(4))",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nsca.com/education/articles/inter-association-task-force-for-preventing-sudden-death-in-collegiate-conditioning-sessions",
+      "note": "Read 2026-11-17 through a summarizing fetch; only the introduction was on the page: the leading causes of conditioning deaths are exertional sickling with sickle cell trait, exertional heat stroke and cardiac conditions; workouts 'too novel, too much, too soon, or too intense' are linked to exertional rhabdomyolysis; 11 of 21 deaths were on day 1 or 2. The full recommendations were not read."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "How each response moves her rapport and readiness, and the rule that her old full program or a daily catch-up schedule after six weeks off brings on exertional rhabdomyolysis on day 2, are authored. The direction follows the CSCCa and NSCA guidance: a novel or full-volume workload after detraining is the classic setting for exertional rhabdomyolysis, and volume is cut by about half in the first week back. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra NASM-CPT course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer. Priya Shah, 41 (a fictional client), trained with you three times a week for four months, then disappeared for six weeks. She is back today, apologizing, and wants to make up for lost time.",
+    "handover": [
+      "Her PAR-Q+ was updated today: all NO.",
+      "Trainers coach behavior and program exercise; symptoms that suggest illness go to a medical professional."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "2027-02-01T18:00",
+    "tick": "1min",
+    "maxDuration": "20d",
+    "calendar": "date"
+  },
+  "params": {
+    "twoWeeks": {
+      "value": 1209600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Two weeks of sessions on the new plan before the check-in."
+      }
+    },
+    "day2": {
+      "value": 129600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Thirty-six hours after the first heavy session, the time at which she messages; the author's figure. Exertional rhabdomyolysis symptoms typically build over a day or two after the session."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "ready": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "barriersAt": {
+      "type": "time",
+      "init": null
+    },
+    "blameAt": {
+      "type": "time",
+      "init": null
+    },
+    "guideAt": {
+      "type": "time",
+      "init": null
+    },
+    "lapsePlanAt": {
+      "type": "time",
+      "init": null
+    },
+    "monitorAt": {
+      "type": "time",
+      "init": null
+    },
+    "affirmAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reentry",
+        "old",
+        "catchup"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "weeksAt": {
+      "type": "time",
+      "init": null
+    },
+    "urineAt": {
+      "type": "time",
+      "init": null
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "reassuredAt": {
+      "type": "time",
+      "init": null
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "quitAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Sessions",
+      "clock": "turns",
+      "actions": [
+        "barriers",
+        "affirm",
+        "blame",
+        "guidelines",
+        "program",
+        "lapsePlan",
+        "monitor",
+        "weeks",
+        "sendCare",
+        "reassure",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "barriers": {
+      "label": "Ask what got in the way, and what the last six weeks have been like for her",
+      "group": "Talk",
+      "available": "not busy and (isNull(barriersAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(barriersAt)",
+          "then": [
+            {
+              "set": "barriersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "2"
+        },
+        {
+          "log": "You ask, and listen.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "affirm": {
+      "label": "Affirm that coming back is the hard part, and that four months of training are not lost",
+      "group": "Talk",
+      "available": "not busy and (isNull(affirmAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(affirmAt)",
+          "then": [
+            {
+              "set": "affirmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "ready",
+          "by": "1"
+        },
+        {
+          "log": "You tell her coming back is what counts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "blame": {
+      "label": "Tell her she has lost most of her progress and needs to take her commitment seriously",
+      "group": "Talk",
+      "available": "not busy and (isNull(blameAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(blameAt)",
+          "then": [
+            {
+              "set": "blameAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "ready",
+          "by": "-2"
+        },
+        {
+          "log": "You tell her the break cost her.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "guidelines": {
+      "label": "Explain the activity guidelines: 150-300 minutes of moderate activity a week, spread out, strength 2 days a week, and that any amount helps",
+      "group": "Talk",
+      "available": "not busy and (isNull(guideAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(guideAt)",
+          "then": [
+            {
+              "set": "guideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "ready",
+          "by": "1"
+        },
+        {
+          "log": "You explain that activity adds up across the week and cannot be banked or made up in one day.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Write the plan for the next two weeks",
+      "group": "Program",
+      "available": "not busy and (isNull(planAt) and isNull(quitAt))",
+      "why": "Already written.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "reentry",
+              "label": "Re-entry: about half her old volume and lighter loads, 2 sessions a week, building over four weeks; 10-minute walks on caregiving days"
+            },
+            {
+              "value": "old",
+              "label": "Pick up her old program where she left off, 3 sessions a week"
+            },
+            {
+              "value": "catchup",
+              "label": "What she asked for: every day this week plus 3 hours on Saturday"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "p"
+        },
+        {
+          "if": "p == \"reentry\"",
+          "then": [
+            {
+              "add": "ready",
+              "by": "1"
+            },
+            {
+              "log": "Re-entry plan written.",
+              "kind": "act"
+            }
+          ],
+          "else": [
+            {
+              "log": "Plan written.",
+              "kind": "act"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "lapsePlan": {
+      "label": "Plan for the next disruption with her: 'if Mom needs me in the evening, then I do the 10-minute fallback at home'",
+      "group": "Talk",
+      "available": "not busy and (isNull(lapsePlanAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lapsePlanAt)",
+          "then": [
+            {
+              "set": "lapsePlanAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "ready",
+          "by": "2"
+        },
+        {
+          "log": "You build an if-then plan together.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Show her how to log sessions and effort, and which signs to report at once: severe pain or swelling, weakness, dark urine",
+      "group": "Talk",
+      "available": "not busy and (isNull(monitorAt) and isNull(quitAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(monitorAt)",
+          "then": [
+            {
+              "set": "monitorAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "ready",
+          "by": "1"
+        },
+        {
+          "log": "You set up a log and the warning signs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "weeks": {
+      "label": "Train her on the plan for two weeks, then check in",
+      "group": "Program",
+      "available": "not busy and not isNull(planAt) and isNull(weeksAt) and isNull(quitAt)",
+      "why": "Write the plan first.",
+      "effects": [
+        {
+          "if": "isNull(weeksAt)",
+          "then": [
+            {
+              "set": "weeksAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "if": "(plan == \"old\" or plan == \"catchup\")",
+          "then": [
+            {
+              "schedule": "day2",
+              "after": "day2"
+            }
+          ],
+          "else": [
+            {
+              "schedule": "fortnight",
+              "after": "twoWeeks"
+            }
+          ]
+        },
+        {
+          "log": "Two weeks on the plan.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sendCare": {
+      "label": "Tell her to stop training and go to urgent care or the emergency department today, and to say what she did and what her urine looks like",
+      "group": "Respond",
+      "available": "not isNull(urineAt) and isNull(sentAt) and isNull(reassuredAt)",
+      "why": "Only for the day-2 message.",
+      "effects": [
+        {
+          "if": "isNull(sentAt)",
+          "then": [
+            {
+              "set": "sentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "log": "You tell her she needs medical care today and why.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "reassure": {
+      "label": "Tell her it is normal soreness: stretch, drink water and train through it",
+      "group": "Respond",
+      "available": "not isNull(urineAt) and isNull(sentAt) and isNull(reassuredAt)",
+      "why": "Only for the day-2 message.",
+      "effects": [
+        {
+          "if": "isNull(reassuredAt)",
+          "then": [
+            {
+              "set": "reassuredAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You tell her to train through the soreness.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Her barriers in her words, the re-entry plan and why, the if-then fallback, the warning signs taught, and what happened"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Back after break; program resumed'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each conversation and session takes, and when the fictional events of the two weeks happen, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "day2": {
+      "label": "Day 2 after the first sessions",
+      "wait": {
+        "skipLabel": "Skip to her message"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Thirty-six hours after the first heavy session, the time at which she messages; the author's figure. Exertional rhabdomyolysis symptoms typically build over a day or two after the session."
+      },
+      "effects": [
+        {
+          "if": "isNull(urineAt)",
+          "then": [
+            {
+              "set": "urineAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "log": "Day 2, a message from her: thighs swollen and rock hard, can't straighten her arms, urine the color of cola.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "fortnight": {
+      "label": "Two weeks of training",
+      "wait": {
+        "skipLabel": "Skip to the check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Two weeks of sessions on the new plan before the check-in."
+      },
+      "effects": [
+        {
+          "if": "isNull(doneAt)",
+          "then": [
+            {
+              "set": "doneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "add": "ready",
+          "by": "not isNull(lapsePlanAt) ? 2 : 0"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "log": "Two weeks on: four of four sessions; one evening lost to her mother's appointment{isNull(lapsePlanAt) ? \", and she felt she had failed again\" : \", covered by the fallback\"}.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "quit",
+      "when": "rapport <= 2 and isNull(quitAt) and isNull(closedAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(quitAt)",
+          "then": [
+            {
+              "set": "quitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "'Maybe this just isn't for me.' She cancels her remaining sessions.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For her record: what caused the lapse, how you built the plan back, and how you kept her safe and training.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The lapse",
+          "criteria": "Names the barriers (caregiving, shifts) in her words, without blame; treats the lapse as expected, not a failure.",
+          "modelAnswer": "Six weeks off while caring for her mother after hip surgery and with new shifts; she felt she had failed. I treated it as a normal lapse and explored it without blame."
+        },
+        {
+          "label": "The plan back",
+          "criteria": "No 'making up': activity is spread across the week (150-300 min, strength twice a week); after six weeks off, about half the old volume with lighter loads, built up over weeks; an if-then fallback for the next disruption.",
+          "modelAnswer": "No catch-up: the guidelines spread activity over the week. After six weeks off she starts at about half her old volume, twice a week, building over four weeks, with a 10-minute fallback when her mother needs her."
+        },
+        {
+          "label": "Safety",
+          "criteria": "Self-monitoring with the warning signs; severe muscle pain or swelling with dark urine after training means stop and get medical care the same day (possible exertional rhabdomyolysis), not 'train through it'.",
+          "modelAnswer": "She logs effort and knows to report severe pain, swelling, weakness or dark urine at once; those mean medical care today, not more training."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(planAt)",
+      "class": "recovered",
+      "rationale": "She leaves with no plan back; nothing harmful happened, but nothing changed.",
+      "source": {
+        "cite": "U.S. Department of Health and Human Services (ODPHP). Top 10 Things to Know About the Second Edition of the Physical Activity Guidelines for Americans (content updated 2025-11-19)",
+        "checkedAt": "2026-11-17",
+        "url": "https://odphp.health.gov/our-work/physical-activity/current-guidelines/top-10-things-know",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: adults need 'at least 150 to 300 minutes of moderate-intensity aerobic activity, like brisk walking or fast dancing, each week' and 'muscle-strengthening activity, like lifting weights or doing push-ups, at least 2 days each week'; 'move more and sit less'; 'any amount of physical activity has some health benefits'."
+      }
+    }
+  },
+  "endings": {
+    "quit": {
+      "label": "She stopped coming",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(quitAt)",
+      "narrative": "She cancelled her remaining sessions. The lapse became an exit."
+    },
+    "trainedThrough": {
+      "label": "Told to train through warning signs",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(reassuredAt)",
+      "narrative": "She trained through swollen, painful thighs and dark urine on your advice, and was admitted to hospital two days later."
+    },
+    "unanswered": {
+      "label": "Dark urine with no advice",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(urineAt) and isNull(sentAt)",
+      "narrative": "Her message about dark urine and swollen thighs went unanswered."
+    },
+    "back": {
+      "label": "Back, and staying",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and plan == \"reentry\" and isNull(blameAt) and not isNull(barriersAt) and not isNull(lapsePlanAt) and not isNull(monitorAt) and not isNull(doneAt)",
+      "narrative": "Two weeks back, every planned session done and one disruption absorbed by her fallback. She knows what to watch for and her confidence is rising."
+    },
+    "gaps": {
+      "label": "Back, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{not isNull(sentAt) ? \"The catch-up load sent her for medical care on day 2; you caught it, but the plan caused it\" : isNull(weeksAt) ? \"She never started the plan\" : not isNull(blameAt) ? \"She stayed, despite the lecture\" : isNull(lapsePlanAt) ? \"She is training, but the next disruption has no plan\" : \"She is training, but the plan or the record has gaps\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out with no record."
+    }
+  },
+  "endingOrder": [
+    "quit",
+    "trainedThrough",
+    "unanswered",
+    "back",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "explore",
+        "label": "Explored the barriers without blame",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(barriersAt) and isNull(blameAt)",
+            "score": "met",
+            "why": "Asked and listened."
+          },
+          {
+            "when": "not isNull(barriersAt)",
+            "score": "partial",
+            "why": "Asked, but with blame."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked what got in the way."
+          }
+        ]
+      },
+      {
+        "id": "load",
+        "label": "Re-entry at reduced volume; no making up missed sessions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"reentry\"",
+            "score": "met",
+            "why": "About half the old volume, building up."
+          },
+          {
+            "when": "plan == \"old\"",
+            "score": "partial",
+            "why": "Her old program at full volume after six weeks off."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A catch-up schedule, or no plan."
+          }
+        ]
+      },
+      {
+        "id": "red",
+        "label": "Dark urine with severe muscle pain: medical care today",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(urineAt)",
+            "score": "na",
+            "why": "No warning signs appeared."
+          },
+          {
+            "when": "not isNull(sentAt)",
+            "score": "met",
+            "why": "Sent for same-day care."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Told to train through it, or no answer."
+          }
+        ]
+      },
+      {
+        "id": "relapse",
+        "label": "Planned for the next lapse and taught self-monitoring",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lapsePlanAt) and not isNull(monitorAt)",
+            "score": "met",
+            "why": "An if-then fallback and a log with warning signs."
+          },
+          {
+            "when": "not isNull(lapsePlanAt) or not isNull(monitorAt)",
+            "score": "partial",
+            "why": "Only one of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "educate",
+        "label": "Explained the activity guidelines",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(guideAt)",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented the plan and why",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written lapse, plan and safety",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the end (0-10)",
+        "value": "rapport",
+        "format": "number",
+        "expert": "8 or more"
+      },
+      {
+        "id": "readyEnd",
+        "label": "Her confidence at the end (0-10)",
+        "value": "ready",
+        "format": "number",
+        "expert": "8 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "First 10 min",
+        "text": "Ask what got in the way and listen; affirm that coming back counts."
+      },
+      {
+        "at": "Next",
+        "text": "Explain that activity adds up across the week and cannot be made up in one day; write a re-entry plan at about half her old volume."
+      },
+      {
+        "at": "Before she leaves",
+        "text": "An if-then fallback for caregiving evenings; a log, effort ratings and the warning signs to report."
+      },
+      {
+        "at": "Two weeks",
+        "text": "Check in, affirm, record."
+      }
+    ],
+    "debrief": {
+      "back": {
+        "headline": "Back, and staying",
+        "body": "No blame, a plan built for her real week, a gentle restart and a fallback for the next disruption. That is how a lapse stays a lapse."
+      },
+      "gaps": {
+        "headline": "Back, with gaps",
+        "body": "Look at the load (half her old volume after six weeks off, never a catch-up), the words (barriers, not blame) and the plan for the next disruption."
+      },
+      "quit": {
+        "headline": "The lapse became an exit",
+        "body": "Blame turned a lapse into a reason to leave. Ask what got in the way; affirm the return."
+      },
+      "trainedThrough": {
+        "headline": "Dark urine is not soreness",
+        "body": "Severe pain and swelling with cola-colored urine after a hard return is a warning of exertional rhabdomyolysis: stop and get medical care the same day."
+      },
+      "unanswered": {
+        "headline": "Answer the warning sign",
+        "body": "Severe pain, swelling and dark urine after training need medical care today."
+      },
+      "time_up": {
+        "headline": "No record",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "A lapse is expected, not a failure: explore the barriers (caregiving, new shifts) without blame and affirm the return. Activity counts across the week (150-300 minutes, strength twice a week) and cannot be made up in a day. After six weeks off, restart at about half the old volume and build over weeks; a novel or full workload after detraining is the classic setting for exertional rhabdomyolysis. Plan the next disruption (if-then, a 10-minute fallback), teach self-monitoring and the warning signs, and send dark urine with severe muscle pain to medical care the same day."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "band": "clf",
+  "label": "AWS Cloud Practitioner (CLF-C02)",
+  "base": {
+    "course": "AWSSAP",
+    "slug": "sqs-visibility-shorter-than-work"
+  },
+  "slug": "sqs-visibility-shorter-than-work-clf",
+  "patch": {
+    "objective": "Application integration: Amazon SQS, Amazon SNS, Amazon EventBridge",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certification, AWS Certified Cloud Practitioner (CLF-C02) exam guide, Content Domain 1: Cloud Concepts (24% of scored content)",
+        "checkedAt": "2026-11-18",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/cloud-practitioner-02/cloud-practitioner-02-domain1.html",
+        "note": "Read through a summarizing fetch on 2026-11-18. Task 1.1 skill: 'Understanding the advantages of high availability, elasticity, and agility'; task 1.4 skills include 'Understanding the concept of rightsizing' and 'Identifying benefits of automation'. The other domains (Security and Compliance 30%, Cloud Technology and Services 34%, Billing, Pricing, and Support 12%) are the course seed's units, compared by name and weight with a third-party summary (KodeKloud, read 2026-11-17). Objective wording is the course seed's."
+      },
+      {
+        "cite": "AWS Lambda Developer Guide, Creating and configuring an Amazon SQS event source mapping",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: by default, after an error 'all messages in that batch return to the queue. After the visibility timeout, the messages become visible to Lambda again'; set the visibility timeout to at least six times the function timeout; Lambda refuses a function timeout longer than the queue's visibility timeout. The case's consumer is a container worker, not Lambda, so this check does not protect it. The SQS developer guide page on the visibility timeout (read 2026-11-18): 'The default visibility timeout for a queue is 30 seconds'; ChangeMessageVisibility extends it; 'due to the at-least-once delivery model of Amazon SQS, there's no absolute guarantee that a message won't be delivered more than once', so consumers must tolerate duplicates."
+      }
+    ]
+  }
+}

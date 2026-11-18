@@ -1,0 +1,1016 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pending-pods-requests-taints-selectors",
+  "title": "Pods stuck in Pending: oversized requests, a GPU taint, and a node selector that matches nothing",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "support@pennant:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "3 workloads Pending since the 09:00 releases",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineRequests",
+          "text": "{requests == \"rightSize\" ? \"Requests sized from use\" : requests == \"addNodes\" ? \"More nodes\" : requests == \"noRequests\" ? \"No requests (BestEffort)\" : \"\"}",
+          "when": "requests != \"none\"",
+          "at": "timeAt(requestsAt)",
+          "error": "requests == \"noRequests\""
+        },
+        {
+          "id": "lineGpu",
+          "text": "{gpu == \"tolerate\" ? \"Toleration plus nodeSelector\" : gpu == \"tolerOnly\" ? \"Toleration only\" : gpu == \"untaint\" ? \"GPU taint removed\" : \"\"}",
+          "when": "gpu != \"none\"",
+          "at": "timeAt(gpuAt)",
+          "error": "gpu == \"untaint\""
+        },
+        {
+          "id": "lineSelector",
+          "text": "{selector == \"fixLabel\" ? \"Selector fixed to a real label\" : selector == \"dropSelector\" ? \"Selector removed\" : selector == \"relabel\" ? \"Nodes mislabeled\" : \"\"}",
+          "when": "selector != \"none\"",
+          "at": "timeAt(selectorAt)",
+          "error": "selector == \"relabel\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nRequests",
+          "label": "web Deployment",
+          "spokenLabel": "web Deployment",
+          "kind": "Deployment",
+          "status": "{requests == \"rightSize\" ? \"Requests sized from use\" : requests == \"addNodes\" ? \"More nodes\" : requests == \"noRequests\" ? \"No requests (BestEffort)\" : \"Waiting\"}",
+          "tone": "requests == \"rightSize\" ? \"up\" : requests == \"addNodes\" ? \"degraded\" : requests == \"noRequests\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nGpu",
+          "label": "trainer Job",
+          "spokenLabel": "trainer Job",
+          "kind": "Job",
+          "status": "{gpu == \"tolerate\" ? \"Toleration plus nodeSelector\" : gpu == \"tolerOnly\" ? \"Toleration only\" : gpu == \"untaint\" ? \"GPU taint removed\" : \"Waiting\"}",
+          "tone": "gpu == \"tolerate\" ? \"up\" : gpu == \"tolerOnly\" ? \"degraded\" : gpu == \"untaint\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSelector",
+          "label": "reports CronJob",
+          "spokenLabel": "reports CronJob",
+          "kind": "CronJob",
+          "status": "{selector == \"fixLabel\" ? \"Selector fixed to a real label\" : selector == \"dropSelector\" ? \"Selector removed\" : selector == \"relabel\" ? \"Nodes mislabeled\" : \"Waiting\"}",
+          "tone": "selector == \"fixLabel\" ? \"up\" : selector == \"dropSelector\" ? \"degraded\" : selector == \"relabel\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nRequests",
+          "to": "nGpu",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nGpu",
+          "to": "nSelector",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Scheduling: how kube-scheduler filters and scores nodes using resource requests, node selectors and affinity, taints and tolerations, and topology spread, and what leaves a Pod Pending",
+  "secondaryObjectives": [
+    "Scheduling: resource requests and limits, QoS classes, and how the scheduler and kubelet treat CPU and memory differently"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF KCNA Curriculum (cncf/curriculum, pinned commit 0a8cc08a) and the Linux Foundation KCNA exam page",
+      "checkedAt": "2026-11-14",
+      "url": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+      "note": "The course's own outline sources (the catalog's curriculum PDF and exam page). This case was written against the course objective titles as the KCNA course seed records them; neither page was re-read for this case on 2026-11-14, so the outline wording is the seed's. Reused for REQ-336 from this course's service-selector-no-endpoints (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Kubernetes documentation, Scheduling, Preemption and Eviction (print view)",
+      "checkedAt": "2026-11-17",
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/_print",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: kube-scheduler filters nodes (for example, enough resources for the Pod's requests) and scores the rest; with no feasible node the Pod stays unscheduled; nodeSelector schedules only onto nodes with every listed label."
+    },
+    {
+      "cite": "Kubernetes documentation, Taints and Tolerations",
+      "checkedAt": "2026-11-17",
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a NoSchedule taint keeps Pods without a matching toleration off the node; tolerations allow but do not guarantee scheduling onto tainted nodes."
+    },
+    {
+      "cite": "Kubernetes documentation, Pod Quality of Service Classes",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.kubernetes.io/docs/concepts/workloads/pods/pod-qos/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a Pod with no requests or limits is BestEffort and is evicted first under node pressure."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You support the development teams at Pennant Learning, a fictional education company. Three workloads went Pending after this morning's releases.",
+    "handover": [
+      "The cluster has 3 general nodes (8 CPU each) and 3 GPU nodes tainted gpu=true:NoSchedule.",
+      "Nodes carry the label zone=eu-west-1a or zone=eu-west-1b."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-22T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "requests": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rightSize",
+        "addNodes",
+        "noRequests"
+      ],
+      "init": "none"
+    },
+    "requestsAt": {
+      "type": "time",
+      "init": null
+    },
+    "gpu": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tolerate",
+        "tolerOnly",
+        "untaint"
+      ],
+      "init": "none"
+    },
+    "gpuAt": {
+      "type": "time",
+      "init": null
+    },
+    "selector": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixLabel",
+        "dropSelector",
+        "relabel"
+      ],
+      "init": "none"
+    },
+    "selectorAt": {
+      "type": "time",
+      "init": null
+    },
+    "eventsAt": {
+      "type": "time",
+      "init": null
+    },
+    "specsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((requests == \"noRequests\") ? 1 : 0) + ((gpu == \"untaint\") ? 1 : 0) + ((selector == \"relabel\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(requests == \"none\" or (requests == \"noRequests\") ? 1 : 0) + (gpu == \"none\" or (gpu == \"untaint\") ? 1 : 0) + (selector == \"none\" or (selector == \"relabel\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Support shift",
+      "clock": "turns",
+      "actions": [
+        "events",
+        "specs"
+      ]
+    },
+    "close": {
+      "label": "Shift record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "events": {
+      "label": "kubectl get events --field-selector reason=FailedScheduling",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(eventsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "eventsAt",
+          "to": "t"
+        },
+        {
+          "output": "web: 0/6 nodes available: 3 Insufficient cpu, 3 untolerated taint gpu; trainer: 3 untolerated taint gpu, 3 did not match node selector; reports: 6 did not match node selector."
+        },
+        {
+          "log": "kubectl get events --field-selector reason=FailedScheduling.",
+          "kind": "act"
+        },
+        {
+          "finding": "web: 0/6 nodes available: 3 Insufficient cpu, 3 untolerated taint gpu; trainer: 3 untolerated taint gpu, 3 did not match node selector; reports: 6 did not match node selector."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "specs": {
+      "label": "Read the three Pod specs",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(specsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "specsAt",
+          "to": "t"
+        },
+        {
+          "output": "web requests 4 CPU per replica but uses about 0.3; trainer has nodeSelector gpu=true but no toleration; reports has nodeSelector zone=eu-west-1x."
+        },
+        {
+          "log": "Read the three Pod specs.",
+          "kind": "act"
+        },
+        {
+          "finding": "web requests 4 CPU per replica but uses about 0.3; trainer has nodeSelector gpu=true but no toleration; reports has nodeSelector zone=eu-west-1x."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Requests sized from use, toleration plus selector for GPU nodes, and the zone selector corrected"
+                },
+                {
+                  "value": "summary",
+                  "label": "Pods scheduled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "requests == \"noRequests\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a batch job fills a node's memory; the kubelet evicts the BestEffort web Pods first and the site drops.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "gpu == \"untaint\"",
+              "then": [
+                {
+                  "log": "Check-in 3: web and batch Pods fill the GPU nodes; trainer is Pending again and GPU spend triples.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "selector == \"relabel\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a storage workload trusts the zone label and attaches volumes from the wrong zone; it fails to start.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The support shift ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_requests",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: web.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "requestsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_gpu",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: trainer.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "gpuPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_selector",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: reports.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "selectorPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "requestsPrompt": {
+      "title": "Requests that do not fit",
+      "context": "Six web replicas request 4 CPU each; they use about 0.3.",
+      "choices": [
+        {
+          "id": "rightSize",
+          "label": "Set web's CPU request to 500m from measured use, keeping a memory request and limit",
+          "effects": [
+            {
+              "set": "requests",
+              "to": "\"rightSize\""
+            },
+            {
+              "set": "requestsAt",
+              "to": "t"
+            },
+            {
+              "log": "All six replicas schedule.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The scheduler filters nodes by the Pod's requests; oversized requests leave Pods Pending on idle nodes."
+        },
+        {
+          "id": "addNodes",
+          "label": "Add two more general nodes",
+          "effects": [
+            {
+              "set": "requests",
+              "to": "\"addNodes\""
+            },
+            {
+              "set": "requestsAt",
+              "to": "t"
+            },
+            {
+              "log": "Two nodes are ordered.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but pays for capacity the requests only pretend to need."
+        },
+        {
+          "id": "noRequests",
+          "label": "Remove all requests and limits from web",
+          "effects": [
+            {
+              "set": "requests",
+              "to": "\"noRequests\""
+            },
+            {
+              "set": "requestsAt",
+              "to": "t"
+            },
+            {
+              "log": "Requests are removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Web schedules anywhere, but BestEffort Pods are evicted first under pressure."
+        }
+      ]
+    },
+    "gpuPrompt": {
+      "title": "A GPU job that can't land",
+      "context": "trainer selects gpu=true nodes, which are tainted.",
+      "choices": [
+        {
+          "id": "tolerate",
+          "label": "Add a toleration for gpu=true:NoSchedule and keep the nodeSelector, so trainer can land on GPU nodes and only there",
+          "effects": [
+            {
+              "set": "gpu",
+              "to": "\"tolerate\""
+            },
+            {
+              "set": "gpuAt",
+              "to": "t"
+            },
+            {
+              "log": "trainer schedules on a GPU node.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A taint repels Pods without a matching toleration; the toleration allows, and the selector requires, the GPU nodes."
+        },
+        {
+          "id": "tolerOnly",
+          "label": "Add the toleration and drop the nodeSelector",
+          "effects": [
+            {
+              "set": "gpu",
+              "to": "\"tolerOnly\""
+            },
+            {
+              "set": "gpuAt",
+              "to": "t"
+            },
+            {
+              "log": "trainer is scheduled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A toleration allows GPU nodes but does not require them; trainer may land on a CPU node and fail."
+        },
+        {
+          "id": "untaint",
+          "label": "Remove the taint from the GPU nodes",
+          "effects": [
+            {
+              "set": "gpu",
+              "to": "\"untaint\""
+            },
+            {
+              "set": "gpuAt",
+              "to": "t"
+            },
+            {
+              "log": "The GPU nodes are untainted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every workload can now land on the expensive GPU nodes."
+        }
+      ]
+    },
+    "selectorPrompt": {
+      "title": "A selector nothing matches",
+      "context": "reports selects zone=eu-west-1x; nodes are in 1a and 1b.",
+      "choices": [
+        {
+          "id": "fixLabel",
+          "label": "Check node labels and fix reports' selector to zone=eu-west-1a, where its data must stay",
+          "effects": [
+            {
+              "set": "selector",
+              "to": "\"fixLabel\""
+            },
+            {
+              "set": "selectorAt",
+              "to": "t"
+            },
+            {
+              "log": "reports schedules in 1a.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "nodeSelector schedules only onto nodes with every listed label; a typo matches nothing."
+        },
+        {
+          "id": "dropSelector",
+          "label": "Delete the nodeSelector",
+          "effects": [
+            {
+              "set": "selector",
+              "to": "\"dropSelector\""
+            },
+            {
+              "set": "selectorAt",
+              "to": "t"
+            },
+            {
+              "log": "reports schedules anywhere.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It runs, but may land in 1b, against the data placement rule."
+        },
+        {
+          "id": "relabel",
+          "label": "Label two nodes zone=eu-west-1x to match",
+          "effects": [
+            {
+              "set": "selector",
+              "to": "\"relabel\""
+            },
+            {
+              "set": "selectorAt",
+              "to": "t"
+            },
+            {
+              "log": "Two nodes are relabeled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Node labels now lie; other workloads relying on zone labels misplace."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the shift record for the development teams.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Requests and taints",
+          "criteria": "web requests 500m; trainer tolerates the GPU taint and selects GPU nodes.",
+          "modelAnswer": "web's requests now match use, so it fits; trainer tolerates the GPU taint and still selects GPU nodes."
+        },
+        {
+          "label": "Selectors",
+          "criteria": "reports' selector fixed to zone=eu-west-1a.",
+          "modelAnswer": "reports selected a zone that does not exist; it now selects eu-west-1a."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (requests == \"addNodes\") and (gpu == \"tolerOnly\") and (selector == \"dropSelector\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF KCNA Curriculum (cncf/curriculum, pinned commit 0a8cc08a) and the Linux Foundation KCNA exam page",
+        "checkedAt": "2026-11-14",
+        "url": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+        "note": "The course's own outline sources (the catalog's curriculum PDF and exam page). This case was written against the course objective titles as the KCNA course seed records them; neither page was re-read for this case on 2026-11-14, so the outline wording is the seed's. Reused for REQ-336 from this course's service-selector-no-endpoints (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "requestsHarm": {
+      "label": "Web evicted first",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and requests == \"noRequests\"",
+      "narrative": "BestEffort web Pods were evicted first under memory pressure."
+    },
+    "gpuHarm": {
+      "label": "GPU nodes swamped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and gpu == \"untaint\"",
+      "narrative": "With the taint gone, ordinary Pods filled the GPU nodes."
+    },
+    "selectorHarm": {
+      "label": "Wrong-zone failures",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and selector == \"relabel\"",
+      "narrative": "Mislabeled nodes broke another workload's zone placement."
+    },
+    "target": {
+      "label": "Every Pod placed where it should be",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (requests == \"rightSize\") and (gpu == \"tolerate\") and (selector == \"fixLabel\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "All three workloads run on the right nodes without new hardware."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "requestsHarm",
+    "gpuHarm",
+    "selectorHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "requestsCrit",
+        "label": "Sized requests from measured use so the scheduler can place Pods",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "requests == \"rightSize\"",
+            "score": "met",
+            "why": "Placed."
+          },
+          {
+            "when": "requests == \"addNodes\"",
+            "score": "partial",
+            "why": "Costly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fragile."
+          }
+        ]
+      },
+      {
+        "id": "gpuCrit",
+        "label": "Used a toleration with a node selector for the GPU nodes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gpu == \"tolerate\"",
+            "score": "met",
+            "why": "Placed correctly."
+          },
+          {
+            "when": "gpu == \"tolerOnly\"",
+            "score": "partial",
+            "why": "Allowed, not required."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Taint lost."
+          }
+        ]
+      },
+      {
+        "id": "selectorCrit",
+        "label": "Fixed the selector to an existing node label",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "selector == \"fixLabel\"",
+            "score": "met",
+            "why": "Placed."
+          },
+          {
+            "when": "selector == \"dropSelector\"",
+            "score": "partial",
+            "why": "Intent lost."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Labels corrupted."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(eventsAt) and not isNull(specsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(eventsAt) or not isNull(specsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the scheduling events and the specs first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Size requests from measured use."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Add the toleration and keep the selector."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Fix the selector to an existing label."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "requestsHarm": {
+        "headline": "Request what you use",
+        "body": "Requests drive scheduling; BestEffort goes first."
+      },
+      "gpuHarm": {
+        "headline": "Taint and tolerate",
+        "body": "Keep the taint; tolerate it where needed."
+      },
+      "selectorHarm": {
+        "headline": "Fix the selector",
+        "body": "Labels describe nodes; selectors must match them."
+      },
+      "target": {
+        "headline": "Good: every Pod placed where it should be",
+        "body": "Requests, taints and selectors."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "kube-scheduler filters nodes by the Pod's resource requests, node selectors and taints, then scores the rest; with no feasible node the Pod stays Pending. Size requests from use, pair tolerations with selectors for dedicated nodes, and fix selectors rather than node labels."
+  }
+}

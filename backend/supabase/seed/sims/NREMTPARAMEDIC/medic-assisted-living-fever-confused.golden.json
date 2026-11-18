@@ -1,0 +1,501 @@
+{
+  "slug": "medic-assisted-living-fever-confused",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: septic shock recognized with temperature, glucose and capnography; oxygen, two IVs; three boluses with a lung check after each; sepsis alert; load early",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "fluids",
+          "choice": "continue",
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "max",
+          "choice": "thirty",
+          "seq": 14,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 15,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 16,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 17,
+          "tick": 450
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 18,
+          "tick": 750
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 19,
+          "tick": 780
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 20,
+          "tick": 1080
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 21,
+          "tick": 1110
+        }
+      ],
+      "expect": {
+        "ending": "resus",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "fluid": "met",
+          "lungs": "met",
+          "goal": "met",
+          "alert": "met",
+          "workup": "met"
+        },
+        "kpis": {
+          "fluidKpi": 1500
+        },
+        "stateHash": "951e4e59c90002e8"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "oneCheck",
+      "title": "Workup, alert and two boluses, but only one lung check",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 6,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "fluids",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "max",
+          "choice": "thirty",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 11,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 12,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 13,
+          "tick": 750
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "fluid": "met",
+          "lungs": "partial",
+          "goal": "missed",
+          "alert": "met",
+          "workup": "met"
+        },
+        "kpis": {
+          "fluidKpi": 1000
+        },
+        "stateHash": "13345989241861da"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateFluid",
+      "title": "A long workup; fluids only at 12 minutes; alert sent early; she arrives just short of the goal",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "glucose",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "alert",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 7,
+          "tick": 600
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 9,
+          "tick": 720
+        },
+        {
+          "type": "chapter",
+          "chapter": "fluids",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 720
+        },
+        {
+          "type": "teach",
+          "prompt": "max",
+          "choice": "thirty",
+          "seq": 11,
+          "tick": 720
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 840
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 13,
+          "tick": 1020
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "fluid": "partial",
+          "lungs": "partial",
+          "goal": "missed",
+          "alert": "met",
+          "workup": "met"
+        },
+        "kpis": {
+          "fluidKpi": 500
+        },
+        "stateHash": "865ea32efcab66f5"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "overload",
+      "title": "Four boluses back to back without listening to her lungs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 2,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 3,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "fluids",
+          "choice": "continue",
+          "seq": 4,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "max",
+          "choice": "thirty",
+          "seq": 5,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 8,
+          "tick": 720
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 9,
+          "tick": 1020
+        }
+      ],
+      "expect": {
+        "ending": "edema",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "fluid": "met",
+          "lungs": "missed",
+          "goal": "met",
+          "alert": "missed",
+          "workup": "missed"
+        },
+        "kpis": {
+          "fluidKpi": 2000
+        },
+        "stateHash": "a7a540cd05bd8cbf"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "noFluid",
+      "title": "Blood pressure taken and straight to the hospital; no IV, no fluid",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "dry",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "fluid": "missed",
+          "lungs": "missed",
+          "goal": "missed",
+          "alert": "missed",
+          "workup": "missed"
+        },
+        "kpis": {
+          "fluidKpi": 0
+        },
+        "stateHash": "8175cb5a1ac631eb"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

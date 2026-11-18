@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cnc-losing-too-fast-and-thirsty",
+  "title": "Eleven pounds in a month, and thirsty",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Marisol Vega, 52",
+        "presentation": "{not isNull(urgentAt) ? \"Messaging from urgent care.\" : not isNull(askedAt) ? \"Tired; she mentions how thirsty she is.\" : not isNull(checkAt) ? \"Delighted with the scale: down 11 pounds in a month.\" : \"Wants to lose 20 pounds before her son's wedding in the fall.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Trust",
+          "spokenLabel": "Her trust in the coach",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "trusting"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "rLost",
+          "label": "Weight change",
+          "spokenLabel": "Weight change since the start",
+          "value": "down {lost|0dp} lb",
+          "when": "not isNull(checkAt)",
+          "flag": "lost >= 9"
+        },
+        {
+          "id": "rRate",
+          "label": "Rate",
+          "spokenLabel": "Weekly rate of loss",
+          "value": "{lost / 4|1dp} lb a week (gradual: 1-2)",
+          "when": "not isNull(checkAt)",
+          "flag": "lost >= 9"
+        }
+      ],
+      "intake": {
+        "label": "Intake form",
+        "items": [
+          {
+            "id": "i1",
+            "question": "Health conditions",
+            "answer": "None diagnosed. Last physical two years ago.",
+            "when": "true"
+          },
+          {
+            "id": "i2",
+            "question": "Medications and supplements",
+            "answer": "None.",
+            "when": "true"
+          },
+          {
+            "id": "i3",
+            "question": "Eating now",
+            "answer": "Three meals, takeout most evenings, sweet coffee drinks.",
+            "when": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "f4",
+          "label": "Week 4 check-in",
+          "result": "Down 11 pounds. 'I'm eating more than ever and it still falls off.'",
+          "when": "not isNull(checkAt)",
+          "flag": "true"
+        },
+        {
+          "id": "fSym",
+          "label": "How she feels",
+          "result": "Thirsty all day, up three times a night to urinate, tired by midafternoon, and her reading glasses 'stopped working'.",
+          "when": "not isNull(askedAt)",
+          "flag": "true"
+        }
+      ],
+      "program": {
+        "label": "Coaching plan",
+        "items": [
+          {
+            "label": "A modest deficit: about 1 pound a week, food first",
+            "when": "plan == \"modest\""
+          },
+          {
+            "label": "1,000 calories a day below her needs, to make the date",
+            "when": "plan == \"aggressive\""
+          },
+          {
+            "label": "Behavior goals: water instead of sweet coffee drinks, a vegetable at dinner, three walks a week",
+            "when": "not isNull(behaviorAt)"
+          },
+          {
+            "label": "See her physician this week about the fast weight loss, thirst and night urination; coaching continues",
+            "when": "referTo == \"physician\""
+          },
+          {
+            "label": "See a registered dietitian nutritionist",
+            "when": "referTo == \"rdn\""
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jMonth",
+          "text": "Four weeks of coaching.",
+          "when": "not isNull(monthAt)",
+          "at": "timeAt(monthAt)"
+        },
+        {
+          "id": "jRef",
+          "text": "Referred.",
+          "when": "not isNull(referAt)",
+          "at": "timeAt(referAt)"
+        },
+        {
+          "id": "jUrgent",
+          "text": "She went to urgent care feeling very unwell.",
+          "when": "not isNull(urgentAt)",
+          "at": "timeAt(urgentAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rPace",
+          "label": "Rate of weight loss",
+          "text": "Gradual and steady, about 1-2 pounds a week, is the aim; faster loss she cannot explain is a referral question, not a success.",
+          "met": "not isNull(checkAt) and lost >= 9 and isNull(referAt)"
+        },
+        {
+          "id": "rScope",
+          "label": "Scope",
+          "text": "Coaches do not diagnose or give medical nutrition therapy; symptoms go to a physician.",
+          "met": "not isNull(diagnosedAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Coaching weight management with a modest energy deficit, and recognizing when weight change is a referral question",
+  "secondaryObjectives": [
+    "Recognizing when to refer to a registered dietitian nutritionist or physician: a diagnosed condition, a suspected eating disorder, pregnancy or breastfeeding needs beyond general guidance, or medications affected by diet",
+    "Setting SMART goals and choosing behavior goals over outcome goals"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Certified Nutrition Coach course exam (four course sections): Professional Practice and Scope, Nutrition Science, Behavior Change Strategies, Practical Nutrition Coaching",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.nasm.org/certified-nutrition-coach",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-11-14, REQ-282), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "CDC. Steps for Losing Weight (page dated 2025-01-17)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cdc.gov/healthy-weight-growth/losing-weight",
+      "note": "Read 2026-11-17 through a summarizing fetch: 'People who lose weight at a gradual, steady pace--about 1 to 2 pounds a week--are more likely to keep the weight off.'"
+    },
+    {
+      "cite": "CDC. Symptoms of Diabetes (page dated 2024-05-15), as archived by RestoredCDC.org",
+      "checkedAt": "2026-11-17",
+      "url": "https://restoredcdc.org/www.cdc.gov/diabetes/signs-symptoms/index.html",
+      "note": "Read 2026-11-17 through a summarizing fetch of an independent archive of the CDC page: 'Urinate (pee) a lot, often at night', 'Are very thirsty', 'Lose weight without trying', 'Are very hungry', 'Have blurry vision', 'Feel very tired'; 'see your doctor about getting your blood sugar tested'."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Her weight change on each plan and the timing of her symptoms are authored for the case: on the modest plan alone she would lose about 1 pound a week; she loses 11 pounds in four weeks because of an untreated medical cause the coach cannot name. The rate the CDC calls gradual and steady (1-2 pounds a week) and the CDC's listed symptoms are from the sources. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra nutrition coach course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a nutrition coach. Marisol Vega, 52 (a fictional client), wants to lose 20 pounds before her son's wedding in the fall. You set her plan today and see her again in four weeks.",
+    "handover": [
+      "Coaches give general, evidence-based guidance and coach habits; diagnosing and medical nutrition therapy are outside the role.",
+      "Her intake form lists no conditions and no medications."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "2027-04-05T17:00",
+    "tick": "1min",
+    "maxDuration": "60d",
+    "calendar": "date"
+  },
+  "params": {
+    "fourWeeks": {
+      "value": 2419200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Four weeks of coaching between the first session and the check-in."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "trust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "goalAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "modest",
+        "aggressive"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "behaviorAt": {
+      "type": "time",
+      "init": null
+    },
+    "monthAt": {
+      "type": "time",
+      "init": null
+    },
+    "checkAt": {
+      "type": "time",
+      "init": null
+    },
+    "askedAt": {
+      "type": "time",
+      "init": null
+    },
+    "celebrateAt": {
+      "type": "time",
+      "init": null
+    },
+    "tightenAt": {
+      "type": "time",
+      "init": null
+    },
+    "referTo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "physician",
+        "rdn"
+      ],
+      "init": "none"
+    },
+    "referAt": {
+      "type": "time",
+      "init": null
+    },
+    "diagnosedAt": {
+      "type": "time",
+      "init": null
+    },
+    "secondAt": {
+      "type": "time",
+      "init": null
+    },
+    "urgentAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lost": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 40,
+      "unit": "lb"
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Coaching",
+      "clock": "turns",
+      "actions": [
+        "goal",
+        "program",
+        "behavior",
+        "month",
+        "ask",
+        "celebrate",
+        "tighten",
+        "referDoc",
+        "referRdn",
+        "diagnose",
+        "another",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "goal": {
+      "label": "Ask what the 20 pounds would mean for her and what has worked before",
+      "group": "Talk",
+      "available": "not busy and (isNull(goalAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(goalAt)",
+          "then": [
+            {
+              "set": "goalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You explore her goal.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Set the coaching plan",
+      "group": "Plan",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Already set.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Plan",
+          "options": [
+            {
+              "value": "modest",
+              "label": "A modest deficit for about 1 pound a week, food first, adjusted to her preferences"
+            },
+            {
+              "value": "aggressive",
+              "label": "1,000 calories a day below her needs, so she makes the wedding date"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "p"
+        },
+        {
+          "log": "Plan set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "behavior": {
+      "label": "Agree three behavior goals with her: water instead of sweet coffee drinks, a vegetable at dinner, three walks a week",
+      "group": "Talk",
+      "available": "not busy and (isNull(behaviorAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(behaviorAt)",
+          "then": [
+            {
+              "set": "behaviorAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You agree three behavior goals.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "month": {
+      "label": "Coach her for four weeks, then check in",
+      "group": "Plan",
+      "available": "not busy and not isNull(planAt) and isNull(monthAt)",
+      "why": "Set the plan first.",
+      "effects": [
+        {
+          "if": "isNull(monthAt)",
+          "then": [
+            {
+              "set": "monthAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "month",
+          "after": "fourWeeks"
+        },
+        {
+          "log": "Four weeks of coaching.",
+          "kind": "act"
+        }
+      ]
+    },
+    "ask": {
+      "label": "Ask how she has been feeling: energy, sleep, thirst, anything new",
+      "group": "Talk",
+      "available": "not busy and (isNull(askedAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(askedAt)",
+          "then": [
+            {
+              "set": "askedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You ask how she has been feeling.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "celebrate": {
+      "label": "Celebrate the 11 pounds: 'whatever you're doing, keep it up'",
+      "group": "Talk",
+      "available": "not busy and (isNull(celebrateAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(celebrateAt)",
+          "then": [
+            {
+              "set": "celebrateAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You celebrate the number.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "tighten": {
+      "label": "Tighten the plan a little so she keeps the momentum",
+      "group": "Talk",
+      "available": "not busy and (isNull(tightenAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(tightenAt)",
+          "then": [
+            {
+              "set": "tightenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You trim her plan further.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "referDoc": {
+      "label": "Explain that losing this fast without trying, with thirst and night urination, needs her physician this week; offer a note of her intake and weights; coaching continues",
+      "group": "Talk",
+      "available": "not busy and (isNull(referAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(referAt)",
+          "then": [
+            {
+              "set": "referAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "referTo",
+          "to": "\"physician\""
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You refer her to her physician this week, with your notes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "referRdn": {
+      "label": "Refer her to a registered dietitian nutritionist to fine-tune her eating",
+      "group": "Talk",
+      "available": "not busy and (isNull(referAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(referAt)",
+          "then": [
+            {
+              "set": "referAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "referTo",
+          "to": "\"rdn\""
+        },
+        {
+          "log": "You refer her to a dietitian.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Tell her it sounds like diabetes and switch her to a low-carbohydrate diabetic meal plan",
+      "group": "Talk",
+      "available": "not busy and (isNull(diagnosedAt) and not isNull(checkAt))",
+      "why": "At the check-in.",
+      "effects": [
+        {
+          "if": "isNull(diagnosedAt)",
+          "then": [
+            {
+              "set": "diagnosedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You name a diagnosis and write her a diabetic meal plan.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "another": {
+      "label": "Keep the plan for another four weeks and see",
+      "group": "Plan",
+      "available": "not busy and not isNull(checkAt) and isNull(secondAt) and isNull(referAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(secondAt)",
+          "then": [
+            {
+              "set": "secondAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "month2",
+          "after": "fourWeeks"
+        },
+        {
+          "log": "Another four weeks on the plan.",
+          "kind": "act"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Her goal, the plan and why, weights and rate, the symptoms in her words, the referral and what coaching continues"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Great progress, -11 lb'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each conversation takes and when the fictional weeks pass are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "month": {
+      "label": "Four weeks of coaching",
+      "wait": {
+        "skipLabel": "Skip to the check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Four weeks of coaching between the first session and the check-in."
+      },
+      "effects": [
+        {
+          "if": "isNull(checkAt)",
+          "then": [
+            {
+              "set": "checkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "lost",
+          "to": "11"
+        },
+        {
+          "log": "Week 4: she is down 11 pounds and says she is eating more than ever.",
+          "kind": "find"
+        }
+      ]
+    },
+    "month2": {
+      "label": "Another four weeks",
+      "wait": {
+        "skipLabel": "Skip four weeks"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Four weeks of coaching between the first session and the check-in."
+      },
+      "effects": [
+        {
+          "if": "isNull(urgentAt)",
+          "then": [
+            {
+              "set": "urgentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "lost",
+          "to": "17"
+        },
+        {
+          "log": "Week 7: she messages from urgent care. She felt faint and confused at work; they found a very high blood sugar and are admitting her.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For her record: what the check-in showed, what you did, and what stays within your role.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "What it showed",
+          "criteria": "Eleven pounds in four weeks (about 2.75 a week), faster than the plan and the CDC's 1-2 pounds a week, while eating more, with thirst, night urination, fatigue and blurred vision: symptoms the CDC lists for diabetes. A referral question, not a success.",
+          "modelAnswer": "She lost 11 pounds in four weeks while eating more than usual, with constant thirst, night urination, tiredness and blurry vision. That is too fast to be the plan and matches symptoms the CDC says should be checked by a doctor."
+        },
+        {
+          "label": "What I did",
+          "criteria": "Referred her to her physician this week with notes; did not name a diagnosis or write a disease-specific meal plan; did not tighten the plan.",
+          "modelAnswer": "I asked her to see her physician this week and gave her my notes. I did not guess at the cause, change her plan to a 'diabetic diet' or cut her intake further."
+        },
+        {
+          "label": "My role",
+          "criteria": "Coaching continues with general, food-first guidance and behavior goals once the physician has seen her; medical nutrition therapy, if needed, comes from her physician or a registered dietitian nutritionist.",
+          "modelAnswer": "I keep coaching habits within scope; anything the physician prescribes, including nutrition therapy, is theirs or a dietitian's."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(planAt)",
+      "class": "recovered",
+      "rationale": "No plan and no check-in: nothing harmful, nothing changed.",
+      "source": {
+        "cite": "CDC. Steps for Losing Weight (page dated 2025-01-17)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cdc.gov/healthy-weight-growth/losing-weight",
+        "note": "Read 2026-11-17 through a summarizing fetch: 'People who lose weight at a gradual, steady pace--about 1 to 2 pounds a week--are more likely to keep the weight off.'"
+      }
+    }
+  },
+  "endings": {
+    "lateFound": {
+      "label": "Found a month late",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(urgentAt)",
+      "narrative": "A month after the check-in she was admitted from urgent care with a very high blood sugar. The signs were on your screen at week 4."
+    },
+    "diagnosed": {
+      "label": "A diagnosis and a diet outside the role",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(diagnosedAt) and referTo != \"physician\"",
+      "narrative": "She is following a 'diabetic' plan you wrote for a diagnosis no physician has made, and has not been tested."
+    },
+    "noReferral": {
+      "label": "No referral",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(checkAt) and isNull(referAt)",
+      "narrative": "She left the check-in celebrated{isNull(tightenAt) ? \"\" : \" and with a tighter plan\"}, and no one has told her that losing weight this fast without trying needs a doctor."
+    },
+    "referred": {
+      "label": "Physician this week; coaching continues",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and plan == \"modest\" and not isNull(askedAt) and referTo == \"physician\" and isNull(secondAt) and isNull(diagnosedAt) and isNull(tightenAt) and not isNull(behaviorAt)",
+      "narrative": "You noticed that the number was too good, asked how she felt, and sent her to her physician this week with your notes. Coaching continues within your role."
+    },
+    "gaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{referTo == \"rdn\" ? \"A dietitian is a good partner, but these symptoms needed a physician first\" : plan == \"aggressive\" ? \"The referral was right, but the starting plan was a crash diet\" : isNull(askedAt) ? \"The referral was right, but you never asked how she felt\" : \"She is seeing her physician, but the plan or the record has gaps\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out with no record."
+    }
+  },
+  "endingOrder": [
+    "lateFound",
+    "diagnosed",
+    "noReferral",
+    "referred",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "modest",
+        "label": "A modest deficit, about 1 pound a week",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"modest\"",
+            "score": "met",
+            "why": "Modest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A 1,000-calorie daily deficit, or no plan."
+          }
+        ]
+      },
+      {
+        "id": "asked",
+        "label": "Asked how she felt before judging the number",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(askedAt) and (isNull(celebrateAt) or timeAt(askedAt) <= timeAt(celebrateAt))",
+            "score": "met",
+            "why": "Asked first."
+          },
+          {
+            "when": "not isNull(askedAt)",
+            "score": "partial",
+            "why": "Asked, after celebrating."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked."
+          }
+        ]
+      },
+      {
+        "id": "refer",
+        "label": "Physician this week, without naming a diagnosis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "referTo == \"physician\" and isNull(diagnosedAt) and isNull(secondAt)",
+            "score": "met",
+            "why": "Physician this week."
+          },
+          {
+            "when": "referTo != \"none\" or not isNull(urgentAt)",
+            "score": "partial",
+            "why": "A dietitian only, or after a diagnosis of your own."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No referral."
+          }
+        ]
+      },
+      {
+        "id": "scope",
+        "label": "No diagnosis and no disease-specific meal plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(diagnosedAt)",
+            "score": "met",
+            "why": "Stayed in scope."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Named diabetes and wrote a diabetic plan."
+          }
+        ]
+      },
+      {
+        "id": "behavior",
+        "label": "Behavior goals, not just a number",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(behaviorAt)",
+            "score": "met",
+            "why": "Three behavior goals."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "None."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented the weights, symptoms and referral",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written finding, referral and role",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rate",
+        "label": "Pounds a week at the check-in",
+        "value": "isNull(checkAt) ? 0 : 11 / 4",
+        "format": "number",
+        "expert": "1-2 is the aim; above that, ask why"
+      },
+      {
+        "id": "trustEnd",
+        "label": "Her trust at the end (0-10)",
+        "value": "trust",
+        "format": "number",
+        "expert": "8 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "First session",
+        "text": "Explore her goal; a modest deficit for about 1 pound a week; three behavior goals."
+      },
+      {
+        "at": "Week 4",
+        "text": "Down 11 pounds while eating more: ask how she feels. Thirst, night urination, fatigue, blurred vision: her physician this week, with your notes; no diagnosis, no tighter plan."
+      },
+      {
+        "at": "Close",
+        "text": "A full record; coaching continues within the role."
+      }
+    ],
+    "debrief": {
+      "referred": {
+        "headline": "The number was the warning",
+        "body": "Weight falling faster than the plan while she eats more, with thirst and night urination, is a referral question. Physician first, this week; coaching continues in your lane."
+      },
+      "gaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check the starting plan (modest), whether you asked how she felt before celebrating, and who she was sent to (a physician first for symptoms)."
+      },
+      "lateFound": {
+        "headline": "A month too late",
+        "body": "Waiting another month on unexplained fast weight loss with thirst let it reach urgent care."
+      },
+      "diagnosed": {
+        "headline": "Naming it is not the coach's job",
+        "body": "Even when a pattern looks familiar, a diagnosis and a disease-specific plan belong to a physician (and a dietitian); she needed a blood test, not a diet."
+      },
+      "noReferral": {
+        "headline": "Too good to be true",
+        "body": "Eleven pounds in four weeks without trying is not a coaching win. Ask how she feels, and refer."
+      },
+      "time_up": {
+        "headline": "No record",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "Start with a modest deficit (about 1 pound a week; the CDC calls 1-2 pounds a week gradual and steady) and behavior goals. At week 4, 11 pounds lost while eating more is faster than the plan explains; ask how she feels. Thirst, night urination, fatigue and blurred vision are symptoms the CDC says need a doctor's blood sugar test, so refer her to her physician this week with notes. Do not diagnose, write a disease-specific plan or tighten the deficit; coaching continues within scope."
+  }
+}

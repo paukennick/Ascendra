@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ai-triage-feasibility-risk",
+  "title": "An AI proposal for a call center: feasibility before commitment, a risk assessment and an adoption plan",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rFeas",
+          "label": "Infeasible AI scope",
+          "spokenLabel": "Infeasible AI scope",
+          "owner": "\"AI project manager\"",
+          "rating": "feas == \"scoped\" ? \"low\" : feas == \"both\" ? \"medium\" : feas == \"noAssess\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "feas == \"scoped\" ? \"within\" : feas == \"both\" ? \"within\" : feas == \"noAssess\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{feas == \"scoped\" ? \"Routing first; labelling for vulnerability\" : feas == \"both\" ? \"Both committed\" : feas == \"noAssess\" ? \"No assessment\" : \"Open\"}"
+        },
+        {
+          "id": "rRisk",
+          "label": "Unassessed AI risks",
+          "spokenLabel": "Unassessed AI risks",
+          "owner": "\"AI project manager\"",
+          "rating": "risk == \"assess\" ? \"low\" : risk == \"security\" ? \"medium\" : risk == \"skip\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "risk == \"assess\" ? \"within\" : risk == \"security\" ? \"within\" : risk == \"skip\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{risk == \"assess\" ? \"Safety, security and ethics assessed\" : risk == \"security\" ? \"Security only\" : risk == \"skip\" ? \"Assumed low risk\" : \"Open\"}"
+        },
+        {
+          "id": "rAdopt",
+          "label": "Agent resistance",
+          "spokenLabel": "Agent resistance",
+          "owner": "\"AI project manager\"",
+          "rating": "adopt == \"change\" ? \"low\" : adopt == \"train\" ? \"medium\" : adopt == \"mandate\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "adopt == \"change\" ? \"within\" : adopt == \"train\" ? \"within\" : adopt == \"mandate\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{adopt == \"change\" ? \"Change plan with agents involved\" : adopt == \"train\" ? \"Training only\" : adopt == \"mandate\" ? \"Mandated and tracked\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sUsers",
+          "label": "End users",
+          "spokenLabel": "the end users' support",
+          "value": "users",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sDs",
+          "label": "Data science lead",
+          "spokenLabel": "the data science lead's support",
+          "value": "ds",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dFeas",
+          "kind": "Feasibility",
+          "label": "Week 1: feasibility",
+          "status": "{feas == \"scoped\" ? \"Routing first; labelling for vulnerability\" : feas == \"both\" ? \"Both committed\" : feas == \"noAssess\" ? \"No assessment\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and feas == \"none\""
+        },
+        {
+          "id": "dRisk",
+          "kind": "Risk assessment",
+          "label": "Week 2: risks",
+          "status": "{risk == \"assess\" ? \"Safety, security and ethics assessed\" : risk == \"security\" ? \"Security only\" : risk == \"skip\" ? \"Assumed low risk\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and risk == \"none\""
+        },
+        {
+          "id": "dAdopt",
+          "kind": "Adoption",
+          "label": "Week 3: adoption",
+          "status": "{adopt == \"change\" ? \"Change plan with agents involved\" : adopt == \"train\" ? \"Training only\" : adopt == \"mandate\" ? \"Mandated and tracked\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and adopt == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluating initial AI feasibility: technical viability, data availability/quality, computational resource requirements, and organizational readiness",
+  "secondaryObjectives": [
+    "Conducting risk assessments across security, safety, and ethics: failure modes, cybersecurity vulnerabilities, and mitigation strategies",
+    "Managing adoption and integration risk: change-management requirements, user-resistance planning, and training strategies"
+  ],
+  "sources": [
+    {
+      "cite": "PMI Certified Professional in Managing AI (PMI-CPMAI) Examination Content Outline (September 2025): Responsible and Trustworthy AI 15%, Business Needs and Solutions 26%, Data Needs 26%, Model Development and Evaluation 16%, Operationalize 17%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/cpmai/syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch of a training provider's syllabus page that restates the outline in its own words (PMI's PDF did not come up in search). Restated: data evaluation (assess data quality; analyze distributions for bias or gaps; exploratory data analysis); model governance (lifecycle management, versioning and change control, monitor performance and detect drift). The objective wording here is the course seed's; PMI's own wording is to verify. Reused for REQ-336 from this course's loan-data-bias-pmicpmai (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage AI projects at a fictional utility, Brennan Power. The COO wants an AI that routes customer calls and flags customers in vulnerable circumstances for priority help.",
+    "handover": [
+      "Two years of call transcripts exist; vulnerability flags were recorded inconsistently.",
+      "Agents fear the AI will be used to monitor them."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-15T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ds": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "feas": {
+      "type": "enum",
+      "values": [
+        "none",
+        "scoped",
+        "both",
+        "noAssess"
+      ],
+      "init": "none"
+    },
+    "feasAt": {
+      "type": "time",
+      "init": null
+    },
+    "risk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "assess",
+        "security",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "adopt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "change",
+        "train",
+        "mandate"
+      ],
+      "init": "none"
+    },
+    "adoptAt": {
+      "type": "time",
+      "init": null
+    },
+    "dataAt": {
+      "type": "time",
+      "init": null
+    },
+    "agentsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, users), ds)"
+    },
+    "missCount": {
+      "expr": "((feas == \"noAssess\") ? 1 : 0) + ((risk == \"skip\") ? 1 : 0) + ((adopt == \"mandate\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(feas == \"none\" or (feas == \"noAssess\") ? 1 : 0) + (risk == \"none\" or (risk == \"skip\") ? 1 : 0) + (adopt == \"none\" or (adopt == \"mandate\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "AI initiative definition",
+      "clock": "turns",
+      "actions": [
+        "data",
+        "agents"
+      ]
+    },
+    "close": {
+      "label": "Decision record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "data": {
+      "label": "Assess the data",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dataAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dataAt",
+          "to": "t"
+        },
+        {
+          "log": "Assess the data.",
+          "kind": "act"
+        },
+        {
+          "finding": "Transcripts are complete for routing, but vulnerability labels are missing in 70% of cases and inconsistent in the rest."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "agents": {
+      "label": "Talk to call center agents",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(agentsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "agentsAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to call center agents.",
+          "kind": "act"
+        },
+        {
+          "finding": "Agents fear surveillance; they know vulnerability cues the data never captured."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Routing feasible and vulnerability detection deferred for labelling, risks assessed with mitigations, and a change plan with agents"
+                },
+                {
+                  "value": "summary",
+                  "label": "AI project approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "feas == \"noAssess\"",
+              "then": [
+                {
+                  "log": "Week 2: the vendor's vulnerability model, trained on sparse labels, misses most vulnerable customers in testing.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "risk == \"skip\"",
+              "then": [
+                {
+                  "log": "Week 3: in the pilot, callers with strong accents are routed to the wrong queue three times as often; complaints follow.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "adopt == \"mandate\"",
+              "then": [
+                {
+                  "log": "Week 4: agents stop overriding wrong routes to avoid scrutiny; vulnerable callers wait longer.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The go/no-go decision is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_feas",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: feasibility.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "feasPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_risk",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: risks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "riskPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_adopt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: adoption.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "adoptPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "feasPrompt": {
+      "title": "Can it be done?",
+      "context": "The COO wants both features in one release.",
+      "choices": [
+        {
+          "id": "scoped",
+          "label": "Assess both: routing is feasible on existing data; vulnerability detection is not yet (labels too poor); propose routing first and a labelling effort",
+          "effects": [
+            {
+              "set": "feas",
+              "to": "\"scoped\""
+            },
+            {
+              "set": "feasAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "A scoped, feasible plan is proposed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Feasibility covers data, technology, compute and readiness; commit to what's viable."
+        },
+        {
+          "id": "both",
+          "label": "Commit to both and hope labels improve",
+          "effects": [
+            {
+              "set": "feas",
+              "to": "\"both\""
+            },
+            {
+              "set": "feasAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Both committed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The vulnerability model can't be trained well on these labels."
+        },
+        {
+          "id": "noAssess",
+          "label": "Skip feasibility: the vendor says it works",
+          "effects": [
+            {
+              "set": "feas",
+              "to": "\"noAssess\""
+            },
+            {
+              "set": "feasAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "No assessment.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody checked the data."
+        }
+      ]
+    },
+    "riskPrompt": {
+      "title": "What could go wrong?",
+      "context": "Routing errors could send vulnerable customers to long queues.",
+      "choices": [
+        {
+          "id": "assess",
+          "label": "Assess failure modes (misrouting vulnerable callers), security (transcript access), ethics (bias against accents) with mitigations: human override, access controls, bias testing",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"assess\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "1"
+            },
+            {
+              "log": "Risks are assessed with mitigations.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "AI risk assessment covers failure modes, security and ethics, with mitigations before launch."
+        },
+        {
+          "id": "security",
+          "label": "Assess security only",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"security\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "-1"
+            },
+            {
+              "log": "Security only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safety and ethics risks are missed."
+        },
+        {
+          "id": "skip",
+          "label": "Skip it: routing is low risk",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"skip\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "users",
+              "by": "-2"
+            },
+            {
+              "log": "No assessment.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Misrouting vulnerable callers is a safety risk."
+        }
+      ]
+    },
+    "adoptPrompt": {
+      "title": "Agents fear surveillance",
+      "context": "Agents may work around the system.",
+      "choices": [
+        {
+          "id": "change",
+          "label": "A change plan: tell agents what the AI does and doesn't do (no performance monitoring, in writing), involve them in testing, train them, and use their cues to improve labels",
+          "effects": [
+            {
+              "set": "adopt",
+              "to": "\"change\""
+            },
+            {
+              "set": "adoptAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "1"
+            },
+            {
+              "log": "Agents help shape the rollout.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Adoption needs change management: transparency, involvement and training."
+        },
+        {
+          "id": "train",
+          "label": "Run training only",
+          "effects": [
+            {
+              "set": "adopt",
+              "to": "\"train\""
+            },
+            {
+              "set": "adoptAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "-1"
+            },
+            {
+              "log": "Training only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fear of surveillance remains."
+        },
+        {
+          "id": "mandate",
+          "label": "Mandate use and track overrides per agent",
+          "effects": [
+            {
+              "set": "adopt",
+              "to": "\"mandate\""
+            },
+            {
+              "set": "adoptAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "-2"
+            },
+            {
+              "log": "Use is mandated and tracked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Tracking overrides per agent confirms the surveillance fear."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the go/no-go recommendation for the COO.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Feasibility",
+          "criteria": "Routing feasible; vulnerability labels missing in 70%; labelling first.",
+          "modelAnswer": "Routing is feasible on our transcripts; vulnerability detection isn't until labels improve, so we start with routing and a labelling effort."
+        },
+        {
+          "label": "Risk and adoption",
+          "criteria": "Failure modes, security and bias mitigated; change plan with agents.",
+          "modelAnswer": "We mitigate misrouting with human override, restrict transcript access and test for accent bias; agents are involved and promised no monitoring."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (feas == \"both\") and (risk == \"security\") and (adopt == \"train\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI Certified Professional in Managing AI (PMI-CPMAI) Examination Content Outline (September 2025): Responsible and Trustworthy AI 15%, Business Needs and Solutions 26%, Data Needs 26%, Model Development and Evaluation 16%, Operationalize 17%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/cpmai/syllabus",
+        "note": "Read 2026-11-17 through a summarizing fetch of a training provider's syllabus page that restates the outline in its own words (PMI's PDF did not come up in search). Restated: data evaluation (assess data quality; analyze distributions for bias or gaps; exploratory data analysis); model governance (lifecycle management, versioning and change control, monitor performance and detect drift). The objective wording here is the course seed's; PMI's own wording is to verify. Reused for REQ-336 from this course's loan-data-bias-pmicpmai (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "feasHarm": {
+      "label": "A model that can't work",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and feas == \"noAssess\"",
+      "narrative": "Trained on poor labels, the model missed most vulnerable customers."
+    },
+    "riskHarm": {
+      "label": "A biased pilot",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and risk == \"skip\"",
+      "narrative": "Callers with strong accents were misrouted three times as often."
+    },
+    "adoptHarm": {
+      "label": "Overrides stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and adopt == \"mandate\"",
+      "narrative": "Agents stopped correcting wrong routes; vulnerable callers waited longer."
+    },
+    "target": {
+      "label": "A feasible, safe and adopted AI start",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (feas == \"scoped\") and (risk == \"assess\") and (adopt == \"change\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The call center gets an AI it can build, run safely and that agents trust."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "feasHarm",
+    "riskHarm",
+    "adoptHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "feasCrit",
+        "label": "Evaluated feasibility before committing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "feas == \"scoped\"",
+            "score": "met",
+            "why": "Evidence-based."
+          },
+          {
+            "when": "feas == \"both\"",
+            "score": "partial",
+            "why": "Optimistic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unassessed."
+          }
+        ]
+      },
+      {
+        "id": "riskCrit",
+        "label": "Assessed security, safety and ethical risks with mitigations",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "risk == \"assess\"",
+            "score": "met",
+            "why": "Assessed."
+          },
+          {
+            "when": "risk == \"security\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unassessed."
+          }
+        ]
+      },
+      {
+        "id": "adoptCrit",
+        "label": "Planned for adoption and integration risk",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "adopt == \"change\"",
+            "score": "met",
+            "why": "Adopted."
+          },
+          {
+            "when": "adopt == \"train\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Resistance."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dataAt) and not isNull(agentsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dataAt) or not isNull(agentsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Assess the data and talk to agents first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Assess each feature's feasibility and commit to the viable one."
+      },
+      {
+        "at": "Week 2",
+        "text": "Assess failure modes, security and ethics with mitigations."
+      },
+      {
+        "at": "Week 3",
+        "text": "Plan change management with agents involved and a written no-monitoring commitment."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "feasHarm": {
+        "headline": "Assess feasibility first",
+        "body": "Data, technology and readiness before commitment."
+      },
+      "riskHarm": {
+        "headline": "Assess AI risks",
+        "body": "Failure modes, security and ethics, mitigated."
+      },
+      "adoptHarm": {
+        "headline": "Plan adoption",
+        "body": "Change management, not mandates."
+      },
+      "target": {
+        "headline": "Good: a feasible, safe and adopted AI start",
+        "body": "Feasibility, risk and adoption before commitment."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Before committing to an AI solution, evaluate feasibility (data availability and quality, technology, compute, organizational readiness), assess risks across security, safety and ethics with mitigations, and plan adoption through change management, involvement and training."
+  }
+}

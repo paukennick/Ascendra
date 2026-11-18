@@ -1,0 +1,867 @@
+{
+  "slug": "data-center-schedule-plan-integration",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Procurement and risks read; lead times linked; constraints applied; PMB under control; an honest note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "procplan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "risks",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "link",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "calendar",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "pmb",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "procCrit": "met",
+          "riskCrit": "met",
+          "baseCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 80,
+          "spiK": 1,
+          "cpiK": 1
+        },
+        "stateHash": "9811cfa2e24b79af"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialProc",
+      "title": "Partly right on procurement, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "procplan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "note",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 14,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "calendar",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 21,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "pmb",
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 28,
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "procCrit": "partial",
+          "riskCrit": "met",
+          "baseCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.96,
+          "cpiK": 0.97
+        },
+        "stateHash": "f0aceef3779a07af"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialBase",
+      "title": "Partly right on the baseline, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "link",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "calendar",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "schedOnly",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "procCrit": "met",
+          "riskCrit": "met",
+          "baseCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.96,
+          "cpiK": 0.97
+        },
+        "stateHash": "3d2c091e36c62979"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "note",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "reserve",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "schedOnly",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "procCrit": "partial",
+          "riskCrit": "partial",
+          "baseCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 55,
+          "spiK": 0.8799999999999999,
+          "cpiK": 0.9099999999999999
+        },
+        "stateHash": "ce1ba30a9278b07e"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badProc",
+      "title": "Moves kept before the switches arrive",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "procplan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "risks",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "ignore",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "calendar",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "pmb",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "procHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "procCrit": "missed",
+          "riskCrit": "met",
+          "baseCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "88ee3f7b37980a05"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badRisk",
+      "title": "Moves forced into the freeze",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "procplan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "risks",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "link",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "override",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "pmb",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "riskHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "procCrit": "met",
+          "riskCrit": "missed",
+          "baseCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "33911ddab4db7ed0"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badBase",
+      "title": "No baseline set",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "procplan",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "risks",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "procPrompt",
+          "choice": "link",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "riskPrompt",
+          "choice": "calendar",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "basePrompt",
+          "choice": "noBase",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "baseHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "procCrit": "met",
+          "riskCrit": "met",
+          "baseCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 45,
+          "spiK": 0.91,
+          "cpiK": 0.92
+        },
+        "stateHash": "349d1d8a72979b3a"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

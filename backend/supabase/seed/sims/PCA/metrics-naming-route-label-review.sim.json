@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "metrics-naming-route-label-review",
+  "title": "Reviewing a service's new metrics: units, types and a label that would explode",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "review@copperleaf:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "PR #4127: add Prometheus metrics to billing-api",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineLat",
+          "text": "{lat == \"histogram\" ? \"Histogram in seconds with chosen buckets\" : lat == \"summary\" ? \"Client-side summary\" : lat == \"keepGauge\" ? \"Last-value gauge kept\" : \"\"}",
+          "when": "lat != \"none\"",
+          "at": "timeAt(latAt)",
+          "error": "lat == \"keepGauge\""
+        },
+        {
+          "id": "linePath",
+          "text": "{path == \"route\" ? \"Route template (bounded)\" : path == \"dropPath\" ? \"No path label\" : path == \"keepRaw\" ? \"Raw paths in production\" : \"\"}",
+          "when": "path != \"none\"",
+          "at": "timeAt(pathAt)",
+          "error": "path == \"keepRaw\""
+        },
+        {
+          "id": "lineNames",
+          "text": "{names == \"conventions\" ? \"_total counter; RED covered; promtool clean\" : names == \"separate\" ? \"Separate error counter; no _total\" : names == \"gaugeCount\" ? \"Resetting gauge for requests\" : \"\"}",
+          "when": "names != \"none\"",
+          "at": "timeAt(namesAt)",
+          "error": "names == \"gaugeCount\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nLat",
+          "label": "billing_request_time_ms",
+          "spokenLabel": "billing_request_time_ms",
+          "kind": "metric",
+          "status": "{lat == \"histogram\" ? \"Histogram in seconds with chosen buckets\" : lat == \"summary\" ? \"Client-side summary\" : lat == \"keepGauge\" ? \"Last-value gauge kept\" : \"Waiting\"}",
+          "tone": "lat == \"histogram\" ? \"up\" : lat == \"summary\" ? \"degraded\" : lat == \"keepGauge\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nPath",
+          "label": "path label",
+          "spokenLabel": "path label",
+          "kind": "label",
+          "status": "{path == \"route\" ? \"Route template (bounded)\" : path == \"dropPath\" ? \"No path label\" : path == \"keepRaw\" ? \"Raw paths in production\" : \"Waiting\"}",
+          "tone": "path == \"route\" ? \"up\" : path == \"dropPath\" ? \"degraded\" : path == \"keepRaw\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nNames",
+          "label": "metric names",
+          "spokenLabel": "metric names",
+          "kind": "naming",
+          "status": "{names == \"conventions\" ? \"_total counter; RED covered; promtool clean\" : names == \"separate\" ? \"Separate error counter; no _total\" : names == \"gaugeCount\" ? \"Resetting gauge for requests\" : \"Waiting\"}",
+          "tone": "names == \"conventions\" ? \"up\" : names == \"separate\" ? \"degraded\" : names == \"gaugeCount\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nLat",
+          "to": "nPath",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nPath",
+          "to": "nNames",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Structuring and naming metrics: the _total, _seconds and _bytes conventions, base units, label cardinality limits, and avoiding high-cardinality labels",
+  "secondaryObjectives": [
+    "Instrumentation: what to measure (RED and USE methods), choosing counters and histograms, label choices and bucket boundaries",
+    "Client libraries: instrumenting code with the official libraries, exposing /metrics, and the four metric types in code"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/pca",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Prometheus documentation, Metric and label naming",
+      "checkedAt": "2026-11-17",
+      "url": "https://prometheus.io/docs/practices/naming/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: use base units such as seconds, with a plural unit suffix; accumulating counts end in _total; never use labels for high-cardinality values such as user IDs, because every label-value combination is a new time series."
+    },
+    {
+      "cite": "Prometheus documentation, Histograms and summaries",
+      "checkedAt": "2026-11-17",
+      "url": "https://prometheus.io/docs/practices/histograms/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: summary quantiles cannot be aggregated and averaging quantiles is statistically nonsensical; histograms aggregate with histogram_quantile(0.95, sum by (le) (rate(..._bucket[5m]))); for a 300 ms objective use buckets around 300 ms; the share of requests within 300 ms comes from the le=0.3 bucket over the count."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the metrics and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You review instrumentation changes for the platform team at Copperleaf Energy, a fictional utility. The billing API's first metrics are in a pull request and ship tomorrow. Its owners want request rate, errors and latency (RED) for every endpoint.",
+    "handover": [
+      "The pull request adds: billing_request_time_ms (a gauge set to the last request's time), billing_requests (a counter), and a path label holding the raw URL.",
+      "URLs include account numbers, such as /accounts/88123091/invoices."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-26T14:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "lat": {
+      "type": "enum",
+      "values": [
+        "none",
+        "histogram",
+        "summary",
+        "keepGauge"
+      ],
+      "init": "none"
+    },
+    "latAt": {
+      "type": "time",
+      "init": null
+    },
+    "path": {
+      "type": "enum",
+      "values": [
+        "none",
+        "route",
+        "dropPath",
+        "keepRaw"
+      ],
+      "init": "none"
+    },
+    "pathAt": {
+      "type": "time",
+      "init": null
+    },
+    "names": {
+      "type": "enum",
+      "values": [
+        "none",
+        "conventions",
+        "separate",
+        "gaugeCount"
+      ],
+      "init": "none"
+    },
+    "namesAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "scrapeOutAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((lat == \"keepGauge\") ? 1 : 0) + ((path == \"keepRaw\") ? 1 : 0) + ((names == \"gaugeCount\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(lat == \"none\" or (lat == \"keepGauge\") ? 1 : 0) + (path == \"none\" or (path == \"keepRaw\") ? 1 : 0) + (names == \"none\" or (names == \"gaugeCount\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The review",
+      "clock": "turns",
+      "actions": [
+        "diff",
+        "scrapeOut"
+      ]
+    },
+    "close": {
+      "label": "Review record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "diff": {
+      "label": "Read the pull request's metrics code",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(diffAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "diffAt",
+          "to": "t"
+        },
+        {
+          "output": "Gauge billing_request_time_ms set(elapsed_ms)\nCounter billing_requests labels path, status\npath = request.url.path"
+        },
+        {
+          "log": "You read the diff.",
+          "kind": "act"
+        },
+        {
+          "finding": "Latency is a gauge holding only the last value, in milliseconds; the counter lacks _total; path is the raw URL, so every account number is a new label value."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "scrapeOut": {
+      "label": "curl -s billing-api-staging:8080/metrics | head",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(scrapeOutAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "scrapeOutAt",
+          "to": "t"
+        },
+        {
+          "output": "billing_requests path=/accounts/88123091/invoices status=200 1\nbilling_requests path=/accounts/88123092/invoices status=200 1\n... (31,402 lines after one hour of staging traffic)"
+        },
+        {
+          "log": "You read staging's /metrics.",
+          "kind": "act"
+        },
+        {
+          "finding": "Staging produced 31,402 series in an hour, one per account and path; production has 2.4 million accounts."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the review record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Latency as a seconds histogram with chosen buckets, a route-template label, and a _total counter with a bounded status label"
+                },
+                {
+                  "value": "summary",
+                  "label": "Approved with comments"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "lat == \"keepGauge\"",
+              "then": [
+                {
+                  "log": "Check-in 2: in the first invoice run, 8% of requests take 4 s; the gauge happens to sample fast ones and the dashboard stays green.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "path == \"keepRaw\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the shared Prometheus runs out of memory on the first billing day; every team's alerts stop for two hours.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "names == \"gaugeCount\"",
+              "then": [
+                {
+                  "log": "Check-in 4: request-rate panels show nonsense spikes and the SLO error ratio comes out above 100%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_lat",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the latency metric.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "latPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_path",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the label.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pathPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_names",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: names and errors.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "namesPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "latPrompt": {
+      "title": "Latency as a gauge in ms",
+      "context": "Owners want p95 and p99 per endpoint.",
+      "choices": [
+        {
+          "id": "histogram",
+          "label": "Replace it with a histogram billing_request_duration_seconds with buckets around the 300 ms target (0.05 to 2.5 s)",
+          "effects": [
+            {
+              "set": "lat",
+              "to": "\"histogram\""
+            },
+            {
+              "set": "latAt",
+              "to": "t"
+            },
+            {
+              "log": "A seconds histogram with chosen buckets replaces the gauge.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Durations are observed into a histogram in seconds (the base unit) so quantiles can be computed across instances."
+        },
+        {
+          "id": "summary",
+          "label": "Use a summary with p95 and p99 computed in the client",
+          "effects": [
+            {
+              "set": "lat",
+              "to": "\"summary\""
+            },
+            {
+              "set": "latAt",
+              "to": "t"
+            },
+            {
+              "log": "A client-side summary is used.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You get quantiles per instance, but summary quantiles can't be aggregated across instances."
+        },
+        {
+          "id": "keepGauge",
+          "label": "Keep the gauge: dashboards can average it",
+          "effects": [
+            {
+              "set": "lat",
+              "to": "\"keepGauge\""
+            },
+            {
+              "set": "latAt",
+              "to": "t"
+            },
+            {
+              "log": "The gauge stays.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A gauge of the last request's time samples one request per scrape; the slow tail is invisible."
+        }
+      ]
+    },
+    "pathPrompt": {
+      "title": "Raw URLs as a label",
+      "context": "2.4 million accounts would mean millions of series per metric.",
+      "choices": [
+        {
+          "id": "route",
+          "label": "Label with the framework's route template (/accounts/:id/invoices), never the raw path, and keep status as a bounded class",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"route\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "log": "The label is the route template.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Each unique label set is a series; a route template has a few dozen values, an account number millions."
+        },
+        {
+          "id": "dropPath",
+          "label": "Drop the path label entirely",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"dropPath\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "log": "No path label.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Cardinality is safe, but owners can no longer see which endpoint is slow."
+        },
+        {
+          "id": "keepRaw",
+          "label": "Ship it with raw paths and add more memory if needed",
+          "effects": [
+            {
+              "set": "path",
+              "to": "\"keepRaw\""
+            },
+            {
+              "set": "pathAt",
+              "to": "t"
+            },
+            {
+              "log": "Raw paths ship.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Millions of series overwhelm the shared Prometheus that every team's alerts run on."
+        }
+      ]
+    },
+    "namesPrompt": {
+      "title": "Counter names and errors",
+      "context": "The counter is billing_requests; errors are only visible as status=500.",
+      "choices": [
+        {
+          "id": "conventions",
+          "label": "Rename to billing_requests_total, keep a bounded status code class label for errors, and check the names with promtool check metrics",
+          "effects": [
+            {
+              "set": "names",
+              "to": "\"conventions\""
+            },
+            {
+              "set": "namesAt",
+              "to": "t"
+            },
+            {
+              "log": "Names follow the conventions and pass promtool.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Counters end in _total, units are base units in the name, and RED is rate, errors and duration from these metrics."
+        },
+        {
+          "id": "separate",
+          "label": "Add a separate billing_errors counter and keep billing_requests as it is",
+          "effects": [
+            {
+              "set": "names",
+              "to": "\"separate\""
+            },
+            {
+              "set": "namesAt",
+              "to": "t"
+            },
+            {
+              "log": "A second counter for errors is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Errors are countable, but the names break conventions that tools and other teams rely on."
+        },
+        {
+          "id": "gaugeCount",
+          "label": "Make requests a gauge that the service resets to zero every minute",
+          "effects": [
+            {
+              "set": "names",
+              "to": "\"gaugeCount\""
+            },
+            {
+              "set": "namesAt",
+              "to": "t"
+            },
+            {
+              "log": "Requests become a resetting gauge.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "rate() on a gauge that resets is meaningless; scrapes miss the values between resets."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the review: what the metrics will measure, why each change, and how the labels stay bounded.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Types and units",
+          "criteria": "A _seconds histogram for latency; a _total counter for requests; RED from these.",
+          "modelAnswer": "Latency is a billing_request_duration_seconds histogram; requests a billing_requests_total counter, so rate, errors and duration come from two metrics."
+        },
+        {
+          "label": "Labels",
+          "criteria": "Route template instead of raw paths; bounded status classes; why cardinality matters.",
+          "modelAnswer": "path holds the route template, a few dozen values, not account numbers; status holds a bounded class."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (lat == \"summary\") and (path == \"dropPath\") and (names == \"separate\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Prometheus Certified Associate (PCA) curriculum: PromQL 28%, Prometheus Fundamentals 20%, Observability Concepts 18%, Alerting & Dashboarding 18%, Instrumentation and Exporters 16%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/pca",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/pca, summarizing fetch), which cites no curriculum version; the official curriculum (cncf/curriculum, read by the course builder for backend/supabase/seed/tracks/cncf-ecosystem.ts) was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's canary-gate-wrong-p99-query (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "latHarm": {
+      "label": "Slow requests invisible",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and lat == \"keepGauge\"",
+      "narrative": "The last-value gauge sampled fast requests; 8% taking 4 s during the invoice run never showed."
+    },
+    "pathHarm": {
+      "label": "Shared monitoring down",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and path == \"keepRaw\"",
+      "narrative": "Raw paths created millions of series; the shared Prometheus ran out of memory and every team's alerts stopped."
+    },
+    "namesHarm": {
+      "label": "Nonsense rates",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and names == \"gaugeCount\"",
+      "narrative": "The resetting gauge made request rates and the SLO error ratio meaningless."
+    },
+    "target": {
+      "label": "Metrics that measure and stay bounded",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (lat == \"histogram\") and (path == \"route\") and (names == \"conventions\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The billing API ships RED metrics with the right types, units and bounded labels."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "latHarm",
+    "pathHarm",
+    "namesHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "latCrit",
+        "label": "Measured latency with a histogram in base units",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lat == \"histogram\"",
+            "score": "met",
+            "why": "Right type and unit."
+          },
+          {
+            "when": "lat == \"summary\"",
+            "score": "partial",
+            "why": "Not aggregatable."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Can't show latency."
+          }
+        ]
+      },
+      {
+        "id": "pathCrit",
+        "label": "Used the route template, a bounded label",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "path == \"route\"",
+            "score": "met",
+            "why": "Bounded label."
+          },
+          {
+            "when": "path == \"dropPath\"",
+            "score": "partial",
+            "why": "Safe, less useful."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unbounded label shipped."
+          }
+        ]
+      },
+      {
+        "id": "namesCrit",
+        "label": "Followed the naming conventions and covered rate, errors and duration",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "names == \"conventions\"",
+            "score": "met",
+            "why": "Conventions followed."
+          },
+          {
+            "when": "names == \"separate\"",
+            "score": "partial",
+            "why": "Works, unconventional."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke the counter."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(diffAt) and not isNull(scrapeOutAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(diffAt) or not isNull(scrapeOutAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the metrics code and a sample of the endpoint's output first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Use a histogram named _seconds with buckets around the target."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Label with the route template, never the raw path."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Name the counter _total, keep a bounded status label, check with promtool."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "latHarm": {
+        "headline": "Histograms for latency",
+        "body": "Observe durations into a _seconds histogram so quantiles are possible."
+      },
+      "pathHarm": {
+        "headline": "Bounded labels only",
+        "body": "Never put IDs or raw URLs in labels; use the route template."
+      },
+      "namesHarm": {
+        "headline": "Counters for counts",
+        "body": "Count with a monotonic _total counter and take rate() of it."
+      },
+      "target": {
+        "headline": "Good: metrics that measure and stay bounded",
+        "body": "A histogram in seconds, a _total counter, and route-template labels."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Choose the metric type by what it measures: durations into a histogram (aggregatable quantiles) in base units (_seconds), counts into a monotonic counter named _total. Every unique label set is a separate series, so labels must be bounded: a route template, not raw URLs or IDs. RED (rate, errors, duration) for a request-driven service comes from a counter with a bounded status label and a duration histogram."
+  }
+}

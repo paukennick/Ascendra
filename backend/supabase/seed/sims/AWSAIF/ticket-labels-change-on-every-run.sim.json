@@ -1,0 +1,925 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ticket-labels-change-on-every-run",
+  "title": "Routing: the same ticket gets a different category every time",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Ticket router configuration (Amazon Bedrock Converse call), Lakeshore Utilities (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Support lead, Dana Whitfield",
+          "text": "The new router puts the same outage ticket in Billing one time and Outages the next, and sometimes invents categories. We switch all inbound email to it at 14:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Re-running one ticket gives different labels.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Cutover",
+          "text": "14:00: all inbound email now goes through the router as configured.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "router.py: the Converse call",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "prompt = 'Classify this ticket.' + ticket",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "inferenceConfig: maxTokens 400, temperature 1.0, topP 1.0",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "prompt = 'Answer with exactly one of: Outages, Billing, Meters, Moves, Other. Examples: ...' + ticket",
+              "when": "fix == \"zero\" or fix == \"topp\" or fix == \"maxtok\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "inferenceConfig: maxTokens 5, temperature 0",
+              "when": "fix == \"zero\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "inferenceConfig: maxTokens 400, temperature 1.0, topP 0.5",
+              "when": "fix == \"topp\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "inferenceConfig: maxTokens 2000, temperature 1.0, topP 1.0",
+              "when": "fix == \"maxtok\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Cutover",
+          "value": "14:00"
+        }
+      ]
+    }
+  },
+  "objective": "Inference parameters and what they change: temperature, input and output length",
+  "secondaryObjectives": [
+    "Prompt techniques: zero-shot, single-shot, few-shot, chain-of-thought, prompt templates"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certified AI Practitioner (AIF-C01) exam guide: Fundamentals of AI and ML 20%, Fundamentals of Generative AI 24%, Applications of Foundation Models 28%, Guidelines for Responsible AI 14%, Security, Compliance, and Governance for AI Solutions 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/examguides/ai-practitioner-01-domain3.html",
+      "note": "On 2026-11-17 a summarizing fetch of the AWS domain 3 page returned only page metadata, so the official text was not read. A third-party study guide (dennisk.neocities.org/aws_ai/domain3-study-guide.html, read the same day) gives Domain 3 as 28% and lists under Task 3.2 prompt injection or hijacking, jailbreaking, prompt poisoning and data exposure. The domain weights and objective wording are the course seed's (backend/supabase/seed/tracks/aws.ts). To verify against the AWS page. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS documentation, Amazon Bedrock API Reference, InferenceConfiguration",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_InferenceConfiguration.html",
+      "note": "Read through a summarizing fetch on 2026-11-18. temperature: 'A lower value makes the model more likely to choose higher-probability options, while a higher value makes the model more likely to choose lower-probability options' (range 0 to 1); maxTokens: 'The maximum number of tokens to allow in the generated response'; topP: 'The percentage of most-likely candidates that the model considers for the next token'; passed in inferenceConfig of a Converse call."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You configure the ticket router at Lakeshore Utilities (fictional). A foundation model on Amazon Bedrock labels each email with one of five queues. In testing, the same ticket gets different labels on different runs, and some answers are not one of the five. All inbound email switches to the router at 14:00. It is 13:05.",
+    "handover": [
+      "The prompt says: 'Classify this ticket.' and then the ticket text.",
+      "The five queues are Outages, Billing, Meters, Moves and Other."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "zero",
+        "topp",
+        "maxtok"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"zero\")"
+    },
+    "correct": {
+      "expr": "(fix == \"zero\" or fix == \"topp\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Run one outage ticket ten times and list the labels",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Outages x10"
+            }
+          ],
+          "else": [
+            {
+              "output": "Outages x5, Billing x2, 'Power outage / urgent' x2, 'Emergency' x1"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The same ticket gets the same allowed label every run."
+            }
+          ],
+          "else": [
+            {
+              "finding": "At temperature 1.0 the model often picks lower-probability words, and the prompt never lists the allowed labels."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the prompt and inference settings",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "zero",
+              "label": "List the five labels with two examples each, ask for the label only, and set temperature 0 with a small maxTokens"
+            },
+            {
+              "value": "topp",
+              "label": "List the labels, keep temperature 1.0, and lower topP to 0.5"
+            },
+            {
+              "value": "maxtok",
+              "label": "List the labels and raise maxTokens to 2000"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the 200 labeled test tickets and one ticket ten times",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"zero\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "200 labeled test tickets: 96% correct, 0 invalid labels\nSame ticket ten times: same label"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"topp\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "200 test tickets: 91% correct, 0 invalid\nSame ticket ten times: 8 of 10 agree"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"maxtok\"",
+              "then": [
+                {
+                  "output": "200 test tickets: 78% correct, 9 invalid labels\nSame ticket ten times: 6 of 10 agree"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "200 test tickets: 74% correct, 23 invalid labels\nSame ticket ten times: 5 of 10 agree"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Switch inbound email to the router",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Live: tickets land in the right queue consistently."
+            }
+          ],
+          "else": [
+            {
+              "output": "Live: tickets bounce between queues."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why labels changed between runs",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Temperature 1.0 favors varied choices, and the prompt never fixed the allowed labels"
+                },
+                {
+                  "value": "c1",
+                  "label": "The model was overloaded"
+                },
+                {
+                  "value": "c2",
+                  "label": "The tickets were too long"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it works",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The labeled test set scores high and repeat runs agree"
+                },
+                {
+                  "value": "k1",
+                  "label": "Two tickets looked right"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "14:00: all inbound email now goes through the router as configured.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the support lead: why labels varied, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Temperature controls how likely the model is to choose lower-probability options; at 1.0 a classifier varies, and an open prompt lets it invent labels.",
+          "modelAnswer": "Temperature 1.0; no label list."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Listed the five labels with examples, asked for the label only, set temperature 0 and a small maxTokens; lowering topP alone still varies; maxTokens caps length and does not affect consistency.",
+          "modelAnswer": "Few-shot label list; temperature 0."
+        },
+        {
+          "label": "How you know",
+          "criteria": "96% on the labeled set, no invalid labels, and repeat runs agree.",
+          "modelAnswer": "200 tickets; ten repeats."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Router misroutes tickets",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Outage reports land in Billing and wait a day."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing misrouted, but the cutover slipped."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Inbound email lands in one of five queues, the same way every time."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced the inconsistency before changing settings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Fixed the label set and set temperature 0",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Fixed labels with examples at temperature 0."
+          },
+          {
+            "when": "fix == \"topp\"",
+            "score": "partial",
+            "why": "Fewer odd answers, but runs still disagree on borderline tickets."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"maxtok\" ? \"maxTokens only caps the length of the answer; it does not make it consistent.\" : \"The router still labels at temperature 1.0 without a fixed label list.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "The labeled test set passed after the last change, before cutover",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "One ticket, four different labels in ten runs."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Label list with examples; temperature 0."
+      },
+      {
+        "at": "9-12 min",
+        "text": "96% on the test set; repeats agree."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Cut over."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: a classifier wants determinism",
+        "body": "For fixed-label tasks, constrain the output in the prompt and lower the temperature."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Misrouted tickets",
+        "body": "maxTokens limits output length; it is not a consistency control."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The same input producing different labels points at sampling. At temperature 1.0 the model often picks lower-probability options, and the prompt never states the allowed labels, so it also invents them. List the five labels with examples, ask for the label only, set temperature 0, and check the labeled test set and repeat runs. Lowering topP helps but still varies; raising maxTokens only allows longer answers."
+  }
+}

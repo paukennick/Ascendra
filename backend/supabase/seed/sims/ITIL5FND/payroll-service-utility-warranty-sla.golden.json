@@ -1,0 +1,853 @@
+{
+  "slug": "payroll-service-utility-warranty-sla",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Description and complaints read; utility and warranty; outcomes measured; an agreed SLA; an honest record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "desc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compl",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "both",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "outcomes",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "agreed",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "uwCrit": "met",
+          "outCrit": "met",
+          "slaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 6
+        },
+        "stateHash": "c3905f8414b5ca7e"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialUw",
+      "title": "Partly right on utility and warranty, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "desc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "addFeatures",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 48,
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "outcomes",
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 72,
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "agreed",
+          "seq": 8,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 96,
+          "seq": 9,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "uwCrit": "partial",
+          "outCrit": "met",
+          "slaCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 6
+        },
+        "stateHash": "6f5aec44f4f0271e"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialSla",
+      "title": "Partly right on the service level agreement, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "both",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "outcomes",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "internal",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "uwCrit": "met",
+          "outCrit": "met",
+          "slaCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 6
+        },
+        "stateHash": "0b79ee3e79ecd031"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "addFeatures",
+          "seq": 2,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 48,
+          "seq": 3,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "moreOutputs",
+          "seq": 4,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 72,
+          "seq": 5,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "internal",
+          "seq": 6,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 96,
+          "seq": 7,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "uwCrit": "partial",
+          "outCrit": "partial",
+          "slaCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 6
+        },
+        "stateHash": "c4d4e210a2f62648"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badUw",
+      "title": "The description left without warranty",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "desc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compl",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "unchanged",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "outcomes",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "agreed",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "uwHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "uwCrit": "missed",
+          "outCrit": "met",
+          "slaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 6
+        },
+        "stateHash": "5ff9014840ace63b"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badOut",
+      "title": "Files on time kept as the measure",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "desc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compl",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "both",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "files",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "agreed",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "outHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "uwCrit": "met",
+          "outCrit": "missed",
+          "slaCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 6
+        },
+        "stateHash": "3eabf4f29a5a0436"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badSla",
+      "title": "Best effort promised",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "desc",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "compl",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 24,
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "choose",
+          "prompt": "uwPrompt",
+          "choice": "both",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 48,
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "choose",
+          "prompt": "outPrompt",
+          "choice": "outcomes",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 72,
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "choose",
+          "prompt": "slaPrompt",
+          "choice": "vague",
+          "seq": 10,
+          "tick": 72
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 96,
+          "seq": 11,
+          "tick": 72
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 96
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 96
+        }
+      ],
+      "expect": {
+        "ending": "slaHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "uwCrit": "met",
+          "outCrit": "met",
+          "slaCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 6
+        },
+        "stateHash": "836ac51f864d9540"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

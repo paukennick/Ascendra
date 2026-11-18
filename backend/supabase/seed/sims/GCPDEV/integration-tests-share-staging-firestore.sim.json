@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "integration-tests-share-staging-firestore",
+  "title": "Release freeze at 17:00: integration tests fail at random because every build shares one database",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@cloudshell:~/orders$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "14:30 CI: 11 of 27 orders builds failed today in integration tests; freeze at 17:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "17:00: fixes miss the freeze",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "17:00: fixes shipped",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "builds",
+          "label": "Cloud Build: orders (parallel)",
+          "spokenLabel": "the parallel builds",
+          "kind": "integration tests",
+          "status": "{fixed and not harmed ? \"green and isolated\" : \"40% fail at random\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "staging",
+          "label": "Firestore staging database",
+          "spokenLabel": "the shared staging database",
+          "kind": "used by every build",
+          "status": "{fixed and not harmed ? \"no longer used by tests\" : \"builds overwrite each other\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "emu",
+          "label": "Firestore emulator (per build)",
+          "spokenLabel": "the per-build emulator",
+          "kind": "not used in CI",
+          "status": "{harmed ? \"tests pointed at production\" : fixed ? \"one per build\" : \"none\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "builds",
+          "to": "staging",
+          "label": "test writes",
+          "status": "{fixed and not harmed ? \"none (emulator instead)\" : \"colliding\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Executing automated integration tests in Cloud Build",
+  "secondaryObjectives": [
+    "Emulating Google Cloud services locally with the Google Cloud CLI for development and unit testing",
+    "Building and storing containers from source code with Cloud Build and Artifact Registry"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Developer certification exam guide: Section 1 Designing highly scalable, secure, and reliable cloud-native applications (~32%), Section 2 Building and testing (~23%), Section 3 Configuring for deployment (~24%), Section 4 Integrating with Google Cloud services (~21%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_developer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 1.1 'Using traffic splitting strategies (e.g., gradual rollouts, rollbacks, A/B testing) on a new service on Cloud Run or GKE'; 1.3 'Creating signed URLs to grant access to Cloud Storage objects'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Use the Firestore emulator locally",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/firestore/docs/emulator",
+      "note": "Read through a summarizing fetch on 2026-11-18. Set FIRESTORE_EMULATOR_HOST=HOST:PORT and 'the server client libraries automatically connect to the emulator'; mobile and web SDKs are pointed at the emulator in code instead. The start commands in the case (gcloud emulators firestore start --host-port, firebase emulators:exec) are from memory of the CLI references and do not change the decision taught (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are a developer at Penwick Outfitters. The orders service's Cloud Build pipeline runs integration tests against the shared staging Firestore database. Since the team grew, builds run in parallel, and about 40% of them fail with tests reading orders another build created or deleted. Release freeze starts at 17:00, and three fixes still need green builds to ship.",
+    "handover": [
+      "The tests create and delete documents in the orders and inventory collections.",
+      "Locally, developers run the tests against the Firestore emulator."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the parallel builds, the shared staging database they all write to, and the emulator each build could run instead.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 9000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Release freeze starts at 17:00, 150 minutes after the report; the three fixes need green builds before then."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "failsAt": {
+      "type": "time",
+      "init": null
+    },
+    "cfgAt": {
+      "type": "time",
+      "init": null
+    },
+    "localAt": {
+      "type": "time",
+      "init": null
+    },
+    "permAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "shared",
+        "flaky",
+        "tests"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "fails",
+        "cfg",
+        "local",
+        "perm",
+        "emulator",
+        "guard",
+        "prod",
+        "retry",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "fails": {
+      "label": "Read the failing assertions in today's builds",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(failsAt)",
+          "then": [
+            {
+              "set": "failsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ gcloud builds list --filter='status=FAILURE AND substitutions.REPO_NAME=orders' --limit 3 --format='value(id)' | xargs -I@ gcloud builds log @ | grep -m3 AssertionError\n{fixed and not harmed ? \"(no failures since 15:2x)\" : \"AssertionError: expected 1 order for cust-test-1, found 3\nAssertionError: inventory sku-T1 expected 10, found 7\nAssertionError: order ord-test-9 not found\"}"
+        },
+        {
+          "finding": "Tests see each other's data: counts are off and documents vanish."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cfg": {
+      "label": "Where the test step points",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(cfgAt)",
+          "then": [
+            {
+              "set": "cfgAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ sed -n '/integration/,/^- /p' cloudbuild.yaml\n{fixed and not harmed ? \"- name: node:22\n  env: [FIRESTORE_EMULATOR_HOST=localhost:8080]\n  (emulator started in the same step)\" : \"- name: node:22\n  env: [GOOGLE_CLOUD_PROJECT=penwick-staging]\n  args: [npm, run, test:integration]\"}"
+        },
+        {
+          "finding": "CI tests run against the real staging database; locally they use the emulator."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "local": {
+      "label": "How developers run them locally",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(localAt)",
+          "then": [
+            {
+              "set": "localAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ cat package.json | grep test:integration\n\"test:integration\": \"firebase emulators:exec --only firestore 'jest integration'\" (locally) / CI calls jest directly"
+        },
+        {
+          "finding": "The emulator wrapper exists; CI just does not use it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "perm": {
+      "label": "The build service account's access",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(permAt)",
+          "then": [
+            {
+              "set": "permAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ gcloud projects get-iam-policy penwick-staging --flatten=bindings --filter='bindings.members:cloudbuild' --format='value(bindings.role)'\nroles/datastore.user"
+        },
+        {
+          "finding": "Builds can write staging data, which is why they collide."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "emulator": {
+      "label": "Run the Firestore emulator inside the test step and set FIRESTORE_EMULATOR_HOST so each build tests against its own empty database",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ git diff cloudbuild.yaml\n-  env: [GOOGLE_CLOUD_PROJECT=penwick-staging]\n-  args: [npm, run, test:integration]\n+  env: [FIRESTORE_EMULATOR_HOST=localhost:8080, GOOGLE_CLOUD_PROJECT=demo-orders]\n+  script: gcloud emulators firestore start --host-port=localhost:8080 & sleep 8; npm run test:integration\ndev@cloudshell:~/orders$ git push"
+        },
+        {
+          "log": "With FIRESTORE_EMULATOR_HOST set, the client library connects to the emulator: every build gets its own database and parallel builds stop colliding.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "25min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Remove the build service account's write access to staging, and fail the test step if FIRESTORE_EMULATOR_HOST is not set",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ gcloud projects remove-iam-policy-binding penwick-staging --member=serviceAccount:...cloudbuild... --role=roles/datastore.user\n(test setup: throw if not process.env.FIRESTORE_EMULATOR_HOST)"
+        },
+        {
+          "log": "Tests can no longer reach a real database by accident, in staging or anywhere else.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "prod": {
+      "label": "Point the tests at the production project, which nobody else writes to from CI",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ sed -i 's/penwick-staging/penwick-prod/' cloudbuild.yaml; grant roles/datastore.user on penwick-prod\n(pushed)"
+        },
+        {
+          "log": "The next builds create and delete test orders and change inventory counts in production.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "retry": {
+      "label": "Add automatic retries to the integration tests",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ jest --retries 3 (jest.config.js)\n(pushed)"
+        },
+        {
+          "log": "Retries sometimes pass, sometimes not: the builds still share one database, and the failures just take longer.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Run five builds in parallel",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dev@cloudshell:~/orders$ for i in 1 2 3 4 5; do gcloud builds submit --async --config cloudbuild.yaml . ; done; (wait) gcloud builds list --limit 5 --format='value(status)'\n{harmed ? \"SUCCESS x5 (tests ran against production data)\" : fixed ? \"SUCCESS x5\" : \"SUCCESS x3, FAILURE x2\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "shared",
+                  "label": "Parallel builds ran integration tests against one shared staging database"
+                },
+                {
+                  "value": "flaky",
+                  "label": "Firestore is unreliable"
+                },
+                {
+                  "value": "tests",
+                  "label": "The tests have race conditions in the code under test"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: the three fixes are in the release.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "17:00: the freeze starts with the three fixes unshipped.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why builds failed, what you changed, and what keeps tests off real databases.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the failures and config.",
+          "modelAnswer": "CI ran integration tests against the shared staging database; with parallel builds, tests saw and deleted each other's documents. Locally the same tests used the emulator."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Emulator per build.",
+          "modelAnswer": "The test step starts the Firestore emulator and sets FIRESTORE_EMULATOR_HOST, so the client connects to it; five parallel builds passed. Pointing at production pollutes it; retries hide the collisions."
+        },
+        {
+          "label": "Real databases",
+          "criteria": "Access and guard.",
+          "modelAnswer": "The build service account lost write access to staging, and test setup fails if the emulator variable is missing."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Release freeze starts at 17:00, 150 minutes after the report; the three fixes need green builds before then."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Integration tests were pointed at the production database."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with CI on shared staging leaves the fixes red at the freeze.",
+      "source": {
+        "cite": "Google Cloud documentation, Use the Firestore emulator locally",
+        "checkedAt": "2026-11-18",
+        "url": "https://docs.cloud.google.com/firestore/docs/emulator",
+        "note": "Read through a summarizing fetch on 2026-11-18. Set FIRESTORE_EMULATOR_HOST=HOST:PORT and 'the server client libraries automatically connect to the emulator'; mobile and web SDKs are pointed at the emulator in code instead. The start commands in the case (gcloud emulators firestore start --host-port, firebase emulators:exec) are from memory of the CLI references and do not change the decision taught (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "prodPolluted": {
+      "label": "Tests wrote to production",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Builds went green while creating and deleting test orders and inventory in production."
+    },
+    "freezeMissed": {
+      "label": "Fixes missed the freeze",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 17:00 builds still collided in staging and the fixes were not green."
+    },
+    "isolated": {
+      "label": "Isolated tests, green builds",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(failsAt) and not isNull(cfgAt) and not isNull(verifiedAt) and causeDoc == \"shared\"",
+      "narrative": "Each build runs its own emulator, five parallel builds pass, and CI can no longer touch a real database."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Builds are green, but the access removal, the guard in test setup, the parallel check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "prodPolluted",
+    "freezeMissed",
+    "isolated",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the failures and where the tests point",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(failsAt) and not isNull(cfgAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(failsAt) or not isNull(cfgAt) or not isNull(localAt) or not isNull(permAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Three fixes green before 17:00, nothing written to production",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Integration tests were pointed at the production database.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Staging access removed and an emulator guard; parallel builds checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"shared\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "14:30-14:34",
+        "text": "Assertions show cross-build data; CI points at staging; local uses the emulator; CI can write staging."
+      },
+      {
+        "at": "14:34-14:59",
+        "text": "Emulator in the test step with FIRESTORE_EMULATOR_HOST; remove access; add guard."
+      },
+      {
+        "at": "14:59-15:01",
+        "text": "Five parallel builds pass."
+      }
+    ],
+    "debrief": {
+      "prodPolluted": {
+        "headline": "Isolate tests; never borrow production",
+        "body": "Each build should test against its own database. Production is not an unused test database."
+      },
+      "freezeMissed": {
+        "headline": "Shared state makes parallel tests flaky",
+        "body": "Parallel builds writing one database interfere; the emulator gives each build its own."
+      },
+      "isolated": {
+        "headline": "Good: test isolation in CI",
+        "body": "You read the failures and the test step, saw CI used shared staging while local runs used the emulator, ran the emulator in the build with FIRESTORE_EMULATOR_HOST, proved it with parallel builds, and removed CI's write access."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Random failures where tests see other tests' data mean shared state: CI runs against the staging database, and parallel builds collide. Start the Firestore emulator in the test step and set FIRESTORE_EMULATOR_HOST, which makes the client connect to it, so each build has its own database; prove it with parallel builds. Pointing at production pollutes production; retries only hide the problem. Then remove CI's write access and guard test setup."
+  }
+}

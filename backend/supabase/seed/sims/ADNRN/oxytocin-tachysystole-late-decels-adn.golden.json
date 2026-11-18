@@ -1,0 +1,374 @@
+{
+  "slug": "oxytocin-tachysystole-late-decels-adn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: read the strip, stop the oxytocin, left side, bolus, SBAR with numbers, terbutaline on order",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "oxytocin",
+          "params": {
+            "o": "off"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "p": "left"
+          },
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callOb",
+          "seq": 7,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "tachyQ",
+          "choice": "five",
+          "seq": 8,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "terbutaline",
+          "seq": 9,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "resolvedFast",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "oxyStopped": "met",
+          "lateral": "met",
+          "called": "met",
+          "read": "met",
+          "bolus": "met",
+          "tocolytic": "met"
+        },
+        "kpis": {
+          "toStop": 10,
+          "ctxEnd": 3
+        },
+        "stateHash": "f8cca1f8482b080b"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "halved",
+      "title": "Reads the strip and calls with numbers, turns her, but only halves the oxytocin until the obstetrician arrives; no terbutaline",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "review",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "p": "left"
+          },
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "oxytocin",
+          "params": {
+            "o": "half"
+          },
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "callOb",
+          "seq": 5,
+          "tick": 10
+        },
+        {
+          "type": "teach",
+          "prompt": "tachyQ",
+          "choice": "five",
+          "seq": 6,
+          "tick": 10
+        },
+        {
+          "type": "chapter",
+          "chapter": "called",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 420
+        },
+        {
+          "type": "act",
+          "action": "oxytocin",
+          "params": {
+            "o": "off"
+          },
+          "seq": 8,
+          "tick": 420
+        }
+      ],
+      "expect": {
+        "ending": "resolvedLate",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "oxyStopped": "partial",
+          "lateral": "met",
+          "called": "met",
+          "read": "met",
+          "bolus": "missed",
+          "tocolytic": "missed"
+        },
+        "kpis": {
+          "toStop": 420,
+          "ctxEnd": 3
+        },
+        "stateHash": "b210fa24ea3ff174"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "slowStart",
+      "title": "Bolus first, then reads the strip at 4 min, stops the oxytocin and turns her at 6 min, calls at 8 min",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 1,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 2,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "review",
+          "seq": 3,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "oxytocin",
+          "params": {
+            "o": "off"
+          },
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "p": "left"
+          },
+          "seq": 5,
+          "tick": 360
+        },
+        {
+          "type": "act",
+          "action": "callOb",
+          "seq": 6,
+          "tick": 480
+        },
+        {
+          "type": "teach",
+          "prompt": "tachyQ",
+          "choice": "five",
+          "seq": 7,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "terbutaline",
+          "seq": 8,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "resolvedLate",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "oxyStopped": "partial",
+          "lateral": "partial",
+          "called": "met",
+          "read": "partial",
+          "bolus": "met",
+          "tocolytic": "met"
+        },
+        "kpis": {
+          "toStop": 360,
+          "ctxEnd": 3
+        },
+        "stateHash": "e92efa365eecb574"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "flatAndMore",
+      "title": "Failure: lays her flat for a clearer tracing and increases the oxytocin; a prolonged deceleration",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "position",
+          "params": {
+            "p": "supine"
+          },
+          "seq": 1,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "oxytocin",
+          "params": {
+            "o": "up"
+          },
+          "seq": 2,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "emergencyBirth",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "oxyStopped": "missed",
+          "lateral": "missed",
+          "called": "missed",
+          "read": "missed",
+          "bolus": "missed",
+          "tocolytic": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "ctxEnd": 7
+        },
+        "stateHash": "6515f300e48c319e"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "vagueCall",
+      "title": "Failure: calls 'the strip looks bad' without reading it and waits for the obstetrician",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "callOb",
+          "seq": 1,
+          "tick": 30
+        },
+        {
+          "type": "teach",
+          "prompt": "tachyQ",
+          "choice": "five",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "emergencyBirth",
+        "class": "harm",
+        "rating": "bad",
+        "score": 7,
+        "criteria": {
+          "oxyStopped": "missed",
+          "lateral": "missed",
+          "called": "partial",
+          "read": "missed",
+          "bolus": "missed",
+          "tocolytic": "missed"
+        },
+        "kpis": {
+          "toStop": -1,
+          "ctxEnd": 6
+        },
+        "stateHash": "6984cdd89c558c1a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

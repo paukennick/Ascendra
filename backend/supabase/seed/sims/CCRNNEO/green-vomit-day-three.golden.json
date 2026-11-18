@@ -1,0 +1,462 @@
+{
+  "slug": "green-vomit-day-three",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: sees the bile, NPO and OG tube, calls for the surgeon at once, examines, tells the parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "emesis",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "bileQ",
+          "choice": "volv",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "ogt",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "volvulus"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "decompQ",
+          "choice": "decomp",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "perfusion",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "decompC": "met",
+          "noFeedC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "f6d4eeca8dadcaf4"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Sees the bile and decompresses, but reads the chart and waits 8 minutes before calling",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "emesis",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "bileQ",
+          "choice": "volv",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "ogt",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "perfusion",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "volvulus"
+          },
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "decompQ",
+          "choice": "decomp",
+          "seq": 11,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "decompC": "met",
+          "noFeedC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 590,
+          "toKey": 60
+        },
+        "stateHash": "af3b8b9b822c5d84"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "refed",
+      "title": "Calls promptly but tries a smaller feed first and never places the tube",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "emesis",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "bileQ",
+          "choice": "volv",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refeed",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "npo",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "volvulus"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "decompQ",
+          "choice": "decomp",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "decompC": "missed",
+          "noFeedC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "ed485b051c0207d3"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "reflux",
+      "title": "Failure: reads it as reflux, positions him upright and leaves it for rounds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "emesis",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "bileQ",
+          "choice": "volv",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "reflux"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "reflux",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rounds"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "necrosis",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "decompC": "missed",
+          "noFeedC": "met",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "b8eb9ef71c1a276f"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "formula",
+      "title": "Failure: calls it formula intolerance and refeeds",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "formula"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refeed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "bileQ",
+          "choice": "volv",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "necrosis",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "decompC": "missed",
+          "noFeedC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "72a5b22e420136e5"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

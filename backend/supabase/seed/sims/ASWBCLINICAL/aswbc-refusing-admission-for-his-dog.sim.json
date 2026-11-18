@@ -1,0 +1,1443 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "aswbc-refusing-admission-for-his-dog",
+  "title": "Emergency department: he is refusing admission, and the nurse wants him stopped",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Earl Thompson",
+        "presentation": "{distress >= 6 ? \"Half-dressed, lacing his boot over the bandaged foot\" : distress >= 3 ? \"Sitting on the edge of the bed, arms folded\" : \"Back on the bed, foot up\"}; {rapport >= 6 ? \"he is talking with you\" : rapport >= 3 ? \"he is wary\" : \"he has shut down\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "why",
+          "label": "What is pulling him home",
+          "text": "Biscuit, his 13-year-old dog, alone since noon and due for her medicine; nobody else has a key.",
+          "when": "reasonsExplored"
+        },
+        {
+          "id": "fear",
+          "label": "Underneath",
+          "text": "His mother went into a hospital for her foot and died there.",
+          "when": "fearExplored"
+        },
+        {
+          "id": "cap",
+          "label": "His understanding",
+          "text": "Repeats the risks in his own words, applies them to himself, weighs them, and is consistent.",
+          "when": "capacityChecked"
+        },
+        {
+          "id": "si",
+          "label": "Risk to himself",
+          "text": "No suicidal intent: 'I want to live.'",
+          "when": "siKnown"
+        },
+        {
+          "id": "dog",
+          "label": "The dog",
+          "text": "Dale, his neighbor, has a key and will take Biscuit tonight.",
+          "when": "barrierSolved"
+        },
+        {
+          "id": "concern",
+          "label": "Concern",
+          "text": "{holdRequested ? \"An involuntary evaluation was requested.\" : \"\"} {familyCalled ? \"His sister was called without his permission.\" : \"\"} {scared ? \"He was told he will lose his foot.\" : \"\"}",
+          "when": "holdRequested or familyCalled or scared",
+          "alert": "holdRequested or familyCalled"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "His reasons heard",
+            "when": "reasonsExplored"
+          },
+          {
+            "label": "Capacity assessed for this decision",
+            "when": "capacityChecked"
+          },
+          {
+            "label": "Suicidal intent asked about",
+            "when": "siAsked"
+          },
+          {
+            "label": "Documented: {capacityDoc}, {outcomeDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Protect client self-determination and the right to refuse services, and recognize when imminent risk limits it",
+  "secondaryObjectives": [
+    "Assess a client's capacity for decisions about money, treatment and consent, including emancipation and age of consent"
+  ],
+  "sources": [
+    {
+      "cite": "NASW Code of Ethics (2021 revision): 1.02 self-determination, limited when clients' actions 'pose a serious, foreseeable, and imminent risk to themselves or others'; 1.03(c)-(d); 1.07(c) minimum necessary; 1.07(d) notice before disclosure; 1.07(j) court orders: ask the court to withdraw or limit the order or keep records under seal; 1.14; 1.17(a)-(b)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.socialworkers.org/About/Ethics/Code-of-Ethics/Code-of-Ethics-English/Social-Workers-Ethical-Responsibilities-to-Clients",
+      "note": "Read 2026-11-17 on socialworkers.org (summarizing fetch with short quotes; the page shows the 2021 code). Amendments were to be voted 2026-11-18; recheck by 2026-12-15."
+    },
+    {
+      "cite": "Appelbaum PS. Assessment of patients' competence to consent to treatment. N Engl J Med 2007;357(18):1834-1840, as summarized by the AMA Journal of Ethics (August 2008): four abilities: expressing a choice, understanding the relevant information, appreciating the consequences for oneself, and reasoning about the options",
+      "checkedAt": "2026-11-17",
+      "url": "https://journalofethics.ama-assn.org/2008/08/jdsc1-0808.html",
+      "note": "Read 2026-11-17 in the AMA Journal of Ethics summary (summarizing fetch); the NEJM article itself was not opened."
+    },
+    {
+      "cite": "RCW 71.05.153(1) (2023 c 433 s 9): a designated crisis responder may take a person into emergency custody when, 'as the result of a behavioral health disorder', the person presents an 'imminent likelihood of serious harm' or is in 'imminent danger because of being gravely disabled'",
+      "checkedAt": "2026-11-17",
+      "url": "https://lawfilesext.leg.wa.gov/Law/RCW/RCW%20%2071%20%20TITLE/RCW%20%2071%20.%2005%20%20CHAPTER/RCW%20%2071%20.%2005%20.153.htm",
+      "note": "Read 2026-11-17 on the Legislature's page for the section (summarizing fetch with short quotes). It is not a tool for overriding a capable person's refusal of medical treatment."
+    },
+    {
+      "cite": "ASWB Examination Guidebook (August 2026), Clinical and Masters content outlines: I Values and Ethics (Clinical 36%, Masters 35%); II Assessment and Planning (32%, 33%); III Intervention and Practice (32% each); the 2026 blueprints in use from 2026-08-03",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.aswb.org/wp-content/uploads/2026/05/2026-Social-Work-Licensing-Exam-Guidebook-5.4.2026.pdf",
+      "note": "Relayed from the REQ-288 sessions (read in full 2026-11-14 for REQ-286); not re-read for this case."
+    },
+    {
+      "cite": "Ascendra ASWB Clinical and Masters course catalog (backend/supabase/seed/tracks/aswb.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a clinical social worker in a Washington hospital emergency department. Earl Thompson, 58 (a fictional patient), has diabetes and an infected ulcer on his left foot. The physician has recommended admission tonight for IV antibiotics and has explained the risks of leaving: the infection could spread, he could lose the foot, and it could become life-threatening. Earl says he is going home. The nurse pages you: 'Can you talk him into staying, or get him held?' You have about 45 minutes.",
+    "handover": [
+      "Alert and oriented; no history of mental illness in the record; blood sugar high but no confusion noted by the physician.",
+      "Lives alone; emergency contact: a sister in Spokane."
+    ],
+    "howItWorks": [
+      "Choose what to say and do from the action groups. Earl answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "His rapport, distress and how much he discloses change with what you say. What he tells you depends on the trust you have built.",
+      "The hour ends at 45 minutes. After the session you write a short formulation and document."
+    ]
+  },
+  "clock": {
+    "start": "19:00",
+    "tick": "1min",
+    "maxDuration": "75min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Author's timing: the physician's recommendation and his intent to leave make this a time-limited consultation."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 3,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "reasonsExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "fearExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "capacityChecked": {
+      "type": "bool",
+      "init": false
+    },
+    "siAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "siKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "barrierSolved": {
+      "type": "bool",
+      "init": false
+    },
+    "offeredAgain": {
+      "type": "bool",
+      "init": false
+    },
+    "agreedAdmit": {
+      "type": "bool",
+      "init": false
+    },
+    "refusalPlan": {
+      "type": "bool",
+      "init": false
+    },
+    "scared": {
+      "type": "bool",
+      "init": false
+    },
+    "holdRequested": {
+      "type": "bool",
+      "init": false
+    },
+    "familyCalled": {
+      "type": "bool",
+      "init": false
+    },
+    "amaRushed": {
+      "type": "bool",
+      "init": false
+    },
+    "lectured": {
+      "type": "bool",
+      "init": false
+    },
+    "capacityDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "intact",
+        "lacking"
+      ],
+      "init": "none"
+    },
+    "outcomeDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "admitted",
+        "informedRefusal",
+        "hold"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "askReasons",
+        "askFear",
+        "checkCapacity",
+        "askSuicide",
+        "solveBarrier",
+        "offerAgain",
+        "refusalPlan",
+        "scare",
+        "requestHold",
+        "callSister",
+        "amaForm",
+        "lecture",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Introduce yourself and ask what is going on for him tonight",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and give the client room to answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"They want to keep me. I'm not staying. I've got things to take care of.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Earl looks at you for the first time. \"Yeah. Nobody's asked me what I need.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askReasons": {
+      "label": "Ask what is pulling him home tonight",
+      "group": "Explore",
+      "available": "not talking and (not reasonsExplored)",
+      "why": "He has told you.",
+      "effects": [
+        {
+          "log": "You ask what makes leaving tonight so important.",
+          "kind": "act"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "reasonsExplored",
+                  "to": "true"
+                },
+                {
+                  "finding": "\"My dog. Biscuit. She's been alone since noon. She's thirteen, she needs her heart medicine. Nobody else has a key.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"Stuff. It's my business.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askFear": {
+      "label": "Ask how he feels about being admitted, and whether anything about hospitals worries him",
+      "group": "Explore",
+      "available": "not talking and (reasonsExplored and not fearExplored)",
+      "why": "Ask what pulls him home first.",
+      "effects": [
+        {
+          "log": "You ask what staying in the hospital means to him.",
+          "kind": "act"
+        },
+        {
+          "set": "fearExplored",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "Quiet. \"My mom went in for her foot. Never came out.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkCapacity": {
+      "label": "Ask him to tell you, in his words, what the doctor said could happen if he leaves, and how he is weighing it",
+      "group": "Assess",
+      "available": "not talking and (not capacityChecked)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You ask him to explain the risks back to you and how he is deciding.",
+          "kind": "act"
+        },
+        {
+          "set": "capacityChecked",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"Infection spreads, I lose the foot, maybe worse. I get it. I'm saying the dog can't wait and I'll come back tomorrow. It's my foot.\""
+        },
+        {
+          "log": "He understands, appreciates that it applies to him, reasons about it and states a consistent choice: capacity for this decision (Appelbaum).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSuicide": {
+      "label": "Ask directly whether any part of leaving is about not caring what happens to him, or thoughts of ending his life",
+      "group": "Ask about risk",
+      "available": "not talking and (not siAsked)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask directly about thoughts of suicide, without asking for details.",
+          "kind": "act"
+        },
+        {
+          "set": "siAsked",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "siKnown",
+                  "to": "true"
+                },
+                {
+                  "finding": "\"No. God, no. I want my foot. I want to live. I just want my dog fed.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"What kind of question is that?\" (He does not answer.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "log": "Imminent risk to himself would limit his self-determination (NASW 1.02); here there is none.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "solveBarrier": {
+      "label": "With his consent, look for someone to care for the dog tonight: a neighbor, a friend with a key, or the hospital's pet-care volunteer program",
+      "group": "Advocate",
+      "available": "not talking and (reasonsExplored and not barrierSolved)",
+      "why": "Ask what pulls him home first.",
+      "effects": [
+        {
+          "log": "You ask who could feed Biscuit, and with his permission start calling.",
+          "kind": "act"
+        },
+        {
+          "set": "barrierSolved",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-1.5"
+        },
+        {
+          "finding": "His neighbor, Dale, has a spare key in his kitchen drawer and says he'll take Biscuit tonight and give her the medicine."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "6min"
+        }
+      ]
+    },
+    "offerAgain": {
+      "label": "Now that the dog is cared for, ask him again what he wants to do, making clear the decision is his",
+      "group": "Address",
+      "available": "not talking and (barrierSolved and not offeredAgain)",
+      "why": "Solve the barrier first.",
+      "effects": [
+        {
+          "log": "You ask him again, without pressure, what he wants to do.",
+          "kind": "act"
+        },
+        {
+          "set": "offeredAgain",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "fearExplored",
+              "then": [
+                {
+                  "set": "agreedAdmit",
+                  "to": "true"
+                },
+                {
+                  "add": "rapport",
+                  "by": "0.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "-1"
+                },
+                {
+                  "finding": "\"Two nights. And someone tells me what's happening every day.\" He unlaces the boot."
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"I don't know. I just don't like hospitals.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "refusalPlan": {
+      "label": "If he still leaves, make the safest plan he will accept: home health wound care tomorrow, antibiotics he can take, warning signs, and returning without shame",
+      "group": "Plan",
+      "available": "not talking and (capacityChecked and not refusalPlan)",
+      "why": "Assess his understanding first.",
+      "effects": [
+        {
+          "log": "You build a harm-reduction plan for an informed refusal.",
+          "kind": "act"
+        },
+        {
+          "set": "refusalPlan",
+          "to": "true"
+        },
+        {
+          "finding": "\"Fine. If it gets redder or I get a fever, I come back. Write it down.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "scare": {
+      "label": "Tell him plainly that he will lose his foot if he walks out tonight",
+      "group": "Respond",
+      "available": "not talking and (not scared)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell him he will lose his foot.",
+          "kind": "act"
+        },
+        {
+          "set": "scared",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1.5"
+        },
+        {
+          "finding": "\"Then I'll lose it at home with my dog.\""
+        },
+        {
+          "log": "Overstating certainty to change his mind is pressure, not informed consent; the physician has already given him the risks.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "requestHold": {
+      "label": "Ask for a designated crisis responder to evaluate him for an involuntary hold",
+      "group": "Escalate",
+      "available": "not talking and (not holdRequested)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You request an evaluation for involuntary detention.",
+          "kind": "act"
+        },
+        {
+          "set": "holdRequested",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-3"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "Earl stands. \"You're trying to lock me up for having a dog?\""
+        },
+        {
+          "log": "Involuntary detention is for a behavioral health disorder with imminent danger (RCW 71.05.153), not for a capable person's informed refusal of medical care.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "callSister": {
+      "label": "Call his sister in Spokane to help persuade him",
+      "group": "Escalate",
+      "available": "not talking and (not familyCalled)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You call his sister without asking him.",
+          "kind": "act"
+        },
+        {
+          "set": "familyCalled",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "finding": "His sister says he's always been stubborn. Earl, overhearing: \"Who said you could call her?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "amaForm": {
+      "label": "Accept his decision at once and bring the against-medical-advice form",
+      "group": "Close",
+      "available": "not talking and (not amaRushed)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You bring the discharge-against-advice form.",
+          "kind": "act"
+        },
+        {
+          "set": "amaRushed",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "He signs it fast and reaches for his coat."
+        },
+        {
+          "log": "Respecting a refusal starts with understanding it: his reasons, his capacity and his safety. A form is not an assessment.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Tell him that a dog is not worth his foot",
+      "group": "Respond",
+      "available": "not talking and (reasonsExplored and not lectured)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell him his priorities are wrong.",
+          "kind": "act"
+        },
+        {
+          "set": "lectured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"She's all I've got.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Close the consultation",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the consultation.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the consultation",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Social work note",
+          "fields": [
+            {
+              "id": "capacity",
+              "label": "Decision-making capacity",
+              "options": [
+                {
+                  "value": "intact",
+                  "label": "Intact for this decision: understands the risks, applies them to himself, reasons about them, consistent choice; no suicidal intent"
+                },
+                {
+                  "value": "lacking",
+                  "label": "Lacks capacity for this decision"
+                }
+              ]
+            },
+            {
+              "id": "outcome",
+              "label": "Outcome",
+              "options": [
+                {
+                  "value": "admitted",
+                  "label": "He chose admission once his dog's care was arranged; his fear named and addressed with the team"
+                },
+                {
+                  "value": "informedRefusal",
+                  "label": "Informed refusal: discharged with home wound care, warning signs and an open door to return"
+                },
+                {
+                  "value": "hold",
+                  "label": "Involuntary hold requested"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "capacityDoc",
+          "to": "capacity"
+        },
+        {
+          "set": "outcomeDoc",
+          "to": "outcome"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: capacity {capacityDoc}, outcome {outcomeDoc}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 45-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Earl grabs his coat and limps out of the department before anyone can stop him.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predict",
+      "when": "t >= 0",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "limit"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "limit": {
+      "title": "Predict (not scored)",
+      "context": "The nurse wants him talked into staying or held. Earl is alert and says he is going home. When could his right to refuse be limited?",
+      "choices": [
+        {
+          "id": "imminent",
+          "label": "Only if he lacks capacity for this decision, or there is a serious, foreseeable and imminent risk such as suicidal intent",
+          "effects": [
+            {
+              "log": "Prediction: capacity or imminent risk.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. NASW 1.02 limits self-determination for serious, foreseeable and imminent risk; a capable adult may refuse medical treatment. So assess his understanding, ask about suicidal intent, and look for the reason behind the refusal."
+        },
+        {
+          "id": "medical",
+          "label": "Whenever the medical risk is serious enough",
+          "effects": [
+            {
+              "log": "Prediction: medical risk.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A serious medical risk does not by itself override a capable adult's choice. It calls for understanding the refusal and making it as informed and as safe as possible."
+        },
+        {
+          "id": "hold",
+          "label": "An involuntary hold can keep him for his own good",
+          "effects": [
+            {
+              "log": "Prediction: hold him.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Emergency detention is for a behavioral health disorder with imminent danger (RCW 71.05.153), decided by a designated crisis responder; not for a medical refusal."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: why his refusal was his to make, how you checked whether anything limited it, and what you did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Self-determination and its limit",
+          "criteria": "A capable adult may refuse treatment; capacity assessed for this decision (understands, appreciates, reasons, consistent: Appelbaum); suicidal intent asked about directly (none); no behavioral health basis for detention (RCW 71.05.153); NASW 1.02.",
+          "modelAnswer": "Earl has the right to refuse admission. I asked him to explain the risks in his own words: he understands them, sees that they apply to him, weighs them and is consistent, so he has capacity for this decision. I asked directly whether leaving had anything to do with not wanting to live; it did not. Nothing here meets the standard for limiting his self-determination (NASW 1.02) or for emergency detention (RCW 71.05.153)."
+        },
+        {
+          "label": "What was behind it, and the outcome",
+          "criteria": "His reasons explored (the dog; his mother's death in hospital); barrier solved with his consent (the neighbor); asked again without pressure; he chose admission; no scare tactics, no hold, no calls to family without consent; a refusal plan ready if he had left.",
+          "modelAnswer": "His refusal was about his dog, alone and due for her medicine, and a fear rooted in his mother's death in a hospital. With his consent we reached his neighbor, who took the dog. Asked again, without pressure, he chose two nights of admission and asked to be kept informed. Had he still refused, I had a harm-reduction plan ready. I did not threaten, call his family without permission, or seek a hold."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Not used by this case's endings: the case is judged on what was assessed and how his choice was handled."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not capacityChecked",
+      "class": "harm",
+      "rationale": "A refusal accepted or overridden without assessing his capacity for the decision.",
+      "source": {
+        "cite": "Appelbaum PS. Assessment of patients' competence to consent to treatment. N Engl J Med 2007;357(18):1834-1840, as summarized by the AMA Journal of Ethics (August 2008): four abilities: expressing a choice, understanding the relevant information, appreciating the consequences for oneself, and reasoning about the options",
+        "checkedAt": "2026-11-17",
+        "url": "https://journalofethics.ama-assn.org/2008/08/jdsc1-0808.html",
+        "note": "Read 2026-11-17 in the AMA Journal of Ethics summary (summarizing fetch); the NEJM article itself was not opened."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "He walked out",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Earl limped out with an infected foot, no antibiotics, no wound care and no plan, trusting the hospital a little less than before."
+    },
+    "overridden": {
+      "label": "His choice overridden",
+      "class": "harm",
+      "when": "documented and not walkedOut and (holdRequested or outcomeDoc == \"hold\" or familyCalled or capacityDoc == \"lacking\")",
+      "terminal": true,
+      "narrative": "{holdRequested or outcomeDoc == \"hold\" ? \"A capable man is being evaluated for detention because he wanted to feed his dog.\" : familyCalled ? \"His sister now knows he is in the emergency department because you told her.\" : \"A capable man is recorded as lacking capacity.\"} His right to decide was not respected."
+    },
+    "unexplored": {
+      "label": "A refusal no one understood",
+      "class": "harm",
+      "when": "documented and not walkedOut and (not capacityChecked or (amaRushed and not reasonsExplored))",
+      "terminal": true,
+      "narrative": "Earl signed out against advice. Nobody learned that a neighbor could have fed his dog."
+    },
+    "chose": {
+      "label": "His choice, informed, and he stays",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and reasonsExplored and fearExplored and capacityChecked and siKnown and barrierSolved and agreedAdmit and not scared and not holdRequested and not familyCalled and not amaRushed and not lectured and capacityDoc == \"intact\" and outcomeDoc == \"admitted\" and rapport >= allianceTarget",
+      "narrative": "Dale has Biscuit. Earl is admitted for two nights, with a promise that someone will tell him what is happening every day."
+    },
+    "gaps": {
+      "label": "Respected, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "His right to decide was respected, but parts of the assessment or the help behind his choice fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "overridden",
+    "unexplored",
+    "chose",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "capacityCrit",
+        "label": "Assessed his capacity for this decision",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "capacityChecked and capacityDoc == \"intact\"",
+            "score": "met",
+            "why": "He explained the risks and his reasoning; capacity intact."
+          },
+          {
+            "when": "capacityChecked",
+            "score": "partial",
+            "why": "Asked, but recorded him as lacking capacity."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never assessed."
+          }
+        ]
+      },
+      {
+        "id": "imminentCrit",
+        "label": "Checked for imminent risk to himself",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "siKnown",
+            "score": "met",
+            "why": "Asked directly; no suicidal intent."
+          },
+          {
+            "when": "siAsked",
+            "score": "partial",
+            "why": "Asked before there was trust; he would not answer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never asked."
+          }
+        ]
+      },
+      {
+        "id": "respectCrit",
+        "label": "Respected his choice: no coercion, no hold, no calls without consent",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not holdRequested and not familyCalled and not scared and outcomeDoc != \"hold\"",
+            "score": "met",
+            "why": "His decision, informed and his own."
+          },
+          {
+            "when": "not holdRequested and not familyCalled and outcomeDoc != \"hold\"",
+            "score": "partial",
+            "why": "Overstated the risk to change his mind."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{holdRequested ? \"Requested an involuntary evaluation.\" : \"Called his sister without his permission.\"}"
+          }
+        ]
+      },
+      {
+        "id": "barrierCrit",
+        "label": "Found and solved what was behind the refusal",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reasonsExplored and fearExplored and barrierSolved",
+            "score": "met",
+            "why": "The dog cared for; his fear named."
+          },
+          {
+            "when": "reasonsExplored and barrierSolved",
+            "score": "partial",
+            "why": "The dog cared for, but his fear of hospitals left unspoken."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{reasonsExplored ? \"Heard the reason, but did nothing about it.\" : \"Never learned why he wanted to leave.\"}"
+          }
+        ]
+      },
+      {
+        "id": "outcomeCrit",
+        "label": "A safe outcome he chose",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "agreedAdmit and outcomeDoc == \"admitted\"",
+            "score": "met",
+            "why": "He chose admission."
+          },
+          {
+            "when": "refusalPlan and outcomeDoc == \"informedRefusal\"",
+            "score": "partial",
+            "why": "An informed refusal with a harm-reduction plan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Outcome: {outcomeDoc}{amaRushed ? \", a form signed in a hurry\" : \"\"}."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "capKpi",
+        "label": "Capacity and imminent risk both assessed",
+        "value": "(capacityChecked and siKnown) ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "45 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Introduce yourself and ask what he needs; reflect; ask what pulls him home: his dog."
+      },
+      {
+        "at": "10-20 min",
+        "text": "Ask him to explain the risks and how he is deciding (capacity); ask directly about suicidal intent; ask what hospitals mean to him."
+      },
+      {
+        "at": "20-35 min",
+        "text": "With his consent, find someone for the dog: his neighbor."
+      },
+      {
+        "at": "35-45 min",
+        "text": "Ask him again, without pressure; he chooses admission. Document capacity and his decision."
+      }
+    ],
+    "debrief": {
+      "chose": {
+        "headline": "Good: self-determination protected, and served",
+        "body": "You treated the refusal as his right, assessed capacity and imminent risk, found the barrier behind it and removed it, and let him decide again."
+      },
+      "gaps": {
+        "headline": "Respected, with gaps",
+        "body": "The criteria below show what was missing."
+      },
+      "walkout": {
+        "headline": "He walked out",
+        "body": "Threats, a hold or calls behind his back confirm his fear of hospitals. He left with less care than a refusal plan would have given him."
+      },
+      "overridden": {
+        "headline": "His choice overridden",
+        "body": "A capable adult may refuse treatment. Self-determination is limited for serious, foreseeable and imminent risk (NASW 1.02), and emergency detention needs a behavioral health disorder (RCW 71.05.153)."
+      },
+      "unexplored": {
+        "headline": "A refusal no one understood",
+        "body": "Respecting a refusal means understanding it: his reasons, his capacity, his safety. The barrier here was solvable."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A capable adult may refuse admission, even against strong medical advice. Check what could limit that right: his capacity for this decision (he understands the risks, applies them to himself, reasons about them and is consistent) and imminent risk to himself (asked directly: no suicidal intent). Neither applies, and an involuntary hold is for a behavioral health disorder with imminent danger (RCW 71.05.153), not a medical refusal. Then serve his self-determination: learn what is behind the refusal (his dog alone; his mother's death in a hospital), solve the barrier with his consent, and ask again without pressure. He chooses admission. Had he refused, a harm-reduction plan and an open door would follow. No threats, no calls to family without consent (NASW 1.02, 1.03, 1.07)."
+  }
+}

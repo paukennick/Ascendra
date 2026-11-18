@@ -1,0 +1,467 @@
+{
+  "slug": "red-cells-then-crackles",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: lungs, stops it and the fluids, upright with oxygen, calls and notifies, checks the trend, balance and identity, documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "tacoQ",
+          "choice": "taco",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "taco"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "prevQ",
+          "choice": "slow",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "ident",
+          "seq": 13,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "met",
+          "noVolC": "met",
+          "o2C": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "e52b5a0ba3651aa4"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Stops it and sits her up at once, but works through every check before calling 7 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tacoQ",
+          "choice": "taco",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "o2",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "ident",
+          "seq": 8,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "taco"
+          },
+          "seq": 9,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 10,
+          "tick": 100
+        },
+        {
+          "type": "teach",
+          "prompt": "prevQ",
+          "choice": "slow",
+          "seq": 11,
+          "tick": 100
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 100
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "reportC": "partial",
+          "stopC": "met",
+          "noVolC": "met",
+          "o2C": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 440,
+          "toKey": 60
+        },
+        "stateHash": "8eb8d4307db6d03a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "bolused",
+      "title": "Calls promptly but gives a saline bolus for the heart rate before stopping the unit",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tacoQ",
+          "choice": "taco",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "taco"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "prevQ",
+          "choice": "slow",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "stop",
+          "seq": 9,
+          "tick": 80
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 10,
+          "tick": 80
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 44,
+        "criteria": {
+          "reportC": "met",
+          "stopC": "missed",
+          "noVolC": "missed",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 400
+        },
+        "stateHash": "2a6b7822d9ac845f"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "finish",
+      "title": "Failure: reads it as pneumonia, speeds the unit up and lets it finish",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "lungs",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "tacoQ",
+          "choice": "taco",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pneumonia"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "faster",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "finish"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "edema",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "noVolC": "missed",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "046a214139b8bd44"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "allergic",
+      "title": "Failure: calls it allergic and leaves everything running",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "allergic"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "edema",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "stopC": "missed",
+          "noVolC": "missed",
+          "o2C": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "4ca977a6fba8736a"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

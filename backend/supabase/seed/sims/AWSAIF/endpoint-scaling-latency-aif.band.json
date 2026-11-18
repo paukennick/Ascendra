@@ -1,0 +1,62 @@
+{
+  "band": "aif",
+  "label": "AWS AI Practitioner (AIF-C01)",
+  "base": {
+    "course": "AWSMLA",
+    "slug": "endpoint-scaling-latency"
+  },
+  "slug": "endpoint-scaling-latency-aif",
+  "patch": {
+    "objective": "Types of inferencing: batch, real-time, asynchronous, serverless",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified AI Practitioner (AIF-C01) exam guide: Fundamentals of AI and ML 20%, Fundamentals of Generative AI 24%, Applications of Foundation Models 28%, Guidelines for Responsible AI 14%, Security, Compliance, and Governance for AI Solutions 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/examguides/ai-practitioner-01-domain3.html",
+        "note": "On 2026-11-17 a summarizing fetch of the AWS domain 3 page returned only page metadata, so the official text was not read. A third-party study guide (dennisk.neocities.org/aws_ai/domain3-study-guide.html, read the same day) gives Domain 3 as 28% and lists under Task 3.2 prompt injection or hijacking, jailbreaking, prompt poisoning and data exposure. The domain weights and objective wording are the course seed's (backend/supabase/seed/tracks/aws.ts). To verify against the AWS page. (read for this round by an earlier pass on 2026-11-17)"
+      },
+      {
+        "cite": "AWS. Price List API: Amazon SageMaker, US East (Ohio) offer file",
+        "checkedAt": "2026-11-11",
+        "url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonSageMaker/current/us-east-2/index.json",
+        "note": "Read 2026-11-11 (file publicationDate 2026-11-12T00:41:14Z UTC): Hosting ml.c5.xlarge $0.204 an hour; ml.g5.xlarge $1.4084 an hour; ml.m5.xlarge $0.23 an hour (usage types USE2-Host:...). On-demand real-time hosting, us-east-2. Prices change; re-check at the next review."
+      },
+      {
+        "cite": "AWS pricing convention (730 hours a month)",
+        "checkedAt": "2026-11-11",
+        "note": "AWS pricing examples bill a month as 730 hours; stated from that convention, as in the NAT case, not re-read this session."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Auto scaling policy overview",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling-policy.html",
+        "note": "Read 2026-11-11: target tracking 'adds and removes the number of instances as required to keep the metric at, or close to, the specified target value'; default scale-in and scale-out cooldown 300 seconds each; 'You can manually scale out by increasing the minimum value'; 'SageMaker AI auto scaling does not enforce a limit' for the maximum."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Define a scaling policy",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-auto-scaling-add-code-define.html",
+        "note": "Read 2026-11-11: predefined metric types SageMakerVariantInvocationsPerInstance and SageMakerVariantConcurrentRequestsPerModelHighResolution; the high-resolution metrics 'emit data every 10 seconds' so the policy scales out 'much more quickly' while it scales in 'at the same speed' as standard metrics, which emit once a minute."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Load testing your auto scaling configuration",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/endpoint-scaling-loadtest.html",
+        "note": "Read 2026-11-11: SageMakerVariantInvocationsPerInstance = (MAX_RPS * SAFETY_FACTOR) * 60; 'SageMaker AI recommends that you start testing with a SAFETY_FACTOR of 0.5'; multiply by 60 for the per-minute metric."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Amazon SageMaker AI metrics in CloudWatch",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/monitoring-cloudwatch.html",
+        "note": "Read 2026-11-11: ModelLatency in microseconds; InvocationsPerInstance normalized by instance count; Invocation5XXErrors; ConcurrentRequestsPerModel 'The number of concurrent requests being received by the model'; CPUUtilization is the sum over cores, 0-400% on four vCPUs."
+      },
+      {
+        "cite": "AWS. Application Auto Scaling User Guide: Scheduled scaling",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/autoscaling/application/userguide/application-auto-scaling-scheduled-scaling.html",
+        "note": "Read 2026-11-11: scheduled actions 'increase or decrease capacity at specific times' by changing minimum and maximum capacity; used with scaling policies, 'the scaling policy can continue to make decisions'. The page does not name SageMaker; endpoint variants are Application Auto Scaling scalable targets (SageMaker auto scaling prerequisites page, read the same day)."
+      }
+    ]
+  }
+}

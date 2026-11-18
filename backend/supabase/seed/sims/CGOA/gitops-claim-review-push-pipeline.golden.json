@@ -1,0 +1,853 @@
+{
+  "slug": "gitops-claim-review-push-pipeline",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Pipeline and history read; pull required; fixes through Git; settings versioned; an honest decision",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipeline",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "pull",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "reconcile",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "git",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "pushCrit": "met",
+          "editsCrit": "met",
+          "storeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 7
+        },
+        "stateHash": "513621fd9a0f2f69"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialPush",
+      "title": "Partly right on the push pipeline, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipeline",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "scope",
+          "seq": 4,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 14,
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "reconcile",
+          "seq": 6,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 21,
+          "seq": 7,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "git",
+          "seq": 8,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 28,
+          "seq": 9,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "pushCrit": "partial",
+          "editsCrit": "met",
+          "storeCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "d75e3b1413218932"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialStore",
+      "title": "Partly right on the config store, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "pull",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "reconcile",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "snapshot",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "pushCrit": "met",
+          "editsCrit": "met",
+          "storeCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "7745010b38ab0f13"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "scope",
+          "seq": 2,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 14,
+          "seq": 3,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "ticket",
+          "seq": 4,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 21,
+          "seq": 5,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "snapshot",
+          "seq": 6,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 28,
+          "seq": 7,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "pushCrit": "partial",
+          "editsCrit": "partial",
+          "storeCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0,
+          "supK": 5
+        },
+        "stateHash": "0ee558002643bc08"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badPush",
+      "title": "The push pipeline approved as GitOps; its token leaks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipeline",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "approve",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "reconcile",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "git",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "pushHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "pushCrit": "missed",
+          "editsCrit": "met",
+          "storeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "0a4d78df04fc87dc"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badEdits",
+      "title": "Reconciliation turned off; hot-fixes overwritten",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipeline",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "pull",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "noReconcile",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "git",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "editsHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "pushCrit": "met",
+          "editsCrit": "missed",
+          "storeCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "db27869c7cc46b96"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badStore",
+      "title": "The unversioned store kept; a bad edit can't be rolled back",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "pipeline",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 7,
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "choose",
+          "prompt": "pushPrompt",
+          "choice": "pull",
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 14,
+          "seq": 7,
+          "tick": 7
+        },
+        {
+          "type": "choose",
+          "prompt": "editsPrompt",
+          "choice": "reconcile",
+          "seq": 8,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 21,
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "choose",
+          "prompt": "storePrompt",
+          "choice": "keep",
+          "seq": 10,
+          "tick": 21
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 28,
+          "seq": 11,
+          "tick": 21
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 28
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 28
+        }
+      ],
+      "expect": {
+        "ending": "storeHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "pushCrit": "met",
+          "editsCrit": "met",
+          "storeCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1,
+          "supK": 4
+        },
+        "stateHash": "2d78aca361402d65"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

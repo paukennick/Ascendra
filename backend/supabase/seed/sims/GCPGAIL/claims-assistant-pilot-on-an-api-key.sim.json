@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "claims-assistant-pilot-on-an-api-key",
+  "title": "Go-live: a claims assistant built on an AI Studio API key goes to production",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Claims assistant production plan (Gemini on Google Cloud), Ashby Mutual Health (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Chief risk officer, Ruth Adebayo",
+          "text": "The claims assistant goes to production at 17:00. Compliance says it has to meet our HIPAA controls: our keys, data kept in the US, access by role. Is it ready?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The pilot runs on a single shared API key outside the company's cloud controls.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Go-live",
+          "text": "17:00: the assistant went live on the pilot setup.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "Production plan: how the assistant calls the model",
+          "language": "Deployment plan",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Model access: Gemini API (Google AI Studio), one API key in app settings; no CMEK, residency or SLA terms",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Model access: Gemini Enterprise Agent Platform in the company project; service account with IAM role; CMEK; US region; enterprise SLA",
+              "when": "fix == \"platform\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "Model access: Gemini API (Google AI Studio), API key rotated monthly and stored in a secret manager",
+              "when": "fix == \"rotate\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "Model access: Gemini API with OAuth tied to the company Google Cloud project",
+              "when": "fix == \"oauth\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Go-live",
+          "value": "17:00"
+        }
+      ]
+    }
+  },
+  "objective": "Choosing between Agent Studio and Google AI Studio",
+  "secondaryObjectives": [
+    "Describing what makes Google Cloud's AI platform enterprise-ready: responsible, secure, private, reliable, scalable"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Generative AI Leader exam guide: Section 1 Fundamentals of gen AI (~30%), Section 2 Google Cloud's gen AI offerings (~35%), Section 3 Techniques to improve gen AI model output (~20%), Section 4 Business strategies for a successful gen AI solution (~15%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/generative_ai_leader_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 2.5 'Identifying how agents use tools to interact with the external environment and achieve tasks (e.g., extensions, functions, data stores, and plugins)'; 4.3 'Describing privacy considerations (e.g., privacy risks, data anonymization and pseudonymization)'. This is a leader-level exam; the bands use security-analyst cases, so the level is the base's (decision for Nick). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Migrate from Google AI Studio to Gemini Enterprise Agent Platform",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/migrate/migrate-google-ai",
+      "note": "Read through a summarizing fetch on 2026-11-18. The comparison table: the Gemini API (Google AI Studio) authenticates with an API key (or OAuth), the Agent Platform with a Google Cloud service account and IAM; the platform lists customer-managed encryption keys, data residency, 'Enhanced security through Virtual Private Cloud' and '24/7 enterprise-level support and SLAs', which the Gemini API column does not; regulated customers should move to the platform, which supports certifications such as HIPAA and SOC2."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You lead the AI program at Ashby Mutual Health (fictional). The claims assistant pilot was built in Google AI Studio by an innovation team: it calls the Gemini API with one API key stored in the app's settings. It works well, and it goes to production at 17:00 with member claims data. Compliance needs customer-managed keys, US data residency, role-based access and an SLA. It is 16:05.",
+    "handover": [
+      "The company already runs workloads in a Google Cloud organization with IAM, CMEK and audit logging.",
+      "The prompts and code are ready; only where and how the model is called would change."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "platform",
+        "oauth",
+        "rotate"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"platform\")"
+    },
+    "correct": {
+      "expr": "(fix == \"platform\" or fix == \"oauth\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare the pilot's setup with compliance's control list",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Customer-managed keys: yes\nUS data residency: yes\nRole-based access: IAM service account\nSLA: enterprise\n4 of 4 controls met"
+            }
+          ],
+          "else": [
+            {
+              "output": "Customer-managed keys: no\nUS data residency: not configurable\nRole-based access: one shared key\nSLA: none\n0 of 4 controls met"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The same model, called through the enterprise platform, meets each control."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The Gemini API through AI Studio is for building and prototyping; the controls compliance lists belong to the Google Cloud platform."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how production calls the model",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "platform",
+              "label": "Move the calls to the Agent Platform in the company project: service account and IAM, CMEK, US region, enterprise SLA"
+            },
+            {
+              "value": "oauth",
+              "label": "Keep the Gemini API but switch from the API key to OAuth on the company project"
+            },
+            {
+              "value": "rotate",
+              "label": "Keep the Gemini API and rotate the API key monthly from a secret store"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Re-run compliance's control list and the regression prompts",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"platform\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Control list: 4 of 4 met\nRegression prompts: same answers as the pilot\nAudit log records each call by service account"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"oauth\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Control list: 1 of 4 met (role-based access)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"rotate\"",
+              "then": [
+                {
+                  "output": "Control list: 0 of 4 met"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Control list: 0 of 4 met"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Approve go-live",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Live on the enterprise platform with every control in place."
+            }
+          ],
+          "else": [
+            {
+              "output": "Live without the controls compliance required."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the pilot was not ready",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "It used the Gemini API with an API key, which lacks the enterprise controls compliance requires"
+                },
+                {
+                  "value": "c1",
+                  "label": "The prompts were not finished"
+                },
+                {
+                  "value": "c2",
+                  "label": "The model was too small"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is ready",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "All four controls met and the regression prompts unchanged"
+                },
+                {
+                  "value": "k1",
+                  "label": "The pilot worked well"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "17:00: the assistant went live on the pilot setup.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the chief risk officer: why the pilot setup was not ready, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The pilot called the Gemini API through Google AI Studio with one API key; customer-managed keys, data residency, IAM roles and an SLA are features of the Google Cloud platform, not of that API.",
+          "modelAnswer": "API key; 0 of 4 controls."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Production calls the same model through the Agent Platform in the company project with a service account, CMEK, a US region and the enterprise SLA; OAuth adds identity only; rotating a key adds none of the controls.",
+          "modelAnswer": "Agent Platform with IAM, CMEK, US region."
+        },
+        {
+          "label": "How you know",
+          "criteria": "All four controls met, regression prompts unchanged, and calls are audited by service account.",
+          "modelAnswer": "All four controls met."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Live without required controls",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Member claims data flows through a setup compliance did not approve."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing unapproved went live, but the launch slipped."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The assistant goes live with the same answers and the controls compliance asked for."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared the pilot with the control list before deciding",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Chose the enterprise platform for production",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "The enterprise platform with IAM, CMEK, US residency and an SLA."
+          },
+          {
+            "when": "fix == \"oauth\"",
+            "score": "partial",
+            "why": "Access is tied to identities, but keys, residency and the SLA are still missing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"rotate\" ? \"Rotating the key protects the key; it adds none of the controls compliance requires.\" : \"Production would still run on the pilot's API key without the required controls.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Controls and regression prompts checked after the last change, before go-live",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Pilot meets 0 of 4 controls."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Agent Platform with IAM, CMEK, US region, SLA."
+      },
+      {
+        "at": "9-12 min",
+        "text": "4 of 4 controls; same answers."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Approve go-live."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: prototype where it is fast, run where it is governed",
+        "body": "AI Studio is for quick building with an API key. Regulated production belongs on the enterprise platform with IAM, CMEK, residency and an SLA."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Live without controls",
+        "body": "Better key hygiene does not add encryption keys, residency or an SLA."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Compare the pilot with the controls: it calls the Gemini API with a single API key, so there are no customer-managed keys, no residency setting, no role-based access and no SLA. Those are Google Cloud platform features, so production should call the same model through the Agent Platform in the company project with a service account, CMEK, a US region and the enterprise SLA, then re-check the controls and the regression prompts. OAuth adds identity only; rotating the key changes nothing compliance asked for."
+  }
+}

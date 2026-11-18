@@ -1,0 +1,436 @@
+{
+  "slug": "lacrosse-ball-to-chest-collapse",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: checks, calls 911, sends for the AED, compressions, shock, asks the mechanism, hands over",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "gaspQ",
+          "choice": "arrest",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "aedQ",
+          "choice": "shock",
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "aed",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vf"
+          },
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 11,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "spine",
+          "seq": 12,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 42
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "cprC": "met",
+          "aedC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "53f218ce467b3af5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "late911",
+      "title": "Starts CPR and gets the AED, but calls 911 4 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "gaspQ",
+          "choice": "arrest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "aed",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "spine",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "shock",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vf"
+          },
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "teach",
+          "prompt": "aedQ",
+          "choice": "shock",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 60
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "cprC": "met",
+          "aedC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 240,
+          "toKey": 60
+        },
+        "stateHash": "ee332dba5d3ebb32"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "pads",
+      "title": "Calls 911 and starts CPR, but strips his pads before the AED and never shocks",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "gaspQ",
+          "choice": "arrest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "ems"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "aedQ",
+          "choice": "shock",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "pads",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "vf"
+          },
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "death",
+        "class": "harm",
+        "rating": "bad",
+        "score": 64,
+        "criteria": {
+          "reportC": "met",
+          "cprC": "met",
+          "aedC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "1d7a4800f368a2f4"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "winded",
+      "title": "Failure: thinks he is winded, puts him on his side and calls his parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "gaspQ",
+          "choice": "arrest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "wind"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "parents"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "death",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "cprC": "missed",
+          "aedC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "33d3ec9fc61b4d65"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "faint",
+      "title": "Failure: calls it a faint and waits",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "faint"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "death",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "cprC": "missed",
+          "aedC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "4e02a18449bd8eb1"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

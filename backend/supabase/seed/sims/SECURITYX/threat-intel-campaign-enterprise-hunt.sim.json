@@ -1,0 +1,1013 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "threat-intel-campaign-enterprise-hunt",
+  "title": "A sector threat advisory: turning intelligence into detections, hunting across the enterprise, and sharing back",
+  "screen": {
+    "type": "security-console",
+    "level": 1,
+    "console": {
+      "alerts": [
+        {
+          "id": "aIntel",
+          "severity": "high",
+          "title": "Integrate the advisory into detection",
+          "detail": "Each business unit's SIEM is separate.",
+          "when": "p >= 1",
+          "at": "600",
+          "status": "{intel == \"behaviors\" ? \"Indicators and behavior detection, all units\" : intel == \"iocsOnly\" ? \"IP addresses blocked\" : intel == \"forward\" ? \"Forwarded by email\" : \"Due\"}",
+          "open": "intel == \"none\""
+        },
+        {
+          "id": "aHunt",
+          "severity": "critical",
+          "title": "A new admin account on a targeted gateway",
+          "detail": "Business unit B's gateway has an admin account created at 02:14 after a night login.",
+          "when": "p >= 2",
+          "at": "1200",
+          "status": "{hunt == \"coordinate\" ? \"Enterprise incident; evidence kept; hunt widened\" : hunt == \"unitOnly\" ? \"Unit B handles it alone\" : hunt == \"reimage\" ? \"Gateway reimaged; evidence gone\" : \"Due\"}",
+          "open": "hunt == \"none\""
+        },
+        {
+          "id": "aShare",
+          "severity": "medium",
+          "title": "Share findings with the sector",
+          "detail": "Your detection and the attacker's account name pattern would help other utilities.",
+          "when": "p >= 3",
+          "at": "1800",
+          "status": "{share == \"sanitized\" ? \"Sanitized findings shared via the ISAC\" : share == \"noShare\" ? \"Not shared\" : share == \"public\" ? \"Internal details published\" : \"Due\"}",
+          "open": "share == \"none\""
+        }
+      ],
+      "events": [
+        {
+          "id": "eIntel",
+          "source": "SOC",
+          "text": "{intel == \"behaviors\" ? \"Indicators and behavior detection, all units\" : intel == \"iocsOnly\" ? \"IP addresses blocked\" : intel == \"forward\" ? \"Forwarded by email\" : \"\"}",
+          "when": "intel != \"none\"",
+          "at": "timeAt(intelAt)"
+        },
+        {
+          "id": "eHunt",
+          "source": "Hunt",
+          "text": "{hunt == \"coordinate\" ? \"Enterprise incident; evidence kept; hunt widened\" : hunt == \"unitOnly\" ? \"Unit B handles it alone\" : hunt == \"reimage\" ? \"Gateway reimaged; evidence gone\" : \"\"}",
+          "when": "hunt != \"none\"",
+          "at": "timeAt(huntAt)"
+        },
+        {
+          "id": "eShare",
+          "source": "ISAC",
+          "text": "{share == \"sanitized\" ? \"Sanitized findings shared via the ISAC\" : share == \"noShare\" ? \"Not shared\" : share == \"public\" ? \"Internal details published\" : \"\"}",
+          "when": "share != \"none\"",
+          "at": "timeAt(shareAt)"
+        },
+        {
+          "id": "iAdv",
+          "source": "ISAC",
+          "text": "The IP addresses rotate weekly; the behaviors (night logins to the gateway, then a new admin account) are stable across the campaign.",
+          "when": "not isNull(advAt)",
+          "at": "timeAt(advAt)"
+        },
+        {
+          "id": "iVersions",
+          "source": "Inventory",
+          "text": "Two business units run a targeted version; one gateway shows a new local admin account created at 02:14 last Tuesday.",
+          "when": "not isNull(versionsAt)",
+          "at": "timeAt(versionsAt)"
+        }
+      ],
+      "assets": [
+        {
+          "id": "xIntel",
+          "label": "Enterprise detection content",
+          "spokenLabel": "Enterprise detection content",
+          "kind": "SIEM",
+          "status": "{intel == \"behaviors\" ? \"Indicators and behavior detection, all units\" : intel == \"iocsOnly\" ? \"IP addresses blocked\" : intel == \"forward\" ? \"Forwarded by email\" : \"Under review\"}",
+          "tone": "intel == \"behaviors\" ? \"ok\" : intel == \"iocsOnly\" ? \"watch\" : intel == \"forward\" ? \"bad\" : p >= 1 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xHunt",
+          "label": "Gateway GW-2 (business unit B)",
+          "spokenLabel": "Gateway GW-2 (business unit B)",
+          "kind": "gateway",
+          "status": "{hunt == \"coordinate\" ? \"Enterprise incident; evidence kept; hunt widened\" : hunt == \"unitOnly\" ? \"Unit B handles it alone\" : hunt == \"reimage\" ? \"Gateway reimaged; evidence gone\" : \"Under review\"}",
+          "tone": "hunt == \"coordinate\" ? \"ok\" : hunt == \"unitOnly\" ? \"watch\" : hunt == \"reimage\" ? \"bad\" : p >= 2 ? \"watch\" : \"ok\""
+        },
+        {
+          "id": "xShare",
+          "label": "Sector sharing",
+          "spokenLabel": "Sector sharing",
+          "kind": "community",
+          "status": "{share == \"sanitized\" ? \"Sanitized findings shared via the ISAC\" : share == \"noShare\" ? \"Not shared\" : share == \"public\" ? \"Internal details published\" : \"Under review\"}",
+          "tone": "share == \"sanitized\" ? \"ok\" : share == \"noShare\" ? \"watch\" : share == \"public\" ? \"bad\" : p >= 3 ? \"watch\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Enterprise-scale threat management and threat intelligence integration",
+  "secondaryObjectives": [
+    "Security monitoring and analytics for enterprise operations",
+    "Incident response leadership across complex, multi-team environments"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.comptia.org/en-us/certifications/securityx/",
+      "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording. Reused for REQ-336 from this course's federation-token-forgery (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead security operations engineering at Corvel Energy, a fictional utility with three business units and their own SOC teams. The sector's information sharing center has published an advisory about a campaign against utilities' remote access gateways.",
+    "handover": [
+      "The advisory: indicators (IP addresses, file hashes), behaviors (gateway logins at night followed by new admin accounts) and the gateway versions targeted.",
+      "Each business unit runs its own SIEM content."
+    ],
+    "howItWorks": [
+      "The console shows the alert queue, the event log and each asset's status.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-14T08:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "intel": {
+      "type": "enum",
+      "values": [
+        "none",
+        "behaviors",
+        "iocsOnly",
+        "forward"
+      ],
+      "init": "none"
+    },
+    "intelAt": {
+      "type": "time",
+      "init": null
+    },
+    "hunt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "coordinate",
+        "unitOnly",
+        "reimage"
+      ],
+      "init": "none"
+    },
+    "huntAt": {
+      "type": "time",
+      "init": null
+    },
+    "share": {
+      "type": "enum",
+      "values": [
+        "none",
+        "sanitized",
+        "noShare",
+        "public"
+      ],
+      "init": "none"
+    },
+    "shareAt": {
+      "type": "time",
+      "init": null
+    },
+    "advAt": {
+      "type": "time",
+      "init": null
+    },
+    "versionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((intel == \"forward\") ? 1 : 0) + ((hunt == \"reimage\") ? 1 : 0) + ((share == \"public\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(intel == \"none\" or (intel == \"forward\") ? 1 : 0) + (hunt == \"none\" or (hunt == \"reimage\") ? 1 : 0) + (share == \"none\" or (share == \"public\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The advisory response",
+      "clock": "turns",
+      "actions": [
+        "adv",
+        "versions"
+      ]
+    },
+    "close": {
+      "label": "Response record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "adv": {
+      "label": "Read the advisory's indicators and behaviors",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(advAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "advAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the advisory.",
+          "kind": "act"
+        },
+        {
+          "finding": "The IP addresses rotate weekly; the behaviors (night logins to the gateway, then a new admin account) are stable across the campaign."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "versions": {
+      "label": "Check the three business units' gateway versions",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(versionsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "versionsAt",
+          "to": "t"
+        },
+        {
+          "log": "You check gateway versions.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two business units run a targeted version; one gateway shows a new local admin account created at 02:14 last Tuesday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the response record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Indicators and a behavior detection enterprise-wide, one coordinated incident with evidence kept, and sanitized sharing via the ISAC"
+                },
+                {
+                  "value": "summary",
+                  "label": "Advisory handled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "intel == \"forward\"",
+              "then": [
+                {
+                  "log": "Check-in 2: one business unit never acts on the email; the attacker's new admin account there goes unnoticed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "hunt == \"reimage\"",
+              "then": [
+                {
+                  "log": "Check-in 3: with the gateway logs gone, nobody can tell which internal systems the attacker reached.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "share == \"public\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the published hostnames are used in a new phishing wave against the company within days.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The advisory response closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_intel",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: integrating the advisory.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "intelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_hunt",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the hunt finds a match.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "huntPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_share",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the sector asks for confirmations.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sharePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "intelPrompt": {
+      "title": "Indicators or behaviors?",
+      "context": "Each business unit's SIEM is separate.",
+      "choices": [
+        {
+          "id": "behaviors",
+          "label": "Push the indicators into the shared threat intel platform for all three SIEMs, and write a behavior-based detection (night gateway login then new admin account) deployed enterprise-wide",
+          "effects": [
+            {
+              "set": "intel",
+              "to": "\"behaviors\""
+            },
+            {
+              "set": "intelAt",
+              "to": "t"
+            },
+            {
+              "log": "Indicators and a behavior detection are live in all three SIEMs.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Indicators expire as infrastructure rotates; behaviors persist. Central distribution covers every unit."
+        },
+        {
+          "id": "iocsOnly",
+          "label": "Block the listed IP addresses at the firewalls",
+          "effects": [
+            {
+              "set": "intel",
+              "to": "\"iocsOnly\""
+            },
+            {
+              "set": "intelAt",
+              "to": "t"
+            },
+            {
+              "log": "The IPs are blocked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Useful for a week; the campaign rotates infrastructure."
+        },
+        {
+          "id": "forward",
+          "label": "Forward the advisory by email to the three SOC teams",
+          "effects": [
+            {
+              "set": "intel",
+              "to": "\"forward\""
+            },
+            {
+              "set": "intelAt",
+              "to": "t"
+            },
+            {
+              "log": "The advisory is forwarded.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Each team acts differently or not at all; nothing is detected centrally."
+        }
+      ]
+    },
+    "huntPrompt": {
+      "title": "The behavior matched",
+      "context": "Business unit B's gateway has an admin account created at 02:14 after a night login.",
+      "choices": [
+        {
+          "id": "coordinate",
+          "label": "Open an enterprise incident with one lead, have unit B preserve gateway logs and disable the account, and hunt for the same behavior in units A and C",
+          "effects": [
+            {
+              "set": "hunt",
+              "to": "\"coordinate\""
+            },
+            {
+              "set": "huntAt",
+              "to": "t"
+            },
+            {
+              "log": "A coordinated incident runs across all units.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Multi-team incidents need one lead and shared scope; the same campaign may be elsewhere."
+        },
+        {
+          "id": "unitOnly",
+          "label": "Let unit B handle it as their local incident",
+          "effects": [
+            {
+              "set": "hunt",
+              "to": "\"unitOnly\""
+            },
+            {
+              "set": "huntAt",
+              "to": "t"
+            },
+            {
+              "log": "Unit B handles it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Unit B can contain its gateway, but nobody checks A and C."
+        },
+        {
+          "id": "reimage",
+          "label": "Reimage the gateway immediately",
+          "effects": [
+            {
+              "set": "hunt",
+              "to": "\"reimage\""
+            },
+            {
+              "set": "huntAt",
+              "to": "t"
+            },
+            {
+              "log": "The gateway is reimaged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Reimaging first destroys the logs that show what the attacker did next."
+        }
+      ]
+    },
+    "sharePrompt": {
+      "title": "Share what you found?",
+      "context": "Your detection and the attacker's account name pattern would help other utilities.",
+      "choices": [
+        {
+          "id": "sanitized",
+          "label": "Share the behavior detection and new indicators, sanitized of company data, through the ISAC under its traffic light protocol, after legal review",
+          "effects": [
+            {
+              "set": "share",
+              "to": "\"sanitized\""
+            },
+            {
+              "set": "shareAt",
+              "to": "t"
+            },
+            {
+              "log": "Sanitized findings go to the ISAC.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Sharing back improves everyone's detection; sanitize and follow the sharing rules."
+        },
+        {
+          "id": "noShare",
+          "label": "Don't share: it's embarrassing",
+          "effects": [
+            {
+              "set": "share",
+              "to": "\"noShare\""
+            },
+            {
+              "set": "shareAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing is shared.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Other utilities miss a detection that would help them."
+        },
+        {
+          "id": "public",
+          "label": "Post the full incident details, including internal hostnames, on a public blog",
+          "effects": [
+            {
+              "set": "share",
+              "to": "\"public\""
+            },
+            {
+              "set": "shareAt",
+              "to": "t"
+            },
+            {
+              "log": "Full details are posted publicly.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Publishing internal details helps attackers and breaks the ISAC's sharing rules."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the response record: how the intelligence became detection, how the incident was run across units, and what you shared.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Integration and hunt",
+          "criteria": "Behavior detection plus central indicators; the hunt's match.",
+          "modelAnswer": "We distributed the indicators centrally and deployed a behavior detection; it matched a night login and new admin account on unit B's gateway."
+        },
+        {
+          "label": "Response and sharing",
+          "criteria": "One enterprise incident with evidence kept; sanitized sharing.",
+          "modelAnswer": "One lead ran the incident across units, kept the logs and widened the hunt; sanitized findings went to the ISAC."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "security",
+    "thresholds": {
+      "containWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Contained and closed within 60 minutes of the first alert."
+        }
+      },
+      "containSpread": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No asset newly exposed by the response."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (intel == \"iocsOnly\") and (hunt == \"unitOnly\") and (share == \"noShare\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA SecurityX CAS-005 (V5) exam page: domains Governance, risk, and compliance 20%, Security architecture 27%, Security engineering 31%, Security operations 22%",
+        "checkedAt": "2026-11-11",
+        "url": "https://www.comptia.org/en-us/certifications/securityx/",
+        "note": "Relevant text: Security architecture covers network architecture ('segmentation, microsegmentation, VPN, always-on VPN, and API integration'), Zero Trust ('defining subject-object relationships'), security boundaries ('asset identification, management, attestation, data perimeters, and secure zones') and deperimeterization ('SASE, SD-WAN, and software-defined networking'); Security operations covers incident response including root cause analysis. The page has no objective text on federation by name. Read through a summarizing fetch on 2026-11-11; the CAS-005 objectives PDF was not re-read here. The course's unit titles are the course's own wording. Reused for REQ-336 from this course's federation-token-forgery (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "intelHarm": {
+      "label": "One unit left blind",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and intel == \"forward\"",
+      "narrative": "One business unit never acted on the forwarded advisory; the attacker's account went unnoticed."
+    },
+    "huntHarm": {
+      "label": "Evidence destroyed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and hunt == \"reimage\"",
+      "narrative": "Reimaging destroyed the gateway logs; the attacker's path inside could not be traced."
+    },
+    "shareHarm": {
+      "label": "Internals published",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and share == \"public\"",
+      "narrative": "Published hostnames and details fueled a new phishing wave against the company."
+    },
+    "target": {
+      "label": "Intelligence turned into protection",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (intel == \"behaviors\") and (hunt == \"coordinate\") and (share == \"sanitized\") and record == \"honest\" and missCount <= containSpread and timeAt(doneAt) <= containWindow",
+      "narrative": "The campaign was found and contained in one unit, checked in the others, and the sector got a better detection."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "intelHarm",
+    "huntHarm",
+    "shareHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "intelCrit",
+        "label": "Integrated behaviors as well as indicators, enterprise-wide",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "intel == \"behaviors\"",
+            "score": "met",
+            "why": "Behavior plus indicators, everywhere."
+          },
+          {
+            "when": "intel == \"iocsOnly\"",
+            "score": "partial",
+            "why": "Indicators only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No integration."
+          }
+        ]
+      },
+      {
+        "id": "huntCrit",
+        "label": "Led a coordinated response across units, preserving evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hunt == \"coordinate\"",
+            "score": "met",
+            "why": "Coordinated."
+          },
+          {
+            "when": "hunt == \"unitOnly\"",
+            "score": "partial",
+            "why": "Siloed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Destroyed evidence."
+          }
+        ]
+      },
+      {
+        "id": "shareCrit",
+        "label": "Shared sanitized findings through the trusted channel",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "share == \"sanitized\"",
+            "score": "met",
+            "why": "Shared responsibly."
+          },
+          {
+            "when": "share == \"noShare\"",
+            "score": "partial",
+            "why": "Didn't contribute."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exposed internals."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(advAt) and not isNull(versionsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(advAt) or not isNull(versionsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the advisory and check gateway versions before acting."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Distribute indicators centrally and deploy a behavior detection enterprise-wide."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Run one enterprise incident, preserve evidence, widen the hunt."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Share sanitized findings via the ISAC under its sharing rules."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "intelHarm": {
+        "headline": "Integrate intelligence",
+        "body": "Distribute indicators centrally and turn behaviors into detections everywhere."
+      },
+      "huntHarm": {
+        "headline": "Preserve, then eradicate",
+        "body": "Lead one coordinated incident and keep the evidence."
+      },
+      "shareHarm": {
+        "headline": "Share safely",
+        "body": "Sanitize and share through trusted channels under their rules."
+      },
+      "target": {
+        "headline": "Good: intelligence turned into protection",
+        "body": "Behavior detections, coordinated response and responsible sharing."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Threat intelligence is integrated at enterprise scale by distributing indicators centrally and, more durably, turning observed behaviors into detections deployed everywhere. A match in one unit becomes one coordinated incident with evidence preserved and the hunt widened. Sharing sanitized findings back through trusted channels under their rules strengthens the whole sector."
+  }
+}

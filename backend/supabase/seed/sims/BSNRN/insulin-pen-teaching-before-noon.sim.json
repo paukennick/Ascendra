@@ -1,0 +1,1103 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "insulin-pen-teaching-before-noon",
+  "title": "Insulin pen teaching before noon",
+  "objective": "Plan teaching across cognitive, affective and psychomotor domains, and assess readiness to learn first",
+  "secondaryObjectives": [
+    "Diagnosing, planning and evaluating with the person, not for them"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "WisTech Open. Health Promotion (2025, CC BY 4.0): 1.7 The Teaching-Learning Process",
+      "checkedAt": "2026-11-17",
+      "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/1-7-the-teaching-learning-process/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: learner assessment: 'Is the client ready to learn?', 'Are you currently tired or in pain?', 'Is the client anxious regarding a new diagnosis and treatment plan?', 'What is the client's motivation for learning?'; cognitive (knowledge), affective (thoughts and feelings) and psychomotor ('a skill that requires both mental and motor activity') domains; evaluation by having the client 'teach back' or 'completing a return demonstration of a skill'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 on a medical unit. You are the RN for Mr. Kim, 58, admitted with cellulitis of the foot and newly diagnosed type 2 diabetes. He starts a once-daily insulin pen at home. Discharge is set for 12:00, and the charge nurse asks you to 'get the teaching done'.",
+    "handover": [
+      "His wife will help with his care at home; she arrives at 13:00 after work.",
+      "He has had no insulin teaching yet. His reading glasses are at home.",
+      "Unit policy: discharge teaching for a new injectable is complete only with a correct return demonstration and teach-back; the nurse tells the provider and case manager when discharge must move to finish it."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.006,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Time pressure builds toward an unprepared discharge. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It eases once discharge is moved and the teaching is planned. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of dosing error at home. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider and case manager told within 5 minutes of finding him not ready (unit policy: before the discharge time)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 40 min, including his wife's arrival, for the teaching sessions and return demonstrations."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "readyAt": {
+      "type": "time",
+      "init": null
+    },
+    "knowsAt": {
+      "type": "time",
+      "init": null
+    },
+    "homeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ready",
+        "knows",
+        "home"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "move",
+        "noon"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "notyet",
+        "ready",
+        "refuse"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "analgAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "demoAt": {
+      "type": "time",
+      "init": null
+    },
+    "pamphletAt": {
+      "type": "time",
+      "init": null
+    },
+    "lectureAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 - 8 * (isNull(analgAt) ? 0 : 1) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "142",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "84",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "18",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "97",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"move\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Pain treated: {not isNull(analgAt)|yesno}. Return demonstration: {not isNull(demoAt) ? \"correct\" : \"not yet\"}.",
+      "banner": [
+        {
+          "when": "route == \"move\" and inClinic",
+          "text": "Discharge moved to 15:00 for teaching."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "ready": {
+      "label": "Assess readiness to learn: pain, fatigue, anxiety, what he already knows, how he learns best",
+      "group": "Assess",
+      "available": "not testPending and isNull(readyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ready\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "knows": {
+      "label": "Ask what he understands about diabetes and why he needs insulin",
+      "group": "Assess",
+      "available": "not testPending and isNull(knowsAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"knows\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "home": {
+      "label": "Ask who will help at home and what his routine is",
+      "group": "Assess",
+      "available": "not testPending and isNull(homeAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"home\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "analg": {
+      "label": "Treat his pain first with the ordered analgesic, then come back",
+      "group": "Treat",
+      "available": "isNull(analgAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "analgAt",
+          "to": "t"
+        },
+        {
+          "log": "The ordered analgesic given; he is more comfortable by 10:40.",
+          "kind": "act"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Plan teaching in three domains: knowledge (what insulin does, low-sugar signs), feelings (his fears), skill (pen steps), with large-print materials",
+      "group": "Treat",
+      "available": "isNull(planAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "Teaching plan written with him: short sessions, large print, his fears first, then pen practice.",
+          "kind": "act"
+        }
+      ]
+    },
+    "demo": {
+      "label": "Teach the pen with demonstration, then have him and his wife each do a return demonstration and teach back the low-sugar signs",
+      "group": "Treat",
+      "available": "isNull(demoAt) and inClinic and not isNull(planAt) and not isNull(analgAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "demoAt",
+          "to": "t"
+        },
+        {
+          "log": "After practice, he and his wife each prime, dial and inject into a pad correctly and teach back the signs and treatment of a low sugar.",
+          "kind": "act"
+        }
+      ]
+    },
+    "pamphlet": {
+      "label": "Hand him the pamphlet and the pen and sign the teaching off",
+      "group": "Treat",
+      "available": "isNull(pamphletAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "pamphletAt",
+          "to": "t"
+        },
+        {
+          "log": "The pamphlet and pen are handed over; teaching is signed off.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "lecture": {
+      "label": "Explain the pen once quickly while he is in pain so discharge stays at noon",
+      "group": "Treat",
+      "available": "isNull(lectureAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "lectureAt",
+          "to": "t"
+        },
+        {
+          "log": "A 5-minute talk; he nods but cannot repeat the steps.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Is he ready to learn the pen now?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "notyet",
+              "label": "Not yet: pain, no sleep, needle fear and no glasses block learning; treat pain, address fears, and plan skill practice with his wife present"
+            },
+            {
+              "value": "ready",
+              "label": "Yes; he is awake and the pamphlet covers it"
+            },
+            {
+              "value": "refuse",
+              "label": "He is refusing insulin"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"notyet\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"notyet\""
+                },
+                {
+                  "log": "Not ready yet.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"ready\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ready\""
+                },
+                {
+                  "log": "Read as ready.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"refuse\""
+                },
+                {
+                  "log": "Read as refusal.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Plan the discharge",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "move",
+              "label": "Tell the provider and case manager now: new insulin, not ready (pain, fear, no glasses), wife arrives 13:00; move discharge to 15:00 for teaching with return demonstration"
+            },
+            {
+              "value": "noon",
+              "label": "Keep discharge at 12:00; the home health nurse can teach him later"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"move\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"move\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The provider agrees to a 15:00 discharge; the case manager arranges a home health visit for the first week.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"noon\""
+                },
+                {
+                  "set": "prog",
+                  "to": "min(prog + 0.8, 2)"
+                },
+                {
+                  "log": "He leaves at 12:00 with the pen and the pamphlet.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the readiness assessment, plan, return demonstrations and teach-back",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Readiness, the plan by domain, both return demonstrations and the teach-back are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit, room 22",
+      "clock": "running",
+      "actions": [
+        "ready",
+        "knows",
+        "home",
+        "analg",
+        "plan",
+        "demo",
+        "pamphlet",
+        "lecture",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"ready\"",
+              "then": [
+                {
+                  "set": "readyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Foot pain 7/10, he hasn't slept, and he says 'I'm scared of needles and I can't read that tiny print without my glasses'. He learns best by doing.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"knows\"",
+              "then": [
+                {
+                  "set": "knowsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "He thinks insulin means 'my legs will be cut off'; he doesn't know the signs of a low sugar.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "homeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "His wife helps with his medications; he works nights twice a week and eats at odd times.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the teaching sessions",
+      "wait": {
+        "skipLabel": "the teaching sessions"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 40 min, including his wife's arrival, for the teaching sessions and return demonstrations."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He and his wife have both shown the pen steps and taught back the low-sugar plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is Mr. Kim ready to learn his insulin pen, and how will you teach it?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "He is not ready yet: pain, no sleep, fear of needles and missing glasses block learning; he has misconceptions (cognitive), fear (affective) and a new skill to learn (psychomotor).",
+          "modelAnswer": "Not yet. He's hurting, exhausted, scared of needles and can't read the print. He's got wrong ideas about insulin, he's afraid, and he needs to learn a hands-on skill."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Treats pain first, plans with him across the three domains with large print, teaches by demonstration with his wife present, confirms with return demonstration and teach-back, and moves discharge with the provider and case manager.",
+          "modelAnswer": "Treat his pain, plan it with him: facts, his fears, then pen practice in big print. Have him and his wife both do it back to me and teach back the low-sugar signs, and get discharge moved."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An unprepared discharge on a new injectable an hour on is harm here.",
+      "source": {
+        "cite": "WisTech Open. Health Promotion (2025, CC BY 4.0): 1.7 The Teaching-Learning Process",
+        "checkedAt": "2026-11-17",
+        "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/1-7-the-teaching-learning-process/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: learner assessment: 'Is the client ready to learn?', 'Are you currently tired or in pain?', 'Is the client anxious regarding a new diagnosis and treatment plan?', 'What is the client's motivation for learning?'; cognitive (knowledge), affective (thoughts and feelings) and psychomotor ('a skill that requires both mental and motor activity') domains; evaluation by having the client 'teach back' or 'completing a return demonstration of a skill'."
+      }
+    }
+  },
+  "endings": {
+    "hypo": {
+      "label": "Dosing error at home",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "That night, unable to read the dial without his glasses and unsure of the steps, he dials the wrong amount; his wife finds him sweaty and confused, and 911 is called for a severe low sugar."
+    },
+    "safe": {
+      "label": "Ready, taught, confirmed",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"move\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(lectureAt) and (not isNull(readyAt) and not isNull(analgAt)) and isNull(pamphletAt) and (not isNull(planAt) and not isNull(demoAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he and his wife can use the pen correctly and know what to do for a low sugar."
+    },
+    "safeGaps": {
+      "label": "Taught, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he goes home taught, but discharge was moved late, he was taught through pain, or no return demonstration was done."
+    },
+    "time_up": {
+      "label": "Undecided at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no one has moved the discharge."
+    }
+  },
+  "endingOrder": [
+    "hypo",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Discharge moved for teaching within 5 minutes of the readiness assessment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"move\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"move\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "readyC",
+        "label": "Assessed readiness and relieved pain before teaching",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lectureAt)",
+            "score": "missed",
+            "why": "Taught through pain and fear."
+          },
+          {
+            "when": "not isNull(readyAt) and not isNull(analgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "demoC",
+        "label": "Teaching planned across the three domains and confirmed by return demonstration and teach-back",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(pamphletAt)",
+            "score": "missed",
+            "why": "Signed off with a pamphlet."
+          },
+          {
+            "when": "not isNull(planAt) and not isNull(demoAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not confirmed."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Asked what he knows and who helps at home",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(knowsAt) and not isNull(homeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(knowsAt) or not isNull(homeAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Saw he was not ready yet and why",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"notyet\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"ready\"",
+            "score": "missed",
+            "why": "Pain, fear and no glasses block learning."
+          },
+          {
+            "when": "dxEnum == \"refuse\"",
+            "score": "missed",
+            "why": "He is afraid, not refusing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented the teaching and its evaluation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: readiness first; three domains; return demonstration and teach-back; move discharge",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Readiness to moving discharge",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to his pain treated",
+        "value": "isNull(analgAt) ? -1 : timeAt(analgAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Readiness: pain 7, no sleep, needle fear, no glasses."
+      },
+      {
+        "at": "~10:01",
+        "text": "Treat pain; plan by domain with him."
+      },
+      {
+        "at": "~10:02",
+        "text": "Move discharge to 15:00 with the provider and case manager."
+      },
+      {
+        "at": "10:40-13:30",
+        "text": "Teach in short sessions; return demonstrations and teach-back with his wife; document."
+      }
+    ],
+    "debrief": {
+      "hypo": {
+        "headline": "Dosing error at home",
+        "body": "Assess readiness first: pain, fatigue, fear and missing glasses block learning. Teach knowledge, feelings and skills, and confirm with return demonstration and teach-back before discharge."
+      },
+      "safe": {
+        "headline": "Ready, taught, confirmed",
+        "body": "You assessed readiness, relieved his pain, planned teaching across the three domains with him, confirmed it by return demonstration and teach-back with his wife, and moved discharge within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Taught, with gaps",
+        "body": "Check whether readiness came first, whether you confirmed by return demonstration and teach-back, and how soon you moved discharge."
+      },
+      "time_up": {
+        "headline": "Undecided at 11:00",
+        "body": "A patient not ready to learn needs the discharge moved, not rushed."
+      }
+    },
+    "modelReasoning": "Teaching starts with a learner assessment: is the client ready (tired, in pain, anxious), what do they already know, and what motivates them. Outcomes are planned in three domains: cognitive (knowledge: what insulin does, low-sugar signs), affective (feelings: his fear of needles and amputation) and psychomotor (the pen steps). A skill is evaluated by return demonstration and knowledge by teach-back. Mr. Kim is not ready at 10:00, so treat his pain, plan with him, involve his wife, confirm by return demonstration and teach-back, and move discharge rather than rush it."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "evalQ": {
+      "during": "leaveT",
+      "ask": "While they practice: how do you evaluate a psychomotor skill?",
+      "choices": [
+        {
+          "id": "demo",
+          "label": "A return demonstration"
+        },
+        {
+          "id": "sign",
+          "label": "A signature on the form"
+        },
+        {
+          "id": "nod",
+          "label": "He says he understands"
+        }
+      ],
+      "expect": "demo",
+      "explain": "Evaluation is often by teach-back of information or a return demonstration of a skill.",
+      "source": {
+        "cite": "WisTech Open. Health Promotion (2025, CC BY 4.0): 1.7 The Teaching-Learning Process",
+        "checkedAt": "2026-11-17",
+        "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/1-7-the-teaching-learning-process/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: learner assessment: 'Is the client ready to learn?', 'Are you currently tired or in pain?', 'Is the client anxious regarding a new diagnosis and treatment plan?', 'What is the client's motivation for learning?'; cognitive (knowledge), affective (thoughts and feelings) and psychomotor ('a skill that requires both mental and motor activity') domains; evaluation by having the client 'teach back' or 'completing a return demonstration of a skill'."
+      }
+    },
+    "readyQ": {
+      "during": "testT",
+      "ask": "While you assess: which questions check readiness to learn?",
+      "choices": [
+        {
+          "id": "ready",
+          "label": "Are you tired or in pain? Are you anxious? What do you want to learn?"
+        },
+        {
+          "id": "age",
+          "label": "How old are you?"
+        },
+        {
+          "id": "none",
+          "label": "None; just start"
+        }
+      ],
+      "expect": "ready",
+      "explain": "Is the client ready to learn? Are you currently tired or in pain? Is the client anxious? What is the client's motivation for learning?",
+      "source": {
+        "cite": "WisTech Open. Health Promotion (2025, CC BY 4.0): 1.7 The Teaching-Learning Process",
+        "checkedAt": "2026-11-17",
+        "url": "https://wtcs.pressbooks.pub/healthpromo/chapter/1-7-the-teaching-learning-process/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: learner assessment: 'Is the client ready to learn?', 'Are you currently tired or in pain?', 'Is the client anxious regarding a new diagnosis and treatment plan?', 'What is the client's motivation for learning?'; cognitive (knowledge), affective (thoughts and feelings) and psychomotor ('a skill that requires both mental and motor activity') domains; evaluation by having the client 'teach back' or 'completing a return demonstration of a skill'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

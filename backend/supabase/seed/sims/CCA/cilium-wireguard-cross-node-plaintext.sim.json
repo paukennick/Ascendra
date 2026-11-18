@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cilium-wireguard-cross-node-plaintext",
+  "title": "Encrypting traffic between nodes with Cilium and moving ingress to Gateway API",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "platform@northvale:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "compliance: plaintext patient records observed between node-3 and node-7",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineWg",
+          "text": "{wg == \"wireguard\" ? \"WireGuard on; verified encrypted\" : wg == \"sidecars\" ? \"Sidecar mesh planned for next quarter\" : wg == \"allAtOnce\" ? \"Every agent restarted at once\" : \"\"}",
+          "when": "wg != \"none\"",
+          "at": "timeAt(wgAt)",
+          "error": "wg == \"allAtOnce\""
+        },
+        {
+          "id": "lineGw",
+          "text": "{gw == \"roles\" ? \"Gateway by platform, routes by the portal team\" : gw == \"oneTeam\" ? \"Gateway and routes all by platform\" : gw == \"deleteFirst\" ? \"Ingress deleted; no route to the portal\" : \"\"}",
+          "when": "gw != \"none\"",
+          "at": "timeAt(gwAt)",
+          "error": "gw == \"deleteFirst\""
+        },
+        {
+          "id": "lineVerify",
+          "text": "{verify == \"evidence\" ? \"Evidence from every node\" : verify == \"configOnly\" ? \"Configuration sent\" : verify == \"claim\" ? \"Closed with node-9 unchecked\" : \"\"}",
+          "when": "verify != \"none\"",
+          "at": "timeAt(verifyAt)",
+          "error": "verify == \"claim\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nWg",
+          "label": "node-to-node Pod traffic",
+          "spokenLabel": "node-to-node Pod traffic",
+          "kind": "datapath",
+          "status": "{wg == \"wireguard\" ? \"WireGuard on; verified encrypted\" : wg == \"sidecars\" ? \"Sidecar mesh planned for next quarter\" : wg == \"allAtOnce\" ? \"Every agent restarted at once\" : \"Waiting\"}",
+          "tone": "wg == \"wireguard\" ? \"up\" : wg == \"sidecars\" ? \"degraded\" : wg == \"allAtOnce\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nGw",
+          "label": "portal Gateway and HTTPRoutes",
+          "spokenLabel": "portal Gateway and HTTPRoutes",
+          "kind": "Gateway API",
+          "status": "{gw == \"roles\" ? \"Gateway by platform, routes by the portal team\" : gw == \"oneTeam\" ? \"Gateway and routes all by platform\" : gw == \"deleteFirst\" ? \"Ingress deleted; no route to the portal\" : \"Waiting\"}",
+          "tone": "gw == \"roles\" ? \"up\" : gw == \"oneTeam\" ? \"degraded\" : gw == \"deleteFirst\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nVerify",
+          "label": "encryption evidence",
+          "spokenLabel": "encryption evidence",
+          "kind": "evidence",
+          "status": "{verify == \"evidence\" ? \"Evidence from every node\" : verify == \"configOnly\" ? \"Configuration sent\" : verify == \"claim\" ? \"Closed with node-9 unchecked\" : \"Waiting\"}",
+          "tone": "verify == \"evidence\" ? \"up\" : verify == \"configOnly\" ? \"degraded\" : verify == \"claim\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nWg",
+          "to": "nGw",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nGw",
+          "to": "nVerify",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure encryption of traffic in transit with Cilium: WireGuard and IPsec transparent encryption, and node-to-node encryption",
+  "secondaryObjectives": [
+    "Know how to use Ingress or Gateway API for ingress routing with Cilium: the Cilium ingress controller, GatewayClass, Gateway and HTTPRoute",
+    "Sidecar-based versus sidecarless architectures: Cilium's per-node Envoy and eBPF datapath compared with per-Pod sidecar meshes"
+  ],
+  "sources": [
+    {
+      "cite": "Isovalent, 'The New CNCF Cilium Certified Associate (CCA) Certification!'",
+      "checkedAt": "2026-11-17",
+      "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Cilium documentation, WireGuard Transparent Encryption (stable, 1.20)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cilium.io/en/stable/security/network/encryption-wireguard/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: Helm values encryption.enabled=true and encryption.type=wireguard; cilium-dbg status shows Encryption: Wireguard with a peer count equal to the number of nodes minus one; tcpdump on cilium_wg0 shows traffic sent through the WireGuard tunnel; a known issue drops packets while the WireGuard device is configured."
+    },
+    {
+      "cite": "Cilium documentation, Gateway API Support (stable, 1.20)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the Gateway API controller is enabled with the Helm value gatewayAPI.enabled=true; Cilium programs only Gateways of class cilium; GatewayClass, Gateway and HTTPRoute are supported, with HTTPS and header-modifier examples; Gateway API is role-oriented."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform engineer at Northvale Clinics, a fictional healthcare group. A compliance review found patient data crossing between nodes in plain text, and the team wants the clinic portal's ingress moved to Gateway API this week. The cluster runs Cilium with kube-proxy replacement.",
+    "handover": [
+      "Pod-to-Pod traffic across nodes is not encrypted; the clinic portal uses an Ingress with the Cilium ingress controller.",
+      "Proposal on the table: add an Istio sidecar to every Pod for mTLS."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-02T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "wg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "wireguard",
+        "sidecars",
+        "allAtOnce"
+      ],
+      "init": "none"
+    },
+    "wgAt": {
+      "type": "time",
+      "init": null
+    },
+    "gw": {
+      "type": "enum",
+      "values": [
+        "none",
+        "roles",
+        "oneTeam",
+        "deleteFirst"
+      ],
+      "init": "none"
+    },
+    "gwAt": {
+      "type": "time",
+      "init": null
+    },
+    "verify": {
+      "type": "enum",
+      "values": [
+        "none",
+        "evidence",
+        "configOnly",
+        "claim"
+      ],
+      "init": "none"
+    },
+    "verifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "ingressAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((wg == \"allAtOnce\") ? 1 : 0) + ((gw == \"deleteFirst\") ? 1 : 0) + ((verify == \"claim\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(wg == \"none\" or (wg == \"allAtOnce\") ? 1 : 0) + (gw == \"none\" or (gw == \"deleteFirst\") ? 1 : 0) + (verify == \"none\" or (verify == \"claim\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The change",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "ingress"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "status": {
+      "label": "kubectl -n kube-system exec ds/cilium -- cilium-dbg status | grep Encryption",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(statusAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "statusAt",
+          "to": "t"
+        },
+        {
+          "output": "Encryption: Disabled"
+        },
+        {
+          "log": "You check Cilium's encryption status.",
+          "kind": "act"
+        },
+        {
+          "finding": "Transparent encryption is disabled: Pod traffic between nodes crosses the network in plain text."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "ingress": {
+      "label": "kubectl get ingress -n portal -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(ingressAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "ingressAt",
+          "to": "t"
+        },
+        {
+          "output": "ingressClassName: cilium\nrules: host portal.northvale.example, paths /api -> api:8080, / -> web:80\nannotations: 12 controller-specific annotations for headers and redirects"
+        },
+        {
+          "log": "You read the portal's Ingress.",
+          "kind": "act"
+        },
+        {
+          "finding": "The Ingress relies on 12 controller-specific annotations for header rewrites and redirects; Gateway API expresses these in HTTPRoute filters with separate Gateway and route ownership."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "WireGuard enabled in a rolling update and verified per node, and the Gateway API move with split ownership"
+                },
+                {
+                  "value": "summary",
+                  "label": "Encryption and gateway done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "wg == \"allAtOnce\"",
+              "then": [
+                {
+                  "log": "Check-in 2: all agents restarted together; the portal and the scheduling system drop connections for several minutes during clinic hours.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "gw == \"deleteFirst\"",
+              "then": [
+                {
+                  "log": "Check-in 3: patients cannot reach the portal for 25 minutes while the Gateway is written.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "verify == \"claim\"",
+              "then": [
+                {
+                  "log": "Check-in 4: node-9 rejoined with the old configuration; its patient traffic is still in plain text after the review closed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The change window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_wg",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the compliance team wants a plan today.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "wgPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_gw",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the web team starts on Gateway API.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "gwPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_verify",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the compliance team asks for evidence.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "verifyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "wgPrompt": {
+      "title": "Encrypt Pod traffic between nodes",
+      "context": "Cilium supports transparent WireGuard and IPsec encryption. The alternative proposal is a sidecar mesh on every Pod.",
+      "choices": [
+        {
+          "id": "wireguard",
+          "label": "Enable WireGuard transparent encryption through the Helm values in a rolling update, and confirm with each agent's cilium-dbg status and a capture on the cilium_wg0 device",
+          "effects": [
+            {
+              "set": "wg",
+              "to": "\"wireguard\""
+            },
+            {
+              "set": "wgAt",
+              "to": "t"
+            },
+            {
+              "log": "WireGuard is enabled node by node; captures show encrypted traffic.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Transparent encryption covers every Pod's traffic between nodes without touching the applications."
+        },
+        {
+          "id": "sidecars",
+          "label": "Plan the sidecar mesh for every Pod over the next quarter",
+          "effects": [
+            {
+              "set": "wg",
+              "to": "\"sidecars\""
+            },
+            {
+              "set": "wgAt",
+              "to": "t"
+            },
+            {
+              "log": "A quarter-long sidecar rollout is planned.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "mTLS would work, but it adds a proxy to every Pod and leaves data in plain text for a quarter."
+        },
+        {
+          "id": "allAtOnce",
+          "label": "Change the encryption setting and restart every Cilium agent at once to get it over with",
+          "effects": [
+            {
+              "set": "wg",
+              "to": "\"allAtOnce\""
+            },
+            {
+              "set": "wgAt",
+              "to": "t"
+            },
+            {
+              "log": "Every agent restarts together.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Restarting every agent at once drops connections across the whole cluster during the clinic day."
+        }
+      ]
+    },
+    "gwPrompt": {
+      "title": "Moving the portal's ingress",
+      "context": "The platform team owns the listener and certificates; the portal team owns its routes.",
+      "choices": [
+        {
+          "id": "roles",
+          "label": "Platform team creates the Gateway (cilium GatewayClass, HTTPS listener, certificate); the portal team writes HTTPRoutes with header and redirect filters; cut over by DNS after testing",
+          "effects": [
+            {
+              "set": "gw",
+              "to": "\"roles\""
+            },
+            {
+              "set": "gwAt",
+              "to": "t"
+            },
+            {
+              "log": "Gateway and HTTPRoutes are tested, then DNS moves.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Gateway API's role-oriented resources let each team own its part, and filters replace controller-specific annotations."
+        },
+        {
+          "id": "oneTeam",
+          "label": "Platform team writes the Gateway and every HTTPRoute itself",
+          "effects": [
+            {
+              "set": "gw",
+              "to": "\"oneTeam\""
+            },
+            {
+              "set": "gwAt",
+              "to": "t"
+            },
+            {
+              "log": "Platform writes all of it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but the portal team now files tickets for every route change."
+        },
+        {
+          "id": "deleteFirst",
+          "label": "Delete the Ingress first, then write the Gateway",
+          "effects": [
+            {
+              "set": "gw",
+              "to": "\"deleteFirst\""
+            },
+            {
+              "set": "gwAt",
+              "to": "t"
+            },
+            {
+              "log": "The Ingress is deleted before the Gateway exists.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With the Ingress gone and no Gateway yet, the portal is unreachable."
+        }
+      ]
+    },
+    "verifyPrompt": {
+      "title": "Evidence for the review",
+      "context": "The reviewer asks how you know every node pair is encrypted.",
+      "choices": [
+        {
+          "id": "evidence",
+          "label": "Give each node's cilium-dbg status line (Encryption: Wireguard, with peers equal to the node count minus one) and a tcpdump on cilium_wg0 showing Pod traffic in the tunnel",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"evidence\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "Evidence for every node is attached.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Per-node status and a capture show the control works, not just that it was configured."
+        },
+        {
+          "id": "configOnly",
+          "label": "Send the Helm values showing encryption enabled",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"configOnly\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The configuration is sent.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Configuration shows intent, not that every node is actually encrypting."
+        },
+        {
+          "id": "claim",
+          "label": "Tell the reviewer it is done; node-9 was being replaced, so skip it",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"claim\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The review is closed with node-9 unchecked.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "node-9 came back with an old agent configuration; its traffic is still plain text."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the compliance review: how traffic in transit is encrypted and verified, and how the ingress moved to Gateway API.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Encryption",
+          "criteria": "WireGuard transparent encryption rolled out and verified on every node.",
+          "modelAnswer": "We enabled WireGuard transparent encryption in a rolling update and attached per-node status and a capture."
+        },
+        {
+          "label": "Gateway",
+          "criteria": "Gateway owned by the platform team, HTTPRoutes by the portal team, tested before DNS cut-over.",
+          "modelAnswer": "Platform owns the Gateway and certificates; the portal team owns its HTTPRoutes; we cut over by DNS after testing."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (wg == \"sidecars\") and (gw == \"oneTeam\") and (verify == \"configOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Isovalent, 'The New CNCF Cilium Certified Associate (CCA) Certification!'",
+        "checkedAt": "2026-11-17",
+        "url": "https://isovalent.com/blog/post/cilium-certified-associate-cca",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Architecture 20%, Network Policy 18%, Service Mesh 16%, Network Observability 10%, Installation and Configuration 10%, Cluster Mesh 10%, eBPF 10%, BGP and External Networking 6%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "wgHarm": {
+      "label": "A cluster-wide disruption",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and wg == \"allAtOnce\"",
+      "narrative": "Restarting every Cilium agent at once dropped connections across the cluster in clinic hours."
+    },
+    "gwHarm": {
+      "label": "The portal unreachable",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and gw == \"deleteFirst\"",
+      "narrative": "The Ingress was deleted before the Gateway existed; the portal was down for 25 minutes."
+    },
+    "verifyHarm": {
+      "label": "A node left unencrypted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and verify == \"claim\"",
+      "narrative": "node-9 rejoined with the old configuration; patient data from it crossed the network in plain text after the review closed."
+    },
+    "target": {
+      "label": "Encrypted in transit and on Gateway API",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (wg == \"wireguard\") and (gw == \"roles\") and (verify == \"evidence\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Every node pair carries WireGuard-encrypted traffic, verified, and the portal runs on Gateway API with clear ownership."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "wgHarm",
+    "gwHarm",
+    "verifyHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "wgCrit",
+        "label": "Turned on transparent encryption in a planned rollout",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wg == \"wireguard\"",
+            "score": "met",
+            "why": "Encrypted and verified."
+          },
+          {
+            "when": "wg == \"sidecars\"",
+            "score": "partial",
+            "why": "Works, slowly and heavily."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Restarted everything together."
+          }
+        ]
+      },
+      {
+        "id": "gwCrit",
+        "label": "Split the Gateway and the routes by role",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "gw == \"roles\"",
+            "score": "met",
+            "why": "Role-oriented and tested."
+          },
+          {
+            "when": "gw == \"oneTeam\"",
+            "score": "partial",
+            "why": "Works, roles not separated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the old path first."
+          }
+        ]
+      },
+      {
+        "id": "verifyCrit",
+        "label": "Gave evidence for every node, not a claim",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "verify == \"evidence\"",
+            "score": "met",
+            "why": "Evidence, per node."
+          },
+          {
+            "when": "verify == \"configOnly\"",
+            "score": "partial",
+            "why": "Intent, not evidence."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Claimed without checking."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(statusAt) and not isNull(ingressAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(statusAt) or not isNull(ingressAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Check the encryption status and the current ingress before changing either."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Enable WireGuard transparent encryption in a rolling update and verify it."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Split Gateway and HTTPRoute ownership, test, then cut over by DNS."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Attach per-node encryption status, the peer list and a capture."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "wgHarm": {
+        "headline": "Roll the datapath change out",
+        "body": "Enable encryption through a rolling update and verify it node by node."
+      },
+      "gwHarm": {
+        "headline": "Build the new path before removing the old",
+        "body": "Test the Gateway and routes alongside the Ingress and cut over by DNS."
+      },
+      "verifyHarm": {
+        "headline": "Verify every node",
+        "body": "Check encryption status on every node and capture traffic before closing."
+      },
+      "target": {
+        "headline": "Good: encrypted in transit and on Gateway API",
+        "body": "Transparent encryption rolled out and verified, and a role-oriented Gateway API cut-over."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Cilium's transparent encryption (WireGuard or IPsec) encrypts Pod traffic between nodes in the datapath, with no sidecar per Pod; roll it out node by node and prove it per node. Gateway API splits responsibility: the platform team owns the GatewayClass and Gateway (listeners, certificates), application teams own HTTPRoutes, and route filters replace controller-specific annotations; build and test the new path before removing the old."
+  }
+}

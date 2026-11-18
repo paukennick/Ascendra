@@ -1,0 +1,440 @@
+{
+  "slug": "preop-consent-after-opioid-bsn",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: teach-back and sedation; not valid now; surgeon called; OR told; he and his daughter supported; documented",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "teachback",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "roleQ",
+          "choice": "signed",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "sedation",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "invalid"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "unclearQ",
+          "choice": "provider",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "or",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "advocate",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 25
+        }
+      ],
+      "expect": {
+        "ending": "consented",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "checkC": "met",
+          "noSign": "met",
+          "callC": "met",
+          "orC": "met",
+          "advC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 60,
+          "toTeach": 65
+        },
+        "stateHash": "b17f2e96afa1a3be"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Reads the chart and asks about pressure before the teach-back; calls the surgeon 6 minutes after it",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "chart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "roleQ",
+          "choice": "signed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "pressure",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sedation",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "teachback",
+          "seq": 5,
+          "tick": 36
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "or",
+          "seq": 7,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "advocate",
+          "seq": 8,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "invalid"
+          },
+          "seq": 9,
+          "tick": 48
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "unclearQ",
+          "choice": "provider",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "consentedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 88,
+        "criteria": {
+          "checkC": "met",
+          "noSign": "met",
+          "callC": "partial",
+          "orC": "met",
+          "advC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 360,
+          "toTeach": 240
+        },
+        "stateHash": "d714ad755dae98f8"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "surgeonOnly",
+      "title": "Calls the surgeon at once after the teach-back, but never tells the OR or supports him and his daughter",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "teachback",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "roleQ",
+          "choice": "signed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "unclearQ",
+          "choice": "provider",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "invalid"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 7,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "consentedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 69,
+        "criteria": {
+          "checkC": "met",
+          "noSign": "met",
+          "callC": "met",
+          "orC": "missed",
+          "advC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toCall": 0,
+          "toTeach": 60
+        },
+        "stateHash": "0a093942db50957a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "witnessed",
+      "title": "Failure: hears he can't explain it, calls the consent valid because he said yes, and witnesses his signature",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "teachback",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "roleQ",
+          "choice": "signed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "valid"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "witness",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "unclearQ",
+          "choice": "provider",
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "invalidOp",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "checkC": "missed",
+          "noSign": "missed",
+          "callC": "missed",
+          "orC": "missed",
+          "advC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toTeach": 60
+        },
+        "stateHash": "449f00f404e28682"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "daughterSigns",
+      "title": "Failure: checks the chart, then lets his daughter sign for him without checking his understanding",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "chart",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "roleQ",
+          "choice": "signed",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "family"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "daughter",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "unclearQ",
+          "choice": "provider",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "invalidOp",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "checkC": "missed",
+          "noSign": "missed",
+          "callC": "missed",
+          "orC": "missed",
+          "advC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toCall": -1,
+          "toTeach": -1
+        },
+        "stateHash": "1c1d028022831110"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

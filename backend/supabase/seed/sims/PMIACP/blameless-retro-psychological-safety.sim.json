@@ -1,0 +1,1127 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "blameless-retro-psychological-safety",
+  "title": "A team that stopped speaking up: a blame-filled outage review, a silent retrospective, and a challenge to the plan",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Iteration 14 of the ferry booking platform",
+      "commitments": [
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "Passengers can change a booking online without calling."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wBlame",
+          "label": "Outage review",
+          "column": "blame == \"blameless\" ? \"done\" : blame == \"privateTalk\" ? \"blocked\" : blame == \"moveOn\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "blame == \"moveOn\""
+        },
+        {
+          "id": "wRetro",
+          "label": "Retrospective",
+          "column": "retro == \"dialogue\" ? \"done\" : retro == \"anonOnly\" ? \"blocked\" : retro == \"managerRuns\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "retro == \"managerRuns\""
+        },
+        {
+          "id": "wChallenge",
+          "label": "Plan challenge",
+          "column": "challenge == \"welcome\" ? \"done\" : challenge == \"thankPrivately\" ? \"blocked\" : challenge == \"dismiss\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "challenge == \"dismiss\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iBlame",
+          "label": "Blame culture",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{blame == \"blameless\" ? \"Blameless system review\" : blame == \"privateTalk\" ? \"Private support only\" : blame == \"moveOn\" ? \"Blame left standing\" : \"Due\"}",
+          "open": "blame == \"none\""
+        },
+        {
+          "id": "iRetro",
+          "label": "Team silent",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{retro == \"dialogue\" ? \"Structured, safe dialogue\" : retro == \"anonOnly\" ? \"Anonymous survey only\" : retro == \"managerRuns\" ? \"Manager-led retrospective\" : \"Due\"}",
+          "open": "retro == \"none\""
+        },
+        {
+          "id": "iChallenge",
+          "label": "Challenges discouraged",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{challenge == \"welcome\" ? \"Challenge welcomed and acted on\" : challenge == \"thankPrivately\" ? \"Credit taken for her\" : challenge == \"dismiss\" ? \"Challenge dismissed\" : \"Due\"}",
+          "open": "challenge == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDevs",
+          "label": "Team",
+          "spokenLabel": "the team's trust",
+          "value": "devs",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product owner",
+          "spokenLabel": "the product owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sMgr",
+          "label": "Manager",
+          "spokenLabel": "the manager's trust",
+          "value": "mgr",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mBlame",
+          "label": "Iteration day 2",
+          "at": "86400",
+          "status": "{blame == \"blameless\" ? \"Blameless system review\" : blame == \"privateTalk\" ? \"Private support only\" : blame == \"moveOn\" ? \"Blame left standing\" : \"Ahead\"}"
+        },
+        {
+          "id": "mRetro",
+          "label": "Retrospective",
+          "at": "172800",
+          "status": "{retro == \"dialogue\" ? \"Structured, safe dialogue\" : retro == \"anonOnly\" ? \"Anonymous survey only\" : retro == \"managerRuns\" ? \"Manager-led retrospective\" : \"Ahead\"}"
+        },
+        {
+          "id": "mChallenge",
+          "label": "Iteration day 8",
+          "at": "259200",
+          "status": "{challenge == \"welcome\" ? \"Challenge welcomed and acted on\" : challenge == \"thankPrivately\" ? \"Credit taken for her\" : challenge == \"dismiss\" ? \"Challenge dismissed\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Fostering psychological safety: promoting a no-blame culture, encouraging dialogue over debate, and normalizing challenges to the status quo",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the agile coach for a fictional team building a booking platform for Wexford Ferries. After an outage last month, the manager named the developer responsible in a company email. Since then the team has gone quiet.",
+    "handover": [
+      "Retrospectives end in ten minutes with 'nothing to add'.",
+      "A junior developer privately says the current plan cannot meet the date."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-17T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "devs": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "mgr": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "blame": {
+      "type": "enum",
+      "values": [
+        "none",
+        "blameless",
+        "privateTalk",
+        "moveOn"
+      ],
+      "init": "none"
+    },
+    "blameAt": {
+      "type": "time",
+      "init": null
+    },
+    "retro": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dialogue",
+        "anonOnly",
+        "managerRuns"
+      ],
+      "init": "none"
+    },
+    "retroAt": {
+      "type": "time",
+      "init": null
+    },
+    "challenge": {
+      "type": "enum",
+      "values": [
+        "none",
+        "welcome",
+        "thankPrivately",
+        "dismiss"
+      ],
+      "init": "none"
+    },
+    "challengeAt": {
+      "type": "time",
+      "init": null
+    },
+    "emailAt": {
+      "type": "time",
+      "init": null
+    },
+    "oneToOnesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(devs, po), mgr)"
+    },
+    "missCount": {
+      "expr": "((blame == \"moveOn\") ? 1 : 0) + ((retro == \"managerRuns\") ? 1 : 0) + ((challenge == \"dismiss\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(blame == \"none\" or (blame == \"moveOn\") ? 1 : 0) + (retro == \"none\" or (retro == \"managerRuns\") ? 1 : 0) + (challenge == \"none\" or (challenge == \"dismiss\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The iteration",
+      "clock": "turns",
+      "actions": [
+        "email",
+        "oneToOnes"
+      ]
+    },
+    "close": {
+      "label": "Iteration notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "email": {
+      "label": "Read the outage email and review notes",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(emailAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "emailAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the outage email and review notes.",
+          "kind": "act"
+        },
+        {
+          "finding": "The manager's email names one developer; the review lists 'human error' as the only cause."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "oneToOnes": {
+      "label": "Hold one-to-ones with four team members",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(oneToOnesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "oneToOnesAt",
+          "to": "t"
+        },
+        {
+          "log": "Hold one-to-ones with four team members.",
+          "kind": "act"
+        },
+        {
+          "finding": "Three say raising problems is risky after the email; the junior developer has seen the date problem for two weeks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A blameless rerun of the outage review, a safe facilitated retrospective, and the challenge welcomed and acted on"
+                },
+                {
+                  "value": "summary",
+                  "label": "Iteration closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "blame == \"moveOn\"",
+              "then": [
+                {
+                  "log": "Day 3: a developer notices a failing backup job and says nothing; the next incident loses a day of bookings.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "retro == \"managerRuns\"",
+              "then": [
+                {
+                  "log": "Day 7: the retrospective lasts eight minutes; the junior developer keeps the date problem to herself.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "challenge == \"dismiss\"",
+              "then": [
+                {
+                  "log": "Day 9: the team misses the date by four weeks; three people say they had seen it coming.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The iteration ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_blame",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "blamePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_retro",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 6: the retrospective.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "retroPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_challenge",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 8: the date.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "challengePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "blamePrompt": {
+      "title": "A review that named a person",
+      "context": "The cause recorded is 'human error'.",
+      "choices": [
+        {
+          "id": "blameless",
+          "label": "With the manager's agreement, rerun the review blamelessly: how the system let one command take the site down, with fixes to the deploy safeguards, and the manager acknowledges the email was a mistake",
+          "effects": [
+            {
+              "set": "blame",
+              "to": "\"blameless\""
+            },
+            {
+              "set": "blameAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "10"
+            },
+            {
+              "log": "The review finds missing safeguards; the manager apologizes to the team.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A no-blame culture looks for how the system allowed a failure, so people report problems instead of hiding them."
+        },
+        {
+          "id": "privateTalk",
+          "label": "Talk privately with the named developer",
+          "effects": [
+            {
+              "set": "blame",
+              "to": "\"privateTalk\""
+            },
+            {
+              "set": "blameAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-15"
+            },
+            {
+              "log": "A private conversation happens.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Kind, but the team still sees blame as the norm."
+        },
+        {
+          "id": "moveOn",
+          "label": "Move on; the incident is closed",
+          "effects": [
+            {
+              "set": "blame",
+              "to": "\"moveOn\""
+            },
+            {
+              "set": "blameAt",
+              "to": "t"
+            },
+            {
+              "add": "mgr",
+              "by": "-25"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The team learns that mistakes are punished."
+        }
+      ]
+    },
+    "retroPrompt": {
+      "title": "Silence in the retrospective",
+      "context": "Ten minutes, nothing to add.",
+      "choices": [
+        {
+          "id": "dialogue",
+          "label": "Run the retrospective with working agreements, anonymous input first, and a facilitated dialogue in small groups where every view is explored before deciding",
+          "effects": [
+            {
+              "set": "retro",
+              "to": "\"dialogue\""
+            },
+            {
+              "set": "retroAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "10"
+            },
+            {
+              "log": "The team raises seven issues, including the date.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Psychological safety grows when people can raise views without risk and the team explores them through dialogue, not debate."
+        },
+        {
+          "id": "anonOnly",
+          "label": "Use an anonymous survey and skip the discussion",
+          "effects": [
+            {
+              "set": "retro",
+              "to": "\"anonOnly\""
+            },
+            {
+              "set": "retroAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-15"
+            },
+            {
+              "log": "A survey is sent.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Issues surface, but the team never talks them through."
+        },
+        {
+          "id": "managerRuns",
+          "label": "Have the manager run the retrospective to keep it on track",
+          "effects": [
+            {
+              "set": "retro",
+              "to": "\"managerRuns\""
+            },
+            {
+              "set": "retroAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-25"
+            },
+            {
+              "log": "The manager facilitates.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With the person who sent the email in charge, nobody speaks."
+        }
+      ]
+    },
+    "challengePrompt": {
+      "title": "A junior developer challenges the plan",
+      "context": "She shows the plan cannot meet the date.",
+      "choices": [
+        {
+          "id": "welcome",
+          "label": "Thank her in front of the team, examine her analysis with the product owner, and replan scope for the date openly",
+          "effects": [
+            {
+              "set": "challenge",
+              "to": "\"welcome\""
+            },
+            {
+              "set": "challengeAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "The plan is reset; the date holds with smaller scope.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Normalizing challenges to the status quo means acting on them visibly, so others raise the next one."
+        },
+        {
+          "id": "thankPrivately",
+          "label": "Thank her privately and raise it yourself",
+          "effects": [
+            {
+              "set": "challenge",
+              "to": "\"thankPrivately\""
+            },
+            {
+              "set": "challengeAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "You raise it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The issue is handled, but the team does not see challenges rewarded."
+        },
+        {
+          "id": "dismiss",
+          "label": "Tell her the plan was approved and to focus on her tasks",
+          "effects": [
+            {
+              "set": "challenge",
+              "to": "\"dismiss\""
+            },
+            {
+              "set": "challengeAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "She returns to her tasks.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The team learns that questioning the plan is unwelcome."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the iteration notes on the team's working climate.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Blame and dialogue",
+          "criteria": "Blameless review; agreements and facilitated dialogue in the retrospective.",
+          "modelAnswer": "We reran the outage review without blame and found missing deploy safeguards; the retrospective used working agreements, anonymous input and facilitated dialogue."
+        },
+        {
+          "label": "Challenge",
+          "criteria": "The date challenge welcomed; scope replanned.",
+          "modelAnswer": "The junior developer's analysis was examined openly and scope was replanned to keep the date."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (blame == \"privateTalk\") and (retro == \"anonOnly\") and (challenge == \"thankPrivately\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "blameHarm": {
+      "label": "Problems hidden",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and blame == \"moveOn\"",
+      "narrative": "Fear after the blaming email kept a failing backup hidden."
+    },
+    "retroHarm": {
+      "label": "Still silent",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and retro == \"managerRuns\"",
+      "narrative": "With the manager facilitating, nobody raised the date problem."
+    },
+    "challengeHarm": {
+      "label": "A date missed in silence",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and challenge == \"dismiss\"",
+      "narrative": "Dismissing the challenge left the team to miss the date silently."
+    },
+    "target": {
+      "label": "A team that speaks up again",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (blame == \"blameless\") and (retro == \"dialogue\") and (challenge == \"welcome\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Problems surface early because raising them is safe and valued."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "blameHarm",
+    "retroHarm",
+    "challengeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "blameCrit",
+        "label": "Reran the review blamelessly, focused on the system",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "blame == \"blameless\"",
+            "score": "met",
+            "why": "Safe to speak."
+          },
+          {
+            "when": "blame == \"privateTalk\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fear kept."
+          }
+        ]
+      },
+      {
+        "id": "retroCrit",
+        "label": "Made dialogue safe in the retrospective",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "retro == \"dialogue\"",
+            "score": "met",
+            "why": "Heard."
+          },
+          {
+            "when": "retro == \"anonOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Silenced."
+          }
+        ]
+      },
+      {
+        "id": "challengeCrit",
+        "label": "Welcomed the challenge and acted on it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "challenge == \"welcome\"",
+            "score": "met",
+            "why": "Encouraged."
+          },
+          {
+            "when": "challenge == \"thankPrivately\"",
+            "score": "partial",
+            "why": "Hidden."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shut down."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(emailAt) and not isNull(oneToOnesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(emailAt) or not isNull(oneToOnesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the outage review and talk to the team first."
+      },
+      {
+        "at": "Day 2",
+        "text": "Rerun it blamelessly, focused on the system."
+      },
+      {
+        "at": "Day 6",
+        "text": "Use agreements, anonymous input and facilitated dialogue."
+      },
+      {
+        "at": "Day 8",
+        "text": "Welcome the challenge publicly and act on it."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "blameHarm": {
+        "headline": "No-blame reviews",
+        "body": "Look at the system, not a person."
+      },
+      "retroHarm": {
+        "headline": "Make dialogue safe",
+        "body": "Agreements, anonymity and facilitation."
+      },
+      "challengeHarm": {
+        "headline": "Welcome challenges",
+        "body": "Act on them openly."
+      },
+      "target": {
+        "headline": "Good: a team that speaks up again",
+        "body": "No blame, dialogue and welcomed challenges."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Psychological safety lets people raise problems without fear. Build it with blameless reviews that examine the system, retrospectives with working agreements and facilitated dialogue, and visible appreciation and action when someone challenges the status quo."
+  }
+}

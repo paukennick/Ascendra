@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hana-vip-unreachable-tcp-timestamps",
+  "title": "Morning: HANA is up but no application server can reach its virtual IP",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "basis@hana-db1:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "06:40 alert: SAP work processes cannot connect to HN1 (10.20.1.50:30315) since 06:10; users at 08:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "08:00: SAP unavailable",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "08:00: SAP available",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "lb",
+          "label": "Internal LB ilb-hn1 (10.20.1.50)",
+          "spokenLabel": "the load balancer",
+          "kind": "HA ports, floating IP",
+          "status": "{fixed and not harmed ? \"hana-db1 healthy\" : \"no healthy backend\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db1",
+          "label": "hana-db1 (primary)",
+          "spokenLabel": "the primary node",
+          "kind": "azure-lb on 62503",
+          "status": "{harmed ? \"secondary after takeover, probe failing\" : fixed ? \"probe answered\" : \"probe failing\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db2",
+          "label": "hana-db2 (secondary)",
+          "spokenLabel": "the secondary node",
+          "kind": "no probe listener",
+          "status": "{fixed and not harmed ? \"probe failing (expected)\" : \"probe failing (expected)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "lb",
+          "to": "db1",
+          "label": "probe 62503",
+          "status": "{fixed and not harmed ? \"up\" : \"down\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "lb",
+          "to": "db2",
+          "label": "probe 62503",
+          "status": "{fixed and not harmed ? \"down (secondary)\" : \"down\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Designing and implementing load balancing for high availability",
+  "secondaryObjectives": [
+    "Monitoring high availability using Azure Monitor"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-120: Planning and Administering Azure for SAP Workloads (page last updated 2026-02-22; skills as of April 17, 2026): migrate 25-30%, design and implement infrastructure 25-30%, high availability and disaster recovery 20-25%, maintain 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-120",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Design and implement networking for SAP on Azure virtual machines': 'Implement Accelerated Networking for Azure virtual machines', 'Design and configure proximity placement groups', 'Design networking to meet SAP workload latency requirements'. The two top domains are tied; this case is on the infrastructure domain. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, 'High availability for SAP HANA on Azure VMs on SUSE Linux Enterprise Server'",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/sap/workloads/sap-hana-high-availability",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: health probe TCP on port 625<instance no.>, interval 5, probeThreshold 2; HA ports; idle timeout 30; 'Enable Floating IP'; 'Don't enable TCP timestamps on Azure VMs that are placed behind Azure Load Balancer. Enabling TCP timestamps causes the health probes to fail. Set parameter net.ipv4.tcp_timestamps to 0'; 'To prevent saptune from changing the manually set net.ipv4.tcp_timestamps value from 0 back to 1, update saptune version to 3.1.1 or higher'; the azure-lb resource answers port 625<instance no.> in a group colocated with the promoted HANA. The Azure Monitor metrics reference for Microsoft.Network/loadBalancers (read 2026-11-18) lists Health Probe Status with the REST name DipAvailability."
+    }
+  ],
+  "brief": {
+    "situation": "You are the SAP Basis on call at Tarrow Chemicals. Production HANA (HN1, instance 03) runs in a SUSE Pacemaker cluster behind an internal Standard Load Balancer whose frontend 10.20.1.50 is the database's virtual IP. Last night's OS patching updated both HANA nodes. Since 06:10 every application server reports it cannot connect to 10.20.1.50; the cluster says HANA is running on hana-db1. Users start at 08:00.",
+    "handover": [
+      "The patch run used the image's saptune version, 3.0.2.",
+      "The load balancer probes TCP 62503, answered by the cluster's azure-lb resource on the node that holds the primary."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the load balancer's frontend, its health probe and the two HANA nodes.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Users start at 08:00, 80 minutes after the alert."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "crmAt": {
+      "type": "time",
+      "init": null
+    },
+    "probeAt": {
+      "type": "time",
+      "init": null
+    },
+    "sysctlAt": {
+      "type": "time",
+      "init": null
+    },
+    "listenAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "timestamps",
+        "cluster",
+        "hana"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "crm",
+        "probe",
+        "sysctl",
+        "listen",
+        "ts",
+        "saptune",
+        "move",
+        "restartnc",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "crm": {
+      "label": "sudo crm_mon -1r (HANA and the azure-lb resource)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(crmAt)",
+          "then": [
+            {
+              "set": "crmAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@hana-db1:~$ sudo crm_mon -1r | grep -E 'SAPHana|rsc_nc|rsc_ip'\n{harmed ? \"  * rsc_ip_HN1_HDB03  Started hana-db2\n  * rsc_nc_HN1_HDB03  Started hana-db2\n  * SAPHanaController_HN1_HDB03  Promoted hana-db2\" : fixed ? \"  * rsc_ip_HN1_HDB03  Started hana-db1\n  * rsc_nc_HN1_HDB03  Started hana-db1\n  * SAPHanaController_HN1_HDB03  Promoted hana-db1\" : \"  * rsc_ip_HN1_HDB03  Started hana-db1\n  * rsc_nc_HN1_HDB03  Started hana-db1\n  * SAPHanaController_HN1_HDB03  Promoted hana-db1\"}"
+        },
+        {
+          "finding": "HANA is primary on hana-db1 and the probe listener runs there: the cluster is healthy."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "probe": {
+      "label": "az monitor metrics list: ilb-hn1 health probe status per backend",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(probeAt)",
+          "then": [
+            {
+              "set": "probeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@hana-db1:~$ az monitor metrics list --resource ilb-hn1 --metric DipAvailability --dimension BackendIPAddress --interval PT5M --offset 1h -o table\n{harmed ? \"10.20.1.11 (hana-db1)  0\n10.20.1.12 (hana-db2)  0\" : fixed ? \"10.20.1.11 (hana-db1)  100\n10.20.1.12 (hana-db2)  0\" : \"10.20.1.11 (hana-db1)  0   since 06:08\n10.20.1.12 (hana-db2)  0\"}"
+        },
+        {
+          "finding": "The load balancer sees no healthy backend, though the listener runs on hana-db1: probes are failing on the node that should answer."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sysctl": {
+      "label": "sysctl net.ipv4.tcp_timestamps on both nodes; saptune version",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sysctlAt)",
+          "then": [
+            {
+              "set": "sysctlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@hana-db1:~$ for h in hana-db1 hana-db2; do ssh $h 'sysctl -n net.ipv4.tcp_timestamps'; done; saptune version\n{fixed and not harmed ? \"0\n0\nsaptune 3.1.2\" : \"1\n1\nsaptune 3.0.2 (patch run set tcp_timestamps back to 1 at 06:07)\"}"
+        },
+        {
+          "finding": "TCP timestamps are on again on both nodes: the old saptune put the value back to 1 during patching, and Azure's health probes fail when it is on."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "listen": {
+      "label": "ss -ltn on hana-db1 for 62503 and 30315",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(listenAt)",
+          "then": [
+            {
+              "set": "listenAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@hana-db1:~$ ss -ltn | grep -E ':62503|:30315'\nLISTEN 0 10 0.0.0.0:62503\nLISTEN 0 128 10.20.1.50:30315"
+        },
+        {
+          "finding": "Both the probe port and HANA's SQL port are listening: the services are up, the probes do not get answers back."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "ts": {
+      "label": "Set net.ipv4.tcp_timestamps=0 now on both nodes and persist it in /etc/sysctl.d",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "basis@hana-db1:~$ for h in hana-db1 hana-db2; do ssh $h 'sudo sysctl -w net.ipv4.tcp_timestamps=0 && echo net.ipv4.tcp_timestamps=0 | sudo tee /etc/sysctl.d/91-azure-lb.conf'; done\nnet.ipv4.tcp_timestamps = 0\nnet.ipv4.tcp_timestamps = 0"
+        },
+        {
+          "log": "With timestamps off the probes on 62503 succeed again on hana-db1, the load balancer marks it healthy, and the virtual IP reaches the primary. No failover, no HANA restart.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "saptune": {
+      "label": "Update saptune to 3.1.1 or later on both nodes, add it to the patch baseline, and alert on the probe metric",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "basis@hana-db1:~$ for h in hana-db1 hana-db2; do ssh $h 'sudo zypper -n up saptune && saptune version'; done\nsaptune 3.1.2\nsaptune 3.1.2\nbasis@hana-db1:~$ az monitor metrics alert create -n hn1-no-healthy-backend --scopes ilb-hn1 --condition 'max DipAvailability < 50' ..."
+        },
+        {
+          "log": "The next patch run cannot switch timestamps back on, and an alert fires if the load balancer loses its healthy backend again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "move": {
+      "label": "Fail HANA over to hana-db2 (crm resource move)",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "basis@hana-db1:~$ sudo crm resource move msl_SAPHanaController_HN1_HDB03 hana-db2\nINFO: Move constraint created"
+        },
+        {
+          "log": "An unplanned takeover restarts HANA's primary role on the other node, and hana-db2 has timestamps on too: the probe still fails, and now a re-sync is needed as well.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restartnc": {
+      "label": "Restart the azure-lb resource (rsc_nc_HN1_HDB03)",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "basis@hana-db1:~$ sudo crm resource restart rsc_nc_HN1_HDB03\nINFO: ordering rsc_nc_HN1_HDB03 to stop ... to start"
+        },
+        {
+          "log": "The listener comes back, and the probes still fail while TCP timestamps are on.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the probe metric and an application server's connection",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "basis@hana-db1:~$ az monitor metrics list ... DipAvailability (last 5 min); ssh sapapp01 'R3trans -d' | tail -1\n{harmed ? \"10.20.1.12 (hana-db2) 0\nR3trans finished (0012): connection refused.\" : fixed ? \"10.20.1.11 (hana-db1) 100\nR3trans finished (0000).\" : \"10.20.1.11 (hana-db1) 0\nR3trans finished (0012): connection refused.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "timestamps",
+                  "label": "Patching set net.ipv4.tcp_timestamps back to 1, so the load balancer's health probes failed"
+                },
+                {
+                  "value": "cluster",
+                  "label": "The Pacemaker cluster failed"
+                },
+                {
+                  "value": "hana",
+                  "label": "HANA was down"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: users log on; the application servers reach HANA through the virtual IP.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: users cannot log on; SAP is down for the whole plant.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the virtual IP was unreachable with HANA up, what you changed, and how it is prevented.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates the load balancer's view from the cluster's.",
+          "modelAnswer": "The cluster showed HANA primary on hana-db1 with the probe listener running, but the load balancer saw no healthy backend since 06:08. The patch run's saptune 3.0.2 had set net.ipv4.tcp_timestamps back to 1, and with timestamps on Azure's health probes fail."
+        },
+        {
+          "label": "Change",
+          "criteria": "Fixes the setting, not the cluster.",
+          "modelAnswer": "Set net.ipv4.tcp_timestamps=0 on both nodes, persisted in /etc/sysctl.d; the probe went healthy and the application servers connected. A takeover would have moved HANA to a node with the same problem."
+        },
+        {
+          "label": "Prevent",
+          "criteria": "Removes the cause and watches the symptom.",
+          "modelAnswer": "saptune is now 3.1.2 (which keeps the manual value) and in the patch baseline, and an alert fires on the load balancer's probe status."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Users start at 08:00, 80 minutes after the alert."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: An unplanned takeover moved HANA without fixing the probes."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the probes still failing leaves SAP unreachable at 08:00.",
+      "source": {
+        "cite": "Microsoft Learn, 'High availability for SAP HANA on Azure VMs on SUSE Linux Enterprise Server'",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/sap/workloads/sap-hana-high-availability",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: health probe TCP on port 625<instance no.>, interval 5, probeThreshold 2; HA ports; idle timeout 30; 'Enable Floating IP'; 'Don't enable TCP timestamps on Azure VMs that are placed behind Azure Load Balancer. Enabling TCP timestamps causes the health probes to fail. Set parameter net.ipv4.tcp_timestamps to 0'; 'To prevent saptune from changing the manually set net.ipv4.tcp_timestamps value from 0 back to 1, update saptune version to 3.1.1 or higher'; the azure-lb resource answers port 625<instance no.> in a group colocated with the promoted HANA. The Azure Monitor metrics reference for Microsoft.Network/loadBalancers (read 2026-11-18) lists Health Probe Status with the REST name DipAvailability."
+      }
+    }
+  },
+  "endings": {
+    "needlessTakeover": {
+      "label": "Unneeded takeover, still unreachable",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "HANA was moved to hana-db2, which also fails the probes; the database is still unreachable and now needs re-syncing."
+    },
+    "plantDown": {
+      "label": "SAP unavailable at 08:00",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 08:00 the load balancer still had no healthy backend."
+    },
+    "probing": {
+      "label": "Probes healthy, saptune updated, alert set",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(probeAt) and not isNull(sysctlAt) and not isNull(verifiedAt) and causeDoc == \"timestamps\"",
+      "narrative": "Timestamps are off on both nodes, the probe answers on the primary, saptune cannot undo it, and an alert watches the backend."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "SAP is reachable, but the saptune update, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "needlessTakeover",
+    "plantDown",
+    "probing",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the probe status and the kernel setting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(probeAt) and not isNull(sysctlAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(crmAt) or not isNull(probeAt) or not isNull(sysctlAt) or not isNull(listenAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Virtual IP reachable before 08:00 without a takeover",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"An unplanned takeover moved HANA without fixing the probes.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "saptune updated, alert set, connection verified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"timestamps\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:40-06:44",
+        "text": "Cluster healthy; probe metric 0 since 06:08; tcp_timestamps 1 after the saptune 3.0.2 patch run; listeners up."
+      },
+      {
+        "at": "06:44-06:48",
+        "text": "tcp_timestamps 0 on both nodes, persisted; saptune 3.1.2; alert on the probe metric."
+      },
+      {
+        "at": "06:48-06:50",
+        "text": "Probe 100 on hana-db1; R3trans connects."
+      }
+    ],
+    "debrief": {
+      "needlessTakeover": {
+        "headline": "The cluster was not the problem",
+        "body": "HANA and its probe listener were healthy; the load balancer's probes were failing at the kernel. A failover moves a healthy database onto a node with the same setting."
+      },
+      "plantDown": {
+        "headline": "No healthy probe, no virtual IP",
+        "body": "An internal load balancer forwards to the virtual IP only while a backend answers its health probe. With TCP timestamps on, Azure's probes fail; set net.ipv4.tcp_timestamps to 0."
+      },
+      "probing": {
+        "headline": "Good: the probe, not the cluster",
+        "body": "You saw the cluster was healthy and the load balancer was not, found the patch-reset kernel setting, fixed it without a failover, checked a real connection, and removed the cause."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The cluster is healthy and the probe listener runs on the primary, yet the load balancer sees no healthy backend: the probes are failing. The patch run's saptune set TCP timestamps back on, and with timestamps on Azure's health probes fail. Set them off on both nodes and persist it; no failover is needed. Then update saptune so patching cannot undo it, and alert on the probe metric."
+  }
+}

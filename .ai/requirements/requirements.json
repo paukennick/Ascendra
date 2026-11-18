@@ -12243,6 +12243,235 @@
         "migration 089 must be applied before the backend",
         "Privacy-only bump asks everyone to accept the Privacy Policy once more"
       ]
+    },
+    {
+      "id": "REQ-333",
+      "category": "content",
+      "title": "Sim depth for the academic and programming courses: every unit with a fitting objective gets a sim of its own",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with no sims, such as MS Health Informatics, and courses with one or two should be built out robustly. Round 1117b rule: under 60 objectives at least 4 sims, 60 or more at least 8, every unit with an objective fitting the selection rule gets one, purpose-written cases for top domains, no fit recorded. Built on existing screens only: 17 new cases (6 MSHI on the data console, governance board and tabletop; 5 MSCS on the terminal and data console; PYTHON, two PCEP, PCAP, JAVASCRIPT, PYDATA on the data console) and 37 bands. Before/after: MSHI 0/11, MSCS 0/12, CMPCBS 1/8, PTPREREQ 1/8, PYTHON 2/4, JAVASCRIPT 2/4, PYAUTO 1/4, PYDATA 1/4, PCEP 1/4, PCAP 1/4, SQL 3/4, TSNODE 3/4. Continuation (lead, same day): cover every gap unit, try MSHI F9 on the tabletop, replace the three cross-domain MSHI bands with health-setting cases. Result: 76 cases and 42 bands; no fit only for MSCS Final integration and CMPCBS History of Mathematics and Capstone.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/depth-academic.ts",
+        "backend/lib/sim/depth-academic.test.ts",
+        "backend/lib/sim/linux-depth-terminal.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each document is on an active objective of its own course with no other sim of that course on it",
+        "every course in scope meets its count target",
+        "new cases have endings in all three classes and goldens rated Good Mediocre and Bad with every critical criterion met and missed",
+        "bands keep their base behavior and golden outcomes and cite a source read 2026-11-17 first",
+        "no claim of endorsement and no certifying-body mark in governance and exercise text",
+        "no patient data; HIPAA cases at policy level",
+        "tests select documents by slug",
+        "every unit with an objective fitting the selection rule has a sim whose main objective is in that unit; the rest are recorded as no fit in docs/sims.md 22.37"
+      ],
+      "validation_required": [
+        "lib/sim/depth-academic.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "lib/sim tests",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.37",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Three units are recorded as no fit in docs/sims.md 22.37 (MSCS Final integration, CMPCBS History of Mathematics, CMPCBS Capstone)"
+      ]
+    },
+    {
+      "id": "REQ-338",
+      "category": "content",
+      "title": "EMS and fitness depth sims of the 2026-11-17 round (depth-ems-fitness): every fitting unit of the NREMT, personal trainer, nutrition coach and strength and conditioning courses gets a sim, each course to the round's count",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with few or no sims should be built out more robustly; 19:55 PT: give the work to several agents, no per-builder cap. Scope: NREMTEMR, NREMTEMT, NREMTAEMT, NREMTPARAMEDIC (bedside, each case inside that level's US scope of practice per the 2019 National EMS Scope of Practice Model with its change notices, and NASEMSO National Model EMS Clinical Guidelines v3.0), ACECPT, ACSMCPT, NASMCPT, NASMCNC, NCCPTCPT, NSCACPT and NSCACSCS (trainer screen). Target: every unit with an objective fitting the selection rule gets a sim whose main objective is in it; courses under 60 objectives reach 4 sims. NSCACSCS Scientific Foundations stays no fit. Bands only where the scope matches. No new screen, engine, schema or migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/ems-fitness-depth.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each new case is a fitting objective's main sim on the bedside or trainer screen",
+        "each authored case has endingOrder three or four critical criteria a conditional harm ending and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band changes only objective secondary objectives sources and brief and keeps the base's actions so the scope is the same",
+        "every EMS case stays inside its level's scope of practice",
+        "drugs only at labeled doses",
+        "no permission-only mark in learner text",
+        "sources dated and say how they were read",
+        "per-course before and after table with no-fit reasons in docs/sims.md 22.42"
+      ],
+      "validation_required": [
+        "lint of the REQ-338 documents",
+        "lib/sim/ems-fitness-depth.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts",
+        "sims:lint"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.42",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-337",
+      "category": "content",
+      "title": "Mental health sim depth (depth-mh): EPPP, NCE, NCMHCE, ASWB Clinical and Masters, and Washington psychology jurisprudence to the round's target",
+      "description": "Nick (2026-11-17, 19:51 PT): 'Courses have no sims still ... Some still have 1 or two. Let's build those out more robustly.' Bring WAPSYCHJP (1 sim), EPPP (3), NCE (3), and NCMHCE, ASWBCLINICAL and ASWBMASTERS where under target, to the robust target: at least one sim whose main objective is in every unit with a fitting objective, at least 4 sims under 60 objectives and 8 at 60 or more, heaviest units first, purpose-written cases for a course's top two domains, unfitting units recorded as no fit. Existing session screen and clinical-session profile only. Sensitive sims marked mature: true; suicide, abuse and self-harm at the pattern level only; legal and ethics cases cite the statute, regulation or code section with a read date; no claim of clinician or expert review. No new screen, engine, schema or migration.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/mh-depth.test.ts",
+        "docs/sims.md",
+        "docs/sims-coverage-mental-health-wave.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each course in scope meets the target count",
+        "every unit with a fitting objective has a sim whose main objective is in it or is recorded as no fit",
+        "each case has Good Mediocre and Bad goldens reaching every ending but time_up with every criterion met and missed",
+        "a behavior test per case (expert to target; a named harm path to its harm ending; a rupture to a walk-out; paperwork alone never reaches the target)",
+        "sensitive cases and their bands marked mature and pattern level",
+        "legal and ethics cases cite RCW WAC CFR or code sections with read dates",
+        "no permission-only mark and US spelling in learner text"
+      ],
+      "validation_required": [
+        "lint of the REQ-337 documents",
+        "lib/sim/mh-depth.test.ts",
+        "lib/sim/session.test.ts",
+        "lib/sim/aswb-session.test.ts",
+        "lib/sim/objectives.test.ts",
+        "lib/sim/documents.test.ts",
+        "sims:lint"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.41",
+        "docs/sims-coverage-mental-health-wave.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-334",
+      "category": "content",
+      "title": "Health sim depth (depth-health): nursing licensure, CCRN neonatal and pediatric, and the physical therapy specialty courses brought to the robust target",
+      "description": "Nick (2026-11-17, 19:51 PT): courses with one or two sims should be built out more robustly. Scope: ADNRN, BSNRN, LPNVN, CCRNNEO, CCRNPEDS and the ten ABPTS courses (EMS and fitness moved to depth-ems-fitness). Target: every unit with a fitting objective gets a sim whose main objective is in it; at least 8 sims for courses with 60 or more objectives and 4 for the rest; purpose-written cases preferred for each course's top two domains; bands only where setting and scope match. Existing screens only; drugs appear as the ordered drug with no dose; unsafe choices end in harm; sources dated with how they were read; no permission-only marks; no claim of clinician or expert review; mature: true for sensitive topics.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/scripts/sim-golden/",
+        "backend/lib/sim/health-depth-1117.test.ts",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each course in scope meets the sim count target or records each remaining unit as no fit with a reason",
+        "each new case has endingOrder three or four critical criteria a conditional harm ending and Good Mediocre and Bad golden paths reaching every ending but time_up with every criterion met and missed",
+        "each band changes only objective secondary objectives sources and brief and keeps the base's scoring outcome and endings",
+        "no dose number and no permission-only mark in learner text",
+        "sources dated and say how they were read"
+      ],
+      "validation_required": [
+        "per-document lint",
+        "lib/sim/health-depth-1117.test.ts",
+        "lib/sim/cert-marks.test.ts",
+        "lib/sim/documents.test.ts"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.38",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-336",
+      "category": "content",
+      "title": "Sim depth for the CNCF ecosystem, CompTIA, security and project-management courses (robust rule)",
+      "description": "Nick (2026-11-17, 19:51 PT): 'Courses have no sims still ... Some still have 1 or two. Let's build those out more robustly.' Lead's robust rule: every unit with an objective that fits the selection rule gets a sim whose main objective is in it; at least 4 sims per course (8 at 60 objectives or more); purpose-written cases preferred for each course's top two domains. Scope (depth-infra-sec-pm): CAPA, CBA, CCA, CGOA, CKS, ICA, KCA, OTCA, PCA, CKAD, CNPA, CNPE, KCSA, KCNA; APLUS_CORE1, APLUS_CORE2, DATAAI, PENTESTPLUS, SECAIPLUS, SECURITYX, AUTOOPSPLUS, CYSAPLUS, DATAPLUS, TECHPLUS, LINUXFUND, CEH; CSPP, ITIL5FND, PFMP, PGMP, PMIPBA, PMIPMOCP, PMISP, CSSGB, PMICP, PMICPMAI, PMIRMP, CAPM, CSM, PMIACP, PSMI. New review-paced cases on existing screens only (terminal, security console, governance board, project dashboard predictive and Sprint modes, tabletop, service desk, data console), each with three decisions graded met, partly and harm, an inspect step, a record and a written reflection; bands where another course's case teaches the objective. No new screen, no migration, engine 1.2.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/depth-isp.ts",
+        "backend/lib/sim/depth-isp.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "every course in scope has at least 4 sims (8 at 60 objectives or more)",
+        "every unit with a fitting objective has a sim whose main objective is in it or is recorded as no fit",
+        "each document is on an active objective of its own course with no other sim of that course on it",
+        "every scenario lints with zero errors and its goldens reach every ending but time_up rated Good Mediocre and Bad",
+        "expert choices reach target and each harm choice reaches its own harm ending",
+        "bands keep their base behavior and golden outcomes and cite their own course outline first",
+        "no permission-only marks in sim text",
+        "tests select documents by slug"
+      ],
+      "validation_required": [
+        "lib/sim/depth-isp.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "sims:lint",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/sims.md 22.40",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": []
+    },
+    {
+      "id": "REQ-335",
+      "category": "content",
+      "title": "Depth sims for the AWS, Azure and Google Cloud courses (depth-cloud round of 2026-11-17)",
+      "description": "Nick (2026-11-17, 19:51 PT): courses still have one or two sims; build them out robustly. Target per course: every unit with a fitting objective gets a sim whose main objective is in it; under 60 objectives at least 4 sims, 60 or more at least 8; heaviest units first; purpose-written cases for each course's top two domains preferred over cross-level bands; a unit where nothing fits is recorded as no fit. Scope: every AWS, Azure (AZ*, DP*, AI200, AI901, PL300, SC500) and Google Cloud course, fewest sims first (AWSDEA, AWSSAP, AZ120, AZ140, DP300, DP900, GCPDBE, GCPMLE, GCPNET, GCPSEC), then the 2s and 3s. Existing screens only (terminal, security console, data console, sandbox report, service desk); no engine, schema or migration change. Sources read with dates; details from memory marked to verify.",
+      "priority": "high",
+      "status": "pending",
+      "minimum_access_scope": [
+        "backend/supabase/seed/sims/",
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/depth-cloud.ts",
+        "backend/lib/sim/depth-cloud.test.ts",
+        "backend/scripts/sim-golden/",
+        "docs/sims.md",
+        "CHANGELOG.md"
+      ],
+      "acceptance_criteria": [
+        "each band and scenario is on an active objective of its own course with no other sim of that course on it",
+        "each document carries its course outline read 2026-11-17 as its first source",
+        "a band keeps its base's actions endings ending order and golden outcomes",
+        "each new scenario lints with zero errors and replays its goldens",
+        "goldens reach every ending but time_up and rate Good Mediocre and Bad",
+        "tests select documents by slug",
+        "a behavior test per new case checks the decision it teaches",
+        "a per-course before and after table with units covered and no-fit units in docs/sims.md 22.39"
+      ],
+      "validation_required": [
+        "lib/sim/depth-cloud.test.ts",
+        "lib/sim/documents.test.ts run alone",
+        "sims:lint",
+        "omni gate"
+      ],
+      "documentation_required": [
+        "changelog"
+      ],
+      "risk_notes": []
     }
   ]
 }

@@ -19206,6 +19206,376 @@
       ],
       "prevention_notes": "Test checks the plugin output shape, app.json registration and that the website still lists the app with the existing fingerprint; README explains both halves and which fingerprints matter",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2480",
+      "date": "2026-11-17",
+      "title": "linux-depth-terminal.test.ts selected PYAUTO documents by course code",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Adding PYAUTO bands would have joined the REQ-292 terminal test's set, whose list assertion and terminal-screen checks assume only its ten documents",
+      "how_detected": "review while adding REQ-333 bands",
+      "root_cause": "The test built its set with e.course === LFCS or LINUXFUND or PYAUTO, so any later sim in those courses changes it; recurrence of FAIL-2002",
+      "requirement": "REQ-333",
+      "affected": [
+        "backend/lib/sim/linux-depth-terminal.test.ts"
+      ],
+      "fix_summary": "Select by course and slug from the test's EXPECTED list",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/linux-depth-terminal.test.ts",
+        "backend/lib/sim/depth-academic.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim tests select documents by slug (round-1116 working rule)",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2530",
+      "date": "2026-11-17",
+      "title": "Trainer case reused one id for a reading and a rule",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden refused NASMCPT/cpt-six-weeks-off-make-it-up and NASMCNC/cnc-losing-too-fast-and-thirsty: 'screen.trainer.rules[1]: duplicate id rLoad' (and rRate)",
+      "how_detected": "validator while building the golden paths",
+      "root_cause": "The author named a reading and a rule after the same idea (rLoad, rRate); the trainer screen's element ids share one namespace because each is one accessible element",
+      "requirement": "REQ-338",
+      "affected": [
+        "backend/supabase/seed/sims/NASMCPT/cpt-six-weeks-off-make-it-up.sim.json",
+        "backend/supabase/seed/sims/NASMCNC/cnc-losing-too-fast-and-thirsty.sim.json"
+      ],
+      "fix_summary": "Renamed the rules (rReturn, rPace)",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/ems-fitness-depth.test.ts (screen ids unique)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Prefix ids by element kind (r for readings is not enough; rules use a distinct word)",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2531",
+      "date": "2026-11-17",
+      "title": "noProgress rationale too short for the validator",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden refused three strength and conditioning cases: 'outcome.noProgress.rationale: write the one-line clinical or domain rationale'",
+      "how_detected": "validator while building the golden paths",
+      "root_cause": "The rationales were three-word notes ('No test was set.'); the validator requires at least 20 characters so a reviewer can read why the class applies",
+      "requirement": "REQ-338",
+      "affected": [
+        "backend/supabase/seed/sims/NSCACSCS/"
+      ],
+      "fix_summary": "Wrote a one-line rationale for each",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/ems-fitness-depth.test.ts (noProgress rationale length)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Write noProgress rationales as a full sentence saying why that class applies; the REQ-338 test asserts the length",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2520",
+      "date": "2026-11-17",
+      "title": "EPPP, ASWB and WAJP session sets selected by course break when the course gets another sim",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP_SESSION_DOCUMENTS, ASWB_SESSION_DOCUMENTS and WAJP_SESSION_DOCUMENTS filtered ALL_DOCUMENTS by course code, so registering any later sim in those courses (REQ-337) would fail session.test.ts (length 3), aswb-session.test.ts (keys equal the set) and the WAJP single-band assertion.",
+      "how_detected": "review before registering the first REQ-337 sim",
+      "root_cause": "Recurrence of FAIL-2002 and FAIL-2240: test fixtures defined as 'every sim of course X' instead of the first set by slug; the NBCC set was fixed in FAIL-2240 but these three were left course-filtered.",
+      "requirement": "REQ-337",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "Each set now filters by an explicit slug list (EPPP_FIRST_SET, ASWB_FIRST_SET, the WAJP band slug).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts",
+        "backend/lib/sim/aswb-session.test.ts",
+        "backend/lib/sim/objectives.test.ts",
+        "backend/lib/sim/mh-depth.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim test sets are named by slug; mh-depth.test.ts lists its own documents and checks they match the registry block.",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2490",
+      "date": "2026-11-17",
+      "title": "Six new health sims carried objective titles cut short, and one carried another course's secondary objective",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "lib/sim/health-depth-1117.test.ts: 7 failures, 'objective in the <course> catalog' for CCRNNEO/lip-smacking-and-a-pause, ABPTSCCS/cardiac-rehab-weight-up-orthopnea, ABPTSNCS/tilt-table-pounding-headache-t4, ABPTSOCS/rolled-ankle-cant-take-four-steps, ABPTSPWCS/second-trimester-dizzy-on-her-back, ABPTSSCS/runner-groin-pain-hop-test, and a PWCS secondary objective that belongs to the neurology course",
+      "how_detected": "the round's pin test (objective lookup against courseObjectives)",
+      "root_cause": "The builder copied objective titles from a coverage listing displayed with a column cut (cut -c1-240), finished the cut-off endings by guessing, and took a neurology objective for the pelvic health course's MS secondary. The sim linter does not check that the objective is in the course catalog, so the golden runs and lint passed.",
+      "requirement": "REQ-334",
+      "affected": [
+        "backend/supabase/seed/sims/CCRNNEO",
+        "backend/supabase/seed/sims/ABPTSCCS",
+        "backend/supabase/seed/sims/ABPTSNCS",
+        "backend/supabase/seed/sims/ABPTSOCS",
+        "backend/supabase/seed/sims/ABPTSPWCS",
+        "backend/supabase/seed/sims/ABPTSSCS"
+      ],
+      "fix_summary": "Each objective now uses the catalog's exact title, copied from an untruncated listing; the PWCS case's secondary list is empty and its MS source is cited as the neurology course's wording.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/health-depth-1117.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Copy objective titles from the catalog itself, never from a truncated display; run the per-round pin test (objective in catalog) before committing a case, not only lint.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2541",
+      "date": "2026-11-18",
+      "title": "ASWB sessions dbtest counts the first set while /api/sims lists every sim of the course",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "test:db on wave/2026-11-18: REQ-288 'starting a session refuses until the 18+ acknowledgment' failed with 'ASWBCLINICAL: every session listed 8 !== 4'.",
+      "how_detected": "full test:db on the merged wave (integrator-3, Postgres on 55435)",
+      "root_cause": "FAIL-2520 narrowed ASWB_SESSION_DOCUMENTS and WAJP_SESSION_DOCUMENTS to the REQ-288/289 slugs, but aswb-sessions.dbtest.ts used them as the expected size of the course's whole /api/sims list; REQ-337 added four ASWB Clinical, four ASWB Masters and three WAPSYCHJP sims. The depth-mh branch alone fails it too; the builder did not run test:db.",
+      "requirement": "REQ-337",
+      "affected": [
+        "backend/lib/aswb-sessions.dbtest.ts"
+      ],
+      "fix_summary": "The listed count is compared with every registered sim of the course (ALL_DOCUMENTS filtered by course), keeping strict equality; the first-set fixtures are unchanged.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/aswb-sessions.dbtest.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A course-wide listing is compared with the course's whole registry, never with a slug-named test set.",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2542",
+      "date": "2026-11-18",
+      "title": "Four first-wave sim test sets selected by course code pick up the depth round's cases",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim on wave/2026-11-18: 11 subtests failed in cnc-session.test.ts (3 slugs, not 2), project-dashboard.test.ts (6 PSMI against 5 CSM; ITIL desk set no longer 1) and security-w2.test.ts (CYSAPLUS 6, not 2).",
+      "how_detected": "lib/sim suite on the merged wave (integrator-3)",
+      "root_cause": "Recurrence of FAIL-2002: CNC_SESSION_DOCUMENTS (REQ-282), SCRUM_DASHBOARD_DOCUMENTS and DESK_DOCUMENTS (REQ-311) and security-w2.test.ts's W2 (REQ-238) filtered by course code; REQ-336 and REQ-338 registered new PSMI, CSM, ITIL5FND, CYSAPLUS, PENTESTPLUS, SECURITYX, SECAIPLUS and NASMCNC sims. Each branch alone fails them; the builders ran only their own test files.",
+      "requirement": "REQ-336",
+      "affected": [
+        "backend/lib/sim/documents.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "fix_summary": "Each set filters by its original slug list (CNC_FIRST_SET, SCRUM_FIRST_SET, the one desk slug, W2_SLUGS); no assertion changed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/cnc-session.test.ts",
+        "backend/lib/sim/project-dashboard.test.ts",
+        "backend/lib/sim/security-w2.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Builders run the whole lib/sim suite (under the heavy lock) before reporting, not only their own files.",
+      "recurrence_of": "FAIL-2002"
+    },
+    {
+      "id": "FAIL-2500",
+      "date": "2026-11-17",
+      "title": "A sim action id equal to a server-only key name fails the client-leak check",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "documents.test.ts: 'client document leaks nothing server-only' failed for AWSDEA/athena-todays-partition-missing: client document has key \"parts\"",
+      "how_detected": "milestone run of lib/sim/documents.test.ts",
+      "root_cause": "The case factory used the look id 'parts' (SHOW PARTITIONS) as an action id; clientDocument keeps actions keyed by id, and the leak check rejects any key named like a server-only field (parts holds reasoning model answers), so a harmless id looked like a leaked rubric. The depth-cloud test only checked that client.scoring was absent, not the full key set.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/athena-todays-partition-missing.sim.json",
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "Renamed the action to 'showparts' (and its state key), regenerated goldens; the builder's factory now refuses an action id in the server-only key set",
+      "fix_commits": [
+        "cccb0f79"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no action or state id is a server-only key name",
+        "so the client document's keys stay clean (FAIL-2500)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Regression test over every REQ-335 document; factory assertion.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2501",
+      "date": "2026-11-17",
+      "title": "Literal braces in a terminal command (awk '{print $1}') parsed as a template expression",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "sim:golden: invalid document: actions.dest.effects[1].output: unexpected character \"$\" (at 6) for AZ700/snat-exhaustion-carrier-api-before-cutoff",
+      "how_detected": "golden generation and depth-cloud.test.ts lint check before commit",
+      "root_cause": "Effect output strings are templates where {expr} interpolates; the case spec wrote an awk program with single braces outside the factory's esc() helper, so the engine read '{print $1}' as an expression.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AZ700/snat-exhaustion-carrier-api-before-cutoff.sim.json"
+      ],
+      "fix_summary": "Wrapped the command in esc() (doubled braces) before the first commit of the case",
+      "fix_commits": [
+        "2d5839f1"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/depth-cloud.test.ts::no lint error; terminal commands are bounded; nothing waits at the start; the client document drops the rubric"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "The existing lint test caught it before commit; the case was never committed broken.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2502",
+      "date": "2026-11-18",
+      "title": "SCS forensics case relied on an unconfirmed Auto Scaling Standby behavior",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The case taught putting a compromised instance in Standby to keep it from scale-in; the EC2 Auto Scaling docs read 2026-11-18 do not say Standby instances are excluded from scale-in termination",
+      "how_detected": "round-2 source verification (vendor docs)",
+      "root_cause": "The fix step was written from memory and marked 'to verify'; the verification pass found only termination protection (which does not stop Auto Scaling) and DetachInstances documented.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "The case now detaches the instance from the group with --should-decrement-desired-capacity (DetachInstances: managed independently, deregistered from target groups, not replaced)",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A vendor-behavior fact; checked by reading the EC2 Auto Scaling user guide and API reference, cited in the case's sources. The golden paths still reach the same endings.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify' in the source note.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2503",
+      "date": "2026-11-18",
+      "title": "Redshift case said a reboot rolls back the load; the docs say in-progress transactions are interrupted and must be resubmitted",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Harm-trap wording stated a rollback the REBOOT_CLUSTER reference does not describe",
+      "how_detected": "round-2 source verification",
+      "root_cause": "Written from general knowledge and marked 'to verify'.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/redshift-idle-transaction-blocks-load.sim.json"
+      ],
+      "fix_summary": "Reworded to 'interrupts the load, which must be resubmitted'",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Wording of a vendor fact; the decision taught and the goldens are unchanged.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify'.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2504",
+      "date": "2026-11-18",
+      "title": "ACE and Digital Leader outline findings came from stale HTML guide pages",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "22.39 reported that the ACE guide has five sections and Digital Leader weights of about 16-17%, prompting a request to change the seed",
+      "how_detected": "round-2 check of the PDFs before changing the seed",
+      "root_cause": "The HTML guide pages Google serves show older outlines; the exam guide PDFs linked from the certification pages are current and match the seed. The first pass compared against the HTML pages only.",
+      "requirement": "REQ-335",
+      "affected": [
+        "docs/sims.md",
+        "backend/supabase/seed/sims/GCPACE",
+        "backend/supabase/seed/sims/GCPCDL"
+      ],
+      "fix_summary": "Seed unchanged; bands cite the PDFs (read 2026-11-18); the finding was removed and replaced with a note that the HTML pages are stale",
+      "fix_commits": [
+        "3675c96f"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A source-reading error, not code; prevention is to read the guide linked from the certification page before reporting an outline difference.",
+      "prevention_rules": [],
+      "prevention_notes": "Read the exam guide linked from the certification page (PDF where Google links one) before reporting an outline difference; note when the HTML page differs.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2505",
+      "date": "2026-11-18",
+      "title": "A reworded action label exceeded the 200-character schema limit",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "documents.test.ts 'seeded sim documents pass the linter' failed for AWSSCS/miner-instance-evidence-before-scale-in and its DOP band: actions.preserve.label too big (208 characters)",
+      "how_detected": "documents.test.ts milestone run",
+      "root_cause": "The verification pass lengthened the fix label (Standby to detach wording) and the builder's factory did not check label length; depth-cloud.test.ts does not run the full schema check.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "Label shortened to 128 characters; the factory now refuses labels over 200 characters",
+      "fix_commits": [
+        "1e1bcc6c"
+      ],
+      "regression_tests": [
+        "backend/lib/sim/documents.test.ts::seeded sim documents pass the linter"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Factory assertion on label length; documents.test.ts covers every seeded document.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2506",
+      "date": "2026-11-18",
+      "title": "depth-cloud.test.ts failed tsc: an always-defined function used as a condition",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "tsc --noEmit: lib/sim/depth-cloud.test.ts(179,49): error TS2774",
+      "how_detected": "tsc at the end of round 2",
+      "root_cause": "The 'list is not empty' test referenced the until helper in a boolean to keep it used; round 1 ran the tests but not tsc.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "typeof until === 'function' check",
+      "fix_commits": [
+        "fd497d2e"
+      ],
+      "regression_tests": [
+        "npm run typecheck (tsc --noEmit)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "tsc runs before handoff for any change to test files.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2540",
+      "date": "2026-11-18",
+      "title": "it-wave4 pins the GCPACE band's outline read date after REQ-335 re-read that outline",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "lib/sim/it-wave4.test.ts 'every document is registered by slug ...' failed on feature/depth-cloud b311d98f and on the wave after merging it: 'bigquery-dashboard-bill-ace: this course's outline, read for this wave' expected 2026-11-16, got 2026-11-18. The cloud builder reported it as a SECPLUS shared-objective failure; that assertion passes (FAIL-2125 already allows ransomware-recovery-site-secplus and flood-continuity-tabletop-secplus to share the objective), on origin/master 92040786 (12/12) and on the wave.",
+      "how_detected": "the coordinator relayed the cloud builder's lib/sim failure; integrator-3 ran it-wave4.test.ts on origin/master (pass), on origin/feature/depth-cloud (fail) and on the merged wave",
+      "root_cause": "REQ-335 (FAIL-2504, commit 3675c96f) replaced the ACE band's first source, the stale HTML outline read 2026-11-16, with Google's exam guide PDF read 2026-11-18; it-wave4.test.ts asserts that every wave-4 document's first source was read on 2026-11-16. The branch's depth-cloud.test.ts was run, it-wave4.test.ts was misread.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "fix_summary": "An exact per-slug re-read date (OUTLINE_REREAD: bigquery-dashboard-bill-ace 2026-11-18); every other wave-4 document still must be 2026-11-16. No assertion loosened; no document's objective changed.",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/it-wave4.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "A round that re-reads an earlier wave's source updates that wave's pinned date with the exact new one, in the same commit.",
+      "recurrence_of": ""
     }
   ]
 }

@@ -1,0 +1,1126 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "two-weeks-thirsty-glucose-890",
+  "title": "Two weeks thirsty",
+  "objective": "Tell DKA from HHS: DKA is acute with low mortality, while HHS develops over weeks and has a much higher mortality rate",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "NCSBN. 2026 NCLEX-RN Test Plan (effective April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.ncsbn.org/public-files/2026_RN_Test%20Plan_English-F.pdf",
+      "note": "Relayed from the ADN-RN course's earlier cases (read 2026-11-11, primary PDF), not re-read: the pre-licensure RN course is built toward this test plan. Scope only."
+    },
+    {
+      "cite": "Ascendra ADN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: A look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.ccjm.org/content/92/3/152",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, 'pH less than 7.3, a bicarbonate concentration less than 18 mmol/L, or both'; HHS: 'a plasma glucose level of 600 mg/dL or greater', effective osmolality over 300 mOsm/kg, beta-hydroxybutyrate under 3.0, 'pH of 7.3 or greater and bicarbonate concentration of 15 mmol/L or greater'; 'Smaller fluid boluses' in older adults and heart or kidney failure; if potassium is low, 'insulin therapy should be postponed until a potassium level higher than 3.5 mmol/L is reached'; in HHS 'osmolality should fall no more than 3.0 to 8.0 mOsm/kg per hour'. The review does not compare onset or mortality; those come from the course catalog's own objective."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "16:00 on a medical unit. You are the RN admitting Mr. Ortiz, 79, from an assisted living home. He has type 2 diabetes on oral medication and heart failure with a reduced ejection fraction. Staff say he has been 'drinking water all day and peeing constantly' for about two weeks and became confused yesterday.",
+    "handover": [
+      "Emergency department labs: glucose 890 mg/dL, sodium 134, potassium pending, bicarbonate 22, pH 7.36, beta-hydroxybutyrate 0.6 mmol/L, calculated effective osmolality 340.",
+      "The admitting order set reads: isotonic fluid as ordered, then an insulin infusion per the hyperglycemic crisis protocol. The protocol says insulin is not started until potassium is above 3.5 mmol/L.",
+      "He has had no fluid yet. The hospitalist is on the unit."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Dehydration and hyperosmolality worsen while treatment stalls. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once fluids run and the provider directs the protocol. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of hypokalemic dysrhythmia. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The hospitalist called within 5 minutes of a potassium below the protocol's threshold (unit policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1500,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for orders, replacement to start and the step-down transfer."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "potassiumAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "volumeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecgAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "potassium",
+        "neuro",
+        "volume",
+        "ecg"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "later"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hhs",
+        "dka",
+        "dehyd"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "fluidsAt": {
+      "type": "time",
+      "init": null
+    },
+    "holdInsAt": {
+      "type": "time",
+      "init": null
+    },
+    "insulinNowAt": {
+      "type": "time",
+      "init": null
+    },
+    "wideOpenAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(108 + 20 * max(0, prog - 0.5) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(102 - 24 * max(0, prog - 0.6))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(20 + 4 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(fluidsAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Isotonic fluid: {not isNull(fluidsAt)|yesno}. Insulin infusion: {not isNull(insulinNowAt) ? \"running\" : (not isNull(holdInsAt) ? \"held for potassium\" : \"not started\")}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The hospitalist has the potassium; replacement orders are coming."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "potassium": {
+      "label": "Check whether the potassium has resulted",
+      "group": "Assess",
+      "available": "not testPending and isNull(potassiumAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"potassium\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Neuro check: orientation, speech, limbs",
+      "group": "Assess",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "volume": {
+      "label": "Volume status: mucous membranes, skin, lungs, neck veins, weight",
+      "group": "Assess",
+      "available": "not testPending and isNull(volumeAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"volume\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "ecg": {
+      "label": "Look at the cardiac monitor and a rhythm strip",
+      "group": "Assess",
+      "available": "not testPending and isNull(ecgAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ecg\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "fluids": {
+      "label": "Start the ordered isotonic fluid at the ordered rate, with lungs and breathing reassessed often given his heart failure",
+      "group": "Treat",
+      "available": "isNull(fluidsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "fluidsAt",
+          "to": "t"
+        },
+        {
+          "log": "Isotonic fluid running at the ordered rate; lung checks scheduled.",
+          "kind": "act"
+        }
+      ]
+    },
+    "holdIns": {
+      "label": "Hold the insulin infusion until potassium is above 3.5, per the protocol, and flag it",
+      "group": "Treat",
+      "available": "isNull(holdInsAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "holdInsAt",
+          "to": "t"
+        },
+        {
+          "log": "Insulin infusion held for potassium 3.1; flagged.",
+          "kind": "act"
+        }
+      ]
+    },
+    "insulinNow": {
+      "label": "Start the insulin infusion now to bring the glucose down fast",
+      "group": "Treat",
+      "available": "isNull(insulinNowAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "insulinNowAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "Insulin infusion started.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "wideOpen": {
+      "label": "Run the fluid wide open to catch up quickly",
+      "group": "Treat",
+      "available": "isNull(wideOpenAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "wideOpenAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Fluid running wide open.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "DKA or HHS?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "hhs",
+              "label": "HHS: glucose over 600, osmolality over 300, little ketosis, pH 7.3 or more; it built up over weeks and carries a much higher mortality than DKA, especially in older adults"
+            },
+            {
+              "value": "dka",
+              "label": "DKA"
+            },
+            {
+              "value": "dehyd",
+              "label": "Simple dehydration with high sugar; fluids and his usual tablets"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"hhs\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hhs\""
+                },
+                {
+                  "log": "Hyperosmolar hyperglycemic state.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"dka\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dka\""
+                },
+                {
+                  "log": "Read as DKA.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dehyd\""
+                },
+                {
+                  "log": "Read as dehydration.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the hospitalist now: HHS, glucose 890, osmolality 340, confused, potassium 3.1 with U waves; fluid running at the ordered rate, insulin held per protocol; asking for potassium replacement orders"
+            },
+            {
+              "value": "later",
+              "label": "Note it for the evening round; the order set covers it"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The hospitalist orders potassium replacement as ordered, a repeat potassium in 2 hours, hourly neuro checks and glucose, and a step-down bed; insulin starts once potassium is above 3.5.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"later\""
+                },
+                {
+                  "log": "Noted for later.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the labs, held insulin, fluids and call; update his daughter",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Labs, the held insulin, fluid and the call are documented; his daughter is updated.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Medical unit, room 412",
+      "clock": "running",
+      "actions": [
+        "potassium",
+        "neuro",
+        "volume",
+        "ecg",
+        "fluids",
+        "holdIns",
+        "insulinNow",
+        "wideOpen",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"potassium\"",
+              "then": [
+                {
+                  "set": "potassiumAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Potassium 3.1 mmol/L, just resulted.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Oriented to name only; slow to answer; moves all limbs; no facial droop.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"volume\"",
+              "then": [
+                {
+                  "set": "volumeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Very dry mouth, poor skin turgor, clear lungs, flat neck veins; 4 kg below his last clinic weight.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ecgAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sinus tachycardia; flattened T waves and prominent U waves.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the step-down transfer",
+      "wait": {
+        "skipLabel": "the step-down transfer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 25 min for orders, replacement to start and the step-down transfer."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He transfers to step-down with potassium replacing and the protocol under way.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Is this DKA or HHS, and what do you do first?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "HHS: glucose over 600, effective osmolality over 300, little ketosis and no acidosis; it develops over days to weeks, mostly in older adults with type 2 diabetes, and has a much higher mortality than DKA, which is acute.",
+          "modelAnswer": "This is HHS, not DKA: sugar 890, osmolality 340, barely any ketones and a normal pH. It crept up over two weeks, and it's the more deadly of the two, especially at 79."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Starts the ordered isotonic fluid with close lung checks given heart failure, holds insulin until potassium is above 3.5, checks the rhythm and neuro status, and calls the provider for potassium replacement.",
+          "modelAnswer": "Fluids first at the ordered rate, listening to his lungs because of his heart failure, hold the insulin because his potassium is 3.1, check the monitor and his neuro status, and call the hospitalist for potassium."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "HHS with a low potassium unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: A look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.ccjm.org/content/92/3/152",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, 'pH less than 7.3, a bicarbonate concentration less than 18 mmol/L, or both'; HHS: 'a plasma glucose level of 600 mg/dL or greater', effective osmolality over 300 mOsm/kg, beta-hydroxybutyrate under 3.0, 'pH of 7.3 or greater and bicarbonate concentration of 15 mmol/L or greater'; 'Smaller fluid boluses' in older adults and heart or kidney failure; if potassium is low, 'insulin therapy should be postponed until a potassium level higher than 3.5 mmol/L is reached'; in HHS 'osmolality should fall no more than 3.0 to 8.0 mOsm/kg per hour'. The review does not compare onset or mortality; those come from the course catalog's own objective."
+      }
+    }
+  },
+  "endings": {
+    "arrhythmia": {
+      "label": "Hypokalemic dysrhythmia",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His monitor shows runs of ventricular tachycardia; he becomes unresponsive and the rapid response team is called."
+    },
+    "safe": {
+      "label": "HHS treated in order",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(insulinNowAt) and (not isNull(holdInsAt)) and isNull(wideOpenAt) and (not isNull(fluidsAt))",
+      "narrative": "{timeAt(leftAt)|clock}: he goes to step-down with fluid running, potassium replacing and insulin waiting on the protocol."
+    },
+    "safeGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is transferred, but the call was slow, insulin went in early, or fluid ran wide open."
+    },
+    "time_up": {
+      "label": "Unescalated at 17:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "17:00 and no one has the potassium."
+    }
+  },
+  "endingOrder": [
+    "arrhythmia",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The hospitalist called within 5 minutes of the potassium result",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "insC",
+        "label": "Held insulin for a potassium of 3.1, per the protocol",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(insulinNowAt)",
+            "score": "missed",
+            "why": "Insulin started with low potassium."
+          },
+          {
+            "when": "not isNull(holdInsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Insulin not addressed."
+          }
+        ]
+      },
+      {
+        "id": "fluidC",
+        "label": "Fluids first at the ordered rate, watched for overload",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(wideOpenAt)",
+            "score": "missed",
+            "why": "Run wide open in heart failure."
+          },
+          {
+            "when": "not isNull(fluidsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No fluid."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked neuro status, volume status and the rhythm",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt) and not isNull(volumeAt) and not isNull(ecgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(neuroAt) or not isNull(volumeAt) or not isNull(ecgAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Told HHS from DKA",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"hhs\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"dka\"",
+            "score": "missed",
+            "why": "No acidosis and little ketosis."
+          },
+          {
+            "when": "dxEnum == \"dehyd\"",
+            "score": "missed",
+            "why": "This is a hyperglycemic crisis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and updated the family",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: HHS, not DKA; higher mortality; fluids first; potassium before insulin",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Potassium to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "16:00 to fluid running",
+        "value": "isNull(fluidsAt) ? -1 : timeAt(fluidsAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "16:00",
+        "text": "Potassium 3.1 just resulted; U waves on the strip."
+      },
+      {
+        "at": "~16:01",
+        "text": "Fluid at the ordered rate; insulin held per protocol."
+      },
+      {
+        "at": "~16:02",
+        "text": "Call the hospitalist for potassium."
+      },
+      {
+        "at": "~16:04",
+        "text": "Neuro and volume checks; document; update his daughter."
+      }
+    ],
+    "debrief": {
+      "arrhythmia": {
+        "headline": "Hypokalemic dysrhythmia",
+        "body": "HHS: fluids first, and check potassium before insulin. Insulin with a potassium of 3.1 drives it lower and can cause a fatal rhythm."
+      },
+      "safe": {
+        "headline": "HHS treated in order",
+        "body": "You told HHS from DKA, started fluid at the ordered rate with his heart in mind, held insulin for a low potassium and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you called, whether insulin started with low potassium, and whether fluid ran wide open in heart failure."
+      },
+      "time_up": {
+        "headline": "Unescalated at 17:00",
+        "body": "A low potassium before insulin goes to the provider at once."
+      }
+    },
+    "modelReasoning": "HHS is a glucose of 600 mg/dL or more with an effective osmolality over 300 and little ketosis or acidosis; it develops over days to weeks, usually in older adults with type 2 diabetes, and has a much higher mortality than DKA, which comes on acutely. Treatment starts with isotonic fluid (smaller boluses in older adults and heart failure), then insulin, with potassium measured first: if it is low, insulin is postponed until potassium is above 3.5 mmol/L, because insulin drives potassium into cells. Osmolality should fall slowly."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "kQ": {
+      "during": "leaveT",
+      "ask": "While he transfers: why wait on insulin?",
+      "choices": [
+        {
+          "id": "k",
+          "label": "Insulin moves potassium into cells; with potassium under 3.5 it is postponed"
+        },
+        {
+          "id": "glu",
+          "label": "The glucose isn't high enough"
+        },
+        {
+          "id": "none",
+          "label": "There is no reason"
+        }
+      ],
+      "expect": "k",
+      "explain": "If potassium is low at presentation, insulin is postponed until potassium is above 3.5 mmol/L.",
+      "source": {
+        "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: A look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.ccjm.org/content/92/3/152",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, 'pH less than 7.3, a bicarbonate concentration less than 18 mmol/L, or both'; HHS: 'a plasma glucose level of 600 mg/dL or greater', effective osmolality over 300 mOsm/kg, beta-hydroxybutyrate under 3.0, 'pH of 7.3 or greater and bicarbonate concentration of 15 mmol/L or greater'; 'Smaller fluid boluses' in older adults and heart or kidney failure; if potassium is low, 'insulin therapy should be postponed until a potassium level higher than 3.5 mmol/L is reached'; in HHS 'osmolality should fall no more than 3.0 to 8.0 mOsm/kg per hour'. The review does not compare onset or mortality; those come from the course catalog's own objective."
+      }
+    },
+    "hhsQ": {
+      "during": "testT",
+      "ask": "While you check: which set of labs fits HHS?",
+      "choices": [
+        {
+          "id": "hhs",
+          "label": "Glucose 600 or more, osmolality over 300, little ketosis, pH 7.3 or more"
+        },
+        {
+          "id": "dka",
+          "label": "Glucose over 200 with ketosis and a pH under 7.3"
+        },
+        {
+          "id": "hypo",
+          "label": "Glucose under 70"
+        }
+      ],
+      "expect": "hhs",
+      "explain": "HHS: plasma glucose 600 mg/dL or more, effective osmolality over 300, beta-hydroxybutyrate under 3.0, pH 7.3 or more.",
+      "source": {
+        "cite": "Rodriguez Alvarez P, San Martin VT, Morey-Vargas OL. Hyperglycemic crises in adults: A look at the 2024 consensus report. Cleve Clin J Med 2025;92(3):152-158",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.ccjm.org/content/92/3/152",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: DKA: glucose 200 mg/dL or more (or known diabetes), beta-hydroxybutyrate 3.0 mmol/L or more, 'pH less than 7.3, a bicarbonate concentration less than 18 mmol/L, or both'; HHS: 'a plasma glucose level of 600 mg/dL or greater', effective osmolality over 300 mOsm/kg, beta-hydroxybutyrate under 3.0, 'pH of 7.3 or greater and bicarbonate concentration of 15 mmol/L or greater'; 'Smaller fluid boluses' in older adults and heart or kidney failure; if potassium is low, 'insulin therapy should be postponed until a potassium level higher than 3.5 mmol/L is reached'; in HHS 'osmolality should fall no more than 3.0 to 8.0 mOsm/kg per hour'. The review does not compare onset or mortality; those come from the course catalog's own objective."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

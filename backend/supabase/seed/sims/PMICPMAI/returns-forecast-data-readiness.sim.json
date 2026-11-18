@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "returns-forecast-data-readiness",
+  "title": "Is the data ready for a returns-forecasting model? Coverage, labels and how to tell leadership",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "returns_readiness",
+      "flags": [
+        {
+          "id": "fFit",
+          "label": "Data fit to objective",
+          "text": "{fit == \"gapAnalysis\" ? \"Readiness judged against the objective\" : fit == \"volume\" ? \"Ready by volume\" : fit == \"impute\" ? \"Missing labels invented\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fPlan",
+          "label": "Closing the store gap",
+          "text": "{plan == \"phase\" ? \"Phased plan with data capture\" : plan == \"wait\" ? \"Everything paused\" : plan == \"scrape\" ? \"Unrelated external data\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "info"
+        },
+        {
+          "id": "fTell",
+          "label": "Readiness report",
+          "text": "{tell == \"businessTerms\" ? \"Readiness in business terms\" : tell == \"technical\" ? \"Technical report only\" : tell == \"allGo\" ? \"Overstated readiness\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iCoverage",
+          "label": "Profile coverage of the data",
+          "text": "Online orders have return reasons; store returns (40% of volume) have no reasons and no link to the original order.",
+          "when": "not isNull(coverageAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iHistory",
+          "label": "Check the time span",
+          "text": "Store data exists only from the last 9 months, after a system migration; seasonal peaks appear once.",
+          "when": "not isNull(historyAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Readiness checks",
+          "spokenLabel": "Readiness checks",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rFit",
+              "cells": [
+                "Coverage and labels",
+                "{fit == \"gapAnalysis\" ? \"Readiness judged against the objective\" : fit == \"volume\" ? \"Ready by volume\" : fit == \"impute\" ? \"Missing labels invented\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "fit == \"impute\""
+            },
+            {
+              "id": "rPlan",
+              "cells": [
+                "Remediation",
+                "{plan == \"phase\" ? \"Phased plan with data capture\" : plan == \"wait\" ? \"Everything paused\" : plan == \"scrape\" ? \"Unrelated external data\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "plan == \"scrape\""
+            },
+            {
+              "id": "rTell",
+              "cells": [
+                "Communication",
+                "{tell == \"businessTerms\" ? \"Readiness in business terms\" : tell == \"technical\" ? \"Technical report only\" : tell == \"allGo\" ? \"Overstated readiness\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "tell == \"allGo\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Determining whether available data meets solution needs, and conveying data readiness to leadership in business-relevant terms",
+  "secondaryObjectives": [
+    "Defining required data: types, formats, volume, and quality standards mapped to business objectives"
+  ],
+  "sources": [
+    {
+      "cite": "PMI Certified Professional in Managing AI (PMI-CPMAI) Examination Content Outline (September 2025): Responsible and Trustworthy AI 15%, Business Needs and Solutions 26%, Data Needs 26%, Model Development and Evaluation 16%, Operationalize 17%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/cpmai/syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch of a training provider's syllabus page that restates the outline in its own words (PMI's PDF did not come up in search). Restated: data evaluation (assess data quality; analyze distributions for bias or gaps; exploratory data analysis); model governance (lifecycle management, versioning and change control, monitor performance and detect drift). The objective wording here is the course seed's; PMI's own wording is to verify. Reused for REQ-336 from this course's loan-data-bias-pmicpmai (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the data, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage an AI project at Larkfield Outfitters, a fictional retailer, to forecast product returns so warehouses can staff for them. Leadership wants a go or no-go on building the model next month.",
+    "handover": [
+      "The business objective: forecast weekly returns per warehouse within 10%.",
+      "Two years of order and return data exist across three systems."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-12T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ds": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "fit": {
+      "type": "enum",
+      "values": [
+        "none",
+        "gapAnalysis",
+        "volume",
+        "impute"
+      ],
+      "init": "none"
+    },
+    "fitAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "phase",
+        "wait",
+        "scrape"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "tell": {
+      "type": "enum",
+      "values": [
+        "none",
+        "businessTerms",
+        "technical",
+        "allGo"
+      ],
+      "init": "none"
+    },
+    "tellAt": {
+      "type": "time",
+      "init": null
+    },
+    "coverageAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, ops), ds)"
+    },
+    "missCount": {
+      "expr": "((fit == \"impute\") ? 1 : 0) + ((plan == \"scrape\") ? 1 : 0) + ((tell == \"allGo\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(fit == \"none\" or (fit == \"impute\") ? 1 : 0) + (plan == \"none\" or (plan == \"scrape\") ? 1 : 0) + (tell == \"none\" or (tell == \"allGo\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Readiness steps",
+      "clock": "turns",
+      "actions": [
+        "coverage",
+        "history"
+      ]
+    },
+    "close": {
+      "label": "Readiness record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "coverage": {
+      "label": "Profile coverage of the data",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(coverageAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "coverageAt",
+          "to": "t"
+        },
+        {
+          "log": "Profile coverage of the data.",
+          "kind": "act"
+        },
+        {
+          "finding": "Online orders have return reasons; store returns (40% of volume) have no reasons and no link to the original order."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "history": {
+      "label": "Check the time span",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(historyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "historyAt",
+          "to": "t"
+        },
+        {
+          "log": "Check the time span.",
+          "kind": "act"
+        },
+        {
+          "finding": "Store data exists only from the last 9 months, after a system migration; seasonal peaks appear once."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Readiness judged against the forecast objective, a phased plan with store data capture, and a go or no-go in business terms"
+                },
+                {
+                  "value": "summary",
+                  "label": "Readiness reported"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "fit == \"impute\"",
+              "then": [
+                {
+                  "log": "Step 2: the pilot forecasts store returns 35% too low; one warehouse is short-staffed through a sale.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "plan == \"scrape\"",
+              "then": [
+                {
+                  "log": "Step 3: the purchased data trains a model that misreads Larkfield's seasonal peaks; the sponsor questions the spend.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "tell == \"allGo\"",
+              "then": [
+                {
+                  "log": "Step 4: store warehouses staff to the model; Black Friday returns overwhelm two of them.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The readiness review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_fit",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: the gap.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "fitPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_plan",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: the plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "planPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_tell",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: the go or no-go.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "tellPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "fitPrompt": {
+      "title": "Does the data meet the need?",
+      "context": "Store returns lack reasons and order links.",
+      "choices": [
+        {
+          "id": "gapAnalysis",
+          "label": "Map required data to the forecast objective: store returns need order links and at least one more seasonal cycle; mark the store forecast not ready and the online forecast ready",
+          "effects": [
+            {
+              "set": "fit",
+              "to": "\"gapAnalysis\""
+            },
+            {
+              "set": "fitAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "1"
+            },
+            {
+              "log": "The gap is documented by requirement.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Data readiness is judged by whether the data meets the solution's needs, mapped to the business objective."
+        },
+        {
+          "id": "volume",
+          "label": "Call it ready: two years and millions of rows",
+          "effects": [
+            {
+              "set": "fit",
+              "to": "\"volume\""
+            },
+            {
+              "set": "fitAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "-1"
+            },
+            {
+              "log": "Volume is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Volume hides the missing store links and short history."
+        },
+        {
+          "id": "impute",
+          "label": "Fill missing store return reasons with the online reasons' distribution",
+          "effects": [
+            {
+              "set": "fit",
+              "to": "\"impute\""
+            },
+            {
+              "set": "fitAt",
+              "to": "t"
+            },
+            {
+              "add": "ds",
+              "by": "-2"
+            },
+            {
+              "log": "Reasons are imputed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The model would learn online customers' behavior and apply it to stores."
+        }
+      ]
+    },
+    "planPrompt": {
+      "title": "What to do about stores",
+      "context": "Stores could start capturing order links and reasons.",
+      "choices": [
+        {
+          "id": "phase",
+          "label": "Start with online returns now; have stores capture order links and reasons from next month, and revisit stores after one more peak season",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"phase\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Store capture starts next month.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "When data is not ready for part of the solution, phase the scope and fix data capture at the source."
+        },
+        {
+          "id": "wait",
+          "label": "Pause the whole project until store data is complete",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"wait\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "The project pauses.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The online forecast, which is ready, also waits a year."
+        },
+        {
+          "id": "scrape",
+          "label": "Buy a third-party returns dataset for other retailers' stores",
+          "effects": [
+            {
+              "set": "plan",
+              "to": "\"scrape\""
+            },
+            {
+              "set": "planAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-2"
+            },
+            {
+              "log": "A dataset is bought.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Another retailer's stores do not describe Larkfield's customers."
+        }
+      ]
+    },
+    "tellPrompt": {
+      "title": "How to report readiness",
+      "context": "Leadership wants one answer.",
+      "choices": [
+        {
+          "id": "businessTerms",
+          "label": "Report: go for online warehouses now (60% of volume, within the 10% target in testing); stores not ready until order links and one more peak season exist; what that means for staffing",
+          "effects": [
+            {
+              "set": "tell",
+              "to": "\"businessTerms\""
+            },
+            {
+              "set": "tellAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Leadership approves the phased go.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Leaders need readiness expressed as what can be forecast, how well and when, not as data-quality jargon."
+        },
+        {
+          "id": "technical",
+          "label": "Send the data-quality profile report",
+          "effects": [
+            {
+              "set": "tell",
+              "to": "\"technical\""
+            },
+            {
+              "set": "tellAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "The report is sent.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Accurate but leaves leadership to interpret null rates."
+        },
+        {
+          "id": "allGo",
+          "label": "Report 'data ready, go' for everything",
+          "effects": [
+            {
+              "set": "tell",
+              "to": "\"allGo\""
+            },
+            {
+              "set": "tellAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "A full go is reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Leadership commits store staffing to a forecast the data cannot support."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the data readiness record for leadership.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Readiness",
+          "criteria": "Online ready; stores not ready (no order links, 9 months of history).",
+          "modelAnswer": "Online returns data meets the forecast's needs; store returns lack order links and a second peak season."
+        },
+        {
+          "label": "Decision",
+          "criteria": "Go for online now; stores capture links from next month.",
+          "modelAnswer": "We start with online warehouses (60% of volume) now; stores begin capturing order links and reasons next month and will be reassessed after the next peak."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (fit == \"volume\") and (plan == \"wait\") and (tell == \"technical\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI Certified Professional in Managing AI (PMI-CPMAI) Examination Content Outline (September 2025): Responsible and Trustworthy AI 15%, Business Needs and Solutions 26%, Data Needs 26%, Model Development and Evaluation 16%, Operationalize 17%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/cpmai/syllabus",
+        "note": "Read 2026-11-17 through a summarizing fetch of a training provider's syllabus page that restates the outline in its own words (PMI's PDF did not come up in search). Restated: data evaluation (assess data quality; analyze distributions for bias or gaps; exploratory data analysis); model governance (lifecycle management, versioning and change control, monitor performance and detect drift). The objective wording here is the course seed's; PMI's own wording is to verify. Reused for REQ-336 from this course's loan-data-bias-pmicpmai (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "fitHarm": {
+      "label": "A forecast that failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and fit == \"impute\"",
+      "narrative": "Imputed labels made the store forecast 35% wrong."
+    },
+    "planHarm": {
+      "label": "Money spent on the wrong data",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and plan == \"scrape\"",
+      "narrative": "The external dataset did not fit Larkfield's stores."
+    },
+    "tellHarm": {
+      "label": "Warehouses overwhelmed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and tell == \"allGo\"",
+      "narrative": "Overstated readiness led stores to staff to a bad forecast."
+    },
+    "target": {
+      "label": "A go decision leadership can trust",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (fit == \"gapAnalysis\") and (plan == \"phase\") and (tell == \"businessTerms\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The model starts where the data is ready, and stores fix their data at the source."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "fitHarm",
+    "planHarm",
+    "tellHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "fitCrit",
+        "label": "Judged readiness against the solution's needs, not data volume",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fit == \"gapAnalysis\"",
+            "score": "met",
+            "why": "Evidence-based."
+          },
+          {
+            "when": "fit == \"volume\"",
+            "score": "partial",
+            "why": "Superficial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fabricated."
+          }
+        ]
+      },
+      {
+        "id": "planCrit",
+        "label": "Planned how to close the gap with owners and dates",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"phase\"",
+            "score": "met",
+            "why": "Practical."
+          },
+          {
+            "when": "plan == \"wait\"",
+            "score": "partial",
+            "why": "Overcautious."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Mismatched."
+          }
+        ]
+      },
+      {
+        "id": "tellCrit",
+        "label": "Conveyed readiness in business terms with its consequences",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "tell == \"businessTerms\"",
+            "score": "met",
+            "why": "Understood."
+          },
+          {
+            "when": "tell == \"technical\"",
+            "score": "partial",
+            "why": "Unclear."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overpromised."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(coverageAt) and not isNull(historyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(coverageAt) or not isNull(historyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Profile the data against the business objective first."
+      },
+      {
+        "at": "Step 1",
+        "text": "Assess readiness against what the model needs."
+      },
+      {
+        "at": "Step 2",
+        "text": "Phase online first and fix store capture."
+      },
+      {
+        "at": "Step 3",
+        "text": "Explain what is ready, how well and when, in business terms."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "fitHarm": {
+        "headline": "Judge readiness honestly",
+        "body": "Map data to the need."
+      },
+      "planHarm": {
+        "headline": "Fix data at the source",
+        "body": "Capture what the model needs."
+      },
+      "tellHarm": {
+        "headline": "Report readiness honestly",
+        "body": "In business terms, with limits."
+      },
+      "target": {
+        "headline": "Good: a go decision leadership can trust",
+        "body": "Readiness against need, a phased plan and business terms."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Data readiness is judged against what the solution needs, mapped to the business objective, not by data volume. Where data falls short, phase the scope and fix capture at the source rather than inventing labels. Report readiness to leaders in business terms: what can be predicted, how well and when."
+  }
+}

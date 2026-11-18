@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ca-policy-targets-arm-provider-feed-fails",
+  "title": "Onboarding day: a new MFA policy leaves Windows App with an empty feed",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "idadmin@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:10 service desk: 37 tickets 'Windows App shows no desktops / feed error' since 07:30; onboarding at 09:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:00: onboarding stalled",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:00: onboarding running",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "ca",
+          "label": "Conditional Access CA-AVD-MFA",
+          "spokenLabel": "the MFA policy",
+          "kind": "grant: require MFA",
+          "status": "{harmed ? \"disabled\" : fixed ? \"targets AVD and Windows Cloud Login\" : \"targets AVD, Windows Cloud Login and the ARM Provider\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "feed",
+          "label": "Azure Virtual Desktop Azure Resource Manager Provider",
+          "spokenLabel": "the feed app",
+          "kind": "retrieves the user feed",
+          "status": "{fixed and not harmed ? \"not targeted, feed loads\" : \"challenged for MFA, feed fails\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "avd",
+          "label": "Azure Virtual Desktop / Windows Cloud Login",
+          "spokenLabel": "the AVD sign-in apps",
+          "kind": "gateway, session host SSO",
+          "status": "{harmed ? \"no MFA\" : fixed ? \"MFA required\" : \"MFA required\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "ca",
+          "to": "feed",
+          "label": "applies to",
+          "status": "{fixed and not harmed ? \"no\" : \"yes (wrong)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Planning and implementing Microsoft Entra Conditional Access policies for connections to Azure Virtual Desktop",
+  "secondaryObjectives": [
+    "Planning and implementing authentication options in Azure Virtual Desktop, including passwordless, smart card, and multifactor authentication"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-140: Configuring and Operating Microsoft Azure Virtual Desktop (page last updated 2026-06-19; skills as of July 20, 2026): plan and implement an Azure Virtual Desktop infrastructure 40-45%, identity and security 15-20%, user environments and apps 20-25%, monitor and maintain 10-15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-140",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there under 'Plan and implement storage for Azure Virtual Desktop user data': 'Implement storage for FSLogix components', 'Implement storage accounts for Azure Virtual Desktop', 'Implement file shares for Azure Virtual Desktop'. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, 'Enforce Microsoft Entra multifactor authentication for Azure Virtual Desktop using Conditional Access'",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/set-up-mfa",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: target 'Azure Virtual Desktop' (app ID 9cdead84-a844-4324-93f2-b2e6bb768d07) and, with single sign-on, 'Windows Cloud Login' (270efc09-cd0d-444b-a71f-39af4910ec45); 'Don't select the app called Azure Virtual Desktop Azure Resource Manager Provider (app ID 50e95039-b200-4007-bc97-8d5790743a63). This app is only used for retrieving the user feed and shouldn't have multifactor authentication'; grant 'Require multifactor authentication'; reauthentication after network disruptions on unstable networks. What users see when the provider app is targeted, and the sign-in log failure wording, are authored renderings of the scenario."
+    }
+  ],
+  "brief": {
+    "situation": "You are the identity and AVD administrator at Merrow Insurance. Yesterday afternoon a colleague created the Conditional Access policy CA-AVD-MFA, requiring MFA for Azure Virtual Desktop, and selected every app whose name contained 'Azure Virtual Desktop'. This morning users who refresh Windows App get an empty or failing workspace feed. 100 new hires start onboarding on AVD at 09:00.",
+    "handover": [
+      "Security requires MFA for all AVD connections; that is not negotiable.",
+      "Single sign-on is enabled on the host pools."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the Conditional Access policy, the three AVD-related apps it can target and the feed users load.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "100 new hires start AVD onboarding at 09:00, 50 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "signinAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "whoAt": {
+      "type": "time",
+      "init": null
+    },
+    "whatifAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "target",
+        "mfa",
+        "client"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "signin",
+        "policy",
+        "who",
+        "whatif",
+        "retarget",
+        "review",
+        "disable",
+        "rereg",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "signin": {
+      "label": "Sign-in logs: failures for the AVD-related apps since 07:00",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(signinAt)",
+          "then": [
+            {
+              "set": "signinAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "idadmin@cloudshell:~$ az rest --method get --url \"https://graph.microsoft.com/v1.0/auditLogs/signIns?$filter=createdDateTime ge 2026-11-17T07:00:00Z and status/errorCode ne 0\" --query \"value[].[appDisplayName,conditionalAccessStatus]\" -o tsv | sort | uniq -c\n{fixed and not harmed ? \"  (no failures in the last 10 minutes)\" : \"  212 Azure Virtual Desktop Azure Resource Manager Provider  failure (CA-AVD-MFA)\n    4 Azure Virtual Desktop  success\"}"
+        },
+        {
+          "finding": "The failures are all on the feed app, the Azure Resource Manager Provider, under the new policy."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "policy": {
+      "label": "Read CA-AVD-MFA's target resources",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(policyAt)",
+          "then": [
+            {
+              "set": "policyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "idadmin@cloudshell:~$ az rest --method get --url https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies/<id> --query \"[state, conditions.applications.includeApplications]\"\n{harmed ? \"disabled\n9cdead84-...\n270efc09-...\n50e95039-...\" : fixed ? \"enabled\n9cdead84-... (Azure Virtual Desktop)\n270efc09-... (Windows Cloud Login)\" : \"enabled\n9cdead84-... (Azure Virtual Desktop)\n270efc09-... (Windows Cloud Login)\n50e95039-... (Azure Virtual Desktop Azure Resource Manager Provider)\"}"
+        },
+        {
+          "finding": "The policy includes the ARM Provider app, which only retrieves the feed and should not have MFA."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "who": {
+      "label": "Which users are affected?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(whoAt)",
+          "then": [
+            {
+              "set": "whoAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "idadmin@cloudshell:~$ sign-in logs: distinct users failing on the feed app since 07:00\n181 users (all AVD users who refreshed today)"
+        },
+        {
+          "finding": "Everyone who refreshed is affected, not a group or a device type."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "whatif": {
+      "label": "Conditional Access What If for a new hire on the three apps",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(whatifAt)",
+          "then": [
+            {
+              "set": "whatifAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "idadmin@cloudshell:~$ What If: user newhire01, app 50e95039 -> CA-AVD-MFA applies (require MFA)\nWhat If: user newhire01, app 9cdead84 -> CA-AVD-MFA applies (require MFA)"
+        },
+        {
+          "finding": "The new hires will hit the same failure."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "retarget": {
+      "label": "Remove the ARM Provider app (50e95039) from CA-AVD-MFA's targets; keep Azure Virtual Desktop and Windows Cloud Login",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "idadmin@cloudshell:~$ az rest --method patch --url https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies/<id> --body @ca-avd-mfa-v2.json   # includeApplications: 9cdead84..., 270efc09...\n(204 No Content)"
+        },
+        {
+          "log": "The feed loads without an MFA challenge, and MFA is still required where it matters: the gateway connection and the session host sign-in.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "review": {
+      "label": "Record the app IDs in the policy's description, and require a What If check for every AVD policy change",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "idadmin@cloudshell:~$ (CA-AVD-MFA description: 'Targets 9cdead84 (AVD) and 270efc09 (Windows Cloud Login) only. Never 50e95039 (feed).')\n(change process: Conditional Access edits for AVD need a What If on the three apps and a pilot group first)"
+        },
+        {
+          "log": "The next editor sees why the feed app is excluded, and policy changes are tested on a pilot before they reach everyone.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "disable": {
+      "label": "Disable CA-AVD-MFA until after onboarding",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "idadmin@cloudshell:~$ az rest --method patch ... --body '{{\"state\": \"disabled\"}}'\n(204 No Content)"
+        },
+        {
+          "log": "Feeds load, and AVD connections now have no MFA at all, against the security requirement, for 100 new accounts on their first day.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "rereg": {
+      "label": "Ask affected users to re-register their MFA methods",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "idadmin@cloudshell:~$ (service desk macro sent: 're-register your Authenticator app')"
+        },
+        {
+          "log": "Their MFA methods were fine; the feed app is still targeted by the policy.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Have a pilot user refresh Windows App and connect; check the sign-in log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "idadmin@cloudshell:~$ pilot: refresh feed, connect to hp-claims; sign-in log (last 5 min)\n{harmed ? \"feed: 3 resources\nAzure Virtual Desktop: success, no MFA (policy disabled)\" : fixed ? \"feed: 3 resources\nAzure Virtual Desktop: success, MFA satisfied\nARM Provider: success, CA not applied\" : \"feed: error\nARM Provider: failure (CA-AVD-MFA)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "target",
+                  "label": "CA-AVD-MFA targeted the ARM Provider feed app, which must not have MFA"
+                },
+                {
+                  "value": "mfa",
+                  "label": "Users' MFA registrations were broken"
+                },
+                {
+                  "value": "client",
+                  "label": "A Windows App update"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: new hires load their feed, pass MFA and connect.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: new hires see empty feeds; onboarding stalls.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why feeds failed after the MFA policy, what you changed, and how MFA stayed in force.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads failures by app.",
+          "modelAnswer": "Sign-in failures were all on the Azure Virtual Desktop Azure Resource Manager Provider, under CA-AVD-MFA. The policy included that app, which only retrieves the feed and should not have MFA."
+        },
+        {
+          "label": "Change",
+          "criteria": "Removes one target.",
+          "modelAnswer": "CA-AVD-MFA now targets only Azure Virtual Desktop and Windows Cloud Login; a pilot's feed loaded and the connection required MFA."
+        },
+        {
+          "label": "MFA kept",
+          "criteria": "Does not trade security for the deadline.",
+          "modelAnswer": "Disabling the policy would have removed MFA for all AVD connections on 100 new hires' first day. The targets are documented and changes need a What If on a pilot first."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "100 new hires start AVD onboarding at 09:00, 50 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: MFA was turned off for all AVD connections."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the feed app still targeted leaves the new hires without desktops at 09:00.",
+      "source": {
+        "cite": "Microsoft Learn, 'Enforce Microsoft Entra multifactor authentication for Azure Virtual Desktop using Conditional Access'",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/azure/virtual-desktop/set-up-mfa",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: target 'Azure Virtual Desktop' (app ID 9cdead84-a844-4324-93f2-b2e6bb768d07) and, with single sign-on, 'Windows Cloud Login' (270efc09-cd0d-444b-a71f-39af4910ec45); 'Don't select the app called Azure Virtual Desktop Azure Resource Manager Provider (app ID 50e95039-b200-4007-bc97-8d5790743a63). This app is only used for retrieving the user feed and shouldn't have multifactor authentication'; grant 'Require multifactor authentication'; reauthentication after network disruptions on unstable networks. What users see when the provider app is targeted, and the sign-in log failure wording, are authored renderings of the scenario."
+      }
+    }
+  },
+  "endings": {
+    "noMfa": {
+      "label": "AVD without MFA",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Disabling the policy fixed the feed and removed MFA from every AVD connection."
+    },
+    "onboardingStalled": {
+      "label": "Onboarding stalled",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 09:00 the policy still targeted the feed app and the new hires' feeds failed."
+    },
+    "retargeted": {
+      "label": "Policy retargeted, MFA kept, change process fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(signinAt) and not isNull(policyAt) and not isNull(verifiedAt) and causeDoc == \"target\"",
+      "narrative": "The feed loads, MFA still guards AVD connections, and the next policy change gets a What If."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Feeds load, but the documentation, the change process, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "noMfa",
+    "onboardingStalled",
+    "retargeted",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read sign-in failures by app and the policy's targets",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(signinAt) and not isNull(policyAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(signinAt) or not isNull(policyAt) or not isNull(whoAt) or not isNull(whatifAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Feeds working by 09:00 with MFA still required",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"MFA was turned off for all AVD connections.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Targets documented, What If required; pilot checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"target\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:10-08:14",
+        "text": "Failures all on the ARM Provider app; policy includes 50e95039; all users affected; What If shows new hires will fail."
+      },
+      {
+        "at": "08:14-08:18",
+        "text": "Remove 50e95039 from the targets; document; What If in the change process."
+      },
+      {
+        "at": "08:18-08:20",
+        "text": "Pilot: feed loads, connection asks for MFA."
+      }
+    ],
+    "debrief": {
+      "noMfa": {
+        "headline": "Fix the target, keep the control",
+        "body": "The policy was right in what it required and wrong in one target. Remove the feed app from it; MFA stays on the apps that need it."
+      },
+      "onboardingStalled": {
+        "headline": "One app too many",
+        "body": "The Azure Resource Manager Provider app only retrieves the feed and should not have MFA. Target Azure Virtual Desktop and Windows Cloud Login only."
+      },
+      "retargeted": {
+        "headline": "Good: precise Conditional Access",
+        "body": "You read the failures by app, found the policy targeted the feed app, removed only that target, checked a pilot connection, and documented the targets with a test step."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Sign-in failures are all on the feed app, the Azure Virtual Desktop Azure Resource Manager Provider, which the new policy includes. Microsoft's guidance is to target Azure Virtual Desktop and Windows Cloud Login and never the provider app. Remove that one target, keep MFA on the others, and check with a pilot. Disabling the policy removes MFA for everyone; MFA re-registration changes nothing. Document the targets and require a What If for changes."
+  }
+}

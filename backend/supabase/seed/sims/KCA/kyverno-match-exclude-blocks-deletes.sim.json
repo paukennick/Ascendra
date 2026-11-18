@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "kyverno-match-exclude-blocks-deletes",
+  "title": "A label policy that blocked deletes, missed a namespace and caught the platform team: match and exclude done right",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "policy@ashgrove:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "tickets: cannot delete Pods in prod-video; payments Pods unlabeled; platform deployer blocked",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineOps",
+          "text": "{ops == \"createUpdate\" ? \"Checks CREATE and UPDATE only\" : ops == \"audit\" ? \"Audit for now\" : ops == \"forceDelete\" ? \"Webhook removed for deletes\" : \"\"}",
+          "when": "ops != \"none\"",
+          "at": "timeAt(opsAt)",
+          "error": "ops == \"forceDelete\""
+        },
+        {
+          "id": "lineSel",
+          "text": "{sel == \"nsSelector\" ? \"namespaceSelector env=prod\" : sel == \"addName\" ? \"payments added by name\" : sel == \"allNs\" ? \"Every namespace matched\" : \"\"}",
+          "when": "sel != \"none\"",
+          "at": "timeAt(selAt)",
+          "error": "sel == \"allNs\""
+        },
+        {
+          "id": "lineExc",
+          "text": "{exc == \"any\" ? \"exclude any: kube-system, or the deployer\" : exc == \"twoPolicies\" ? \"Duplicated policy\" : exc == \"clusterRole\" ? \"Excluded everyone with edit\" : \"\"}",
+          "when": "exc != \"none\"",
+          "at": "timeAt(excAt)",
+          "error": "exc == \"clusterRole\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nOps",
+          "label": "match operations",
+          "spokenLabel": "match operations",
+          "kind": "match block",
+          "status": "{ops == \"createUpdate\" ? \"Checks CREATE and UPDATE only\" : ops == \"audit\" ? \"Audit for now\" : ops == \"forceDelete\" ? \"Webhook removed for deletes\" : \"Waiting\"}",
+          "tone": "ops == \"createUpdate\" ? \"up\" : ops == \"audit\" ? \"degraded\" : ops == \"forceDelete\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSel",
+          "label": "match namespaces",
+          "spokenLabel": "match namespaces",
+          "kind": "match block",
+          "status": "{sel == \"nsSelector\" ? \"namespaceSelector env=prod\" : sel == \"addName\" ? \"payments added by name\" : sel == \"allNs\" ? \"Every namespace matched\" : \"Waiting\"}",
+          "tone": "sel == \"nsSelector\" ? \"up\" : sel == \"addName\" ? \"degraded\" : sel == \"allNs\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nExc",
+          "label": "exclude subjects",
+          "spokenLabel": "exclude subjects",
+          "kind": "exclude block",
+          "status": "{exc == \"any\" ? \"exclude any: kube-system, or the deployer\" : exc == \"twoPolicies\" ? \"Duplicated policy\" : exc == \"clusterRole\" ? \"Excluded everyone with edit\" : \"Waiting\"}",
+          "tone": "exc == \"any\" ? \"up\" : exc == \"twoPolicies\" ? \"degraded\" : exc == \"clusterRole\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nOps",
+          "to": "nSel",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nSel",
+          "to": "nExc",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Select resources with match and exclude: kinds, names, namespaces, selectors, operations, roles and subjects, any and all blocks",
+  "secondaryObjectives": [
+    "Apply policies in the cluster: Audit versus Enforce (the rule's failureAction), background scanning, and the effect on existing resources"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/training/certification/kca/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kyverno documentation, Selecting Resources",
+      "checkedAt": "2026-11-17",
+      "url": "https://kyverno.io/docs/writing-policies/match-exclude",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: any is a logical OR and all a logical AND across resource filters; without an operations list a rule matches CREATE and UPDATE; namespaceSelector selects by namespace labels; conditions in clusterRoles, roles and subjects are ORed."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the policies and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You own the cluster policies at Ashgrove Media, a fictional streaming company. A new ClusterPolicy requires a cost-center label on every Pod in production namespaces. Since it went to Enforce this morning, three teams have filed tickets.",
+    "handover": [
+      "The policy matches Pods in namespaces named prod-* for CREATE, UPDATE and DELETE, and excludes requests where the namespace is kube-system and the subject is the platform deployer (in one all block).",
+      "Production namespaces carry the label env=prod; the new payments namespace has the label but not the prod- prefix."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-12T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "ops": {
+      "type": "enum",
+      "values": [
+        "none",
+        "createUpdate",
+        "audit",
+        "forceDelete"
+      ],
+      "init": "none"
+    },
+    "opsAt": {
+      "type": "time",
+      "init": null
+    },
+    "sel": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nsSelector",
+        "addName",
+        "allNs"
+      ],
+      "init": "none"
+    },
+    "selAt": {
+      "type": "time",
+      "init": null
+    },
+    "exc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "any",
+        "twoPolicies",
+        "clusterRole"
+      ],
+      "init": "none"
+    },
+    "excAt": {
+      "type": "time",
+      "init": null
+    },
+    "polAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((ops == \"forceDelete\") ? 1 : 0) + ((sel == \"allNs\") ? 1 : 0) + ((exc == \"clusterRole\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(ops == \"none\" or (ops == \"forceDelete\") ? 1 : 0) + (sel == \"none\" or (sel == \"allNs\") ? 1 : 0) + (exc == \"none\" or (exc == \"clusterRole\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The policy fix",
+      "clock": "turns",
+      "actions": [
+        "pol",
+        "report"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pol": {
+      "label": "kubectl get clusterpolicy require-cost-center -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(polAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "polAt",
+          "to": "t"
+        },
+        {
+          "output": "match: any: resources kinds Pod, namespaces prod-*, operations [CREATE, UPDATE, DELETE]\nexclude: all: namespaces kube-system AND subjects platform-deployer"
+        },
+        {
+          "log": "You read the policy's match and exclude blocks.",
+          "kind": "act"
+        },
+        {
+          "finding": "match lists DELETE among its operations (without an operations list a rule matches only CREATE and UPDATE), so deletes are checked too; selection is by name prefix, not the env label; exclude uses all, so it only skips requests that are both in kube-system and by the deployer."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "report": {
+      "label": "kubectl get policyreport -A | grep require-cost-center",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(reportAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "reportAt",
+          "to": "t"
+        },
+        {
+          "output": "prod-video: fail 14 (DELETE requests blocked)\npayments: (no results)\nplatform-tools: fail 6 (platform deployer)"
+        },
+        {
+          "log": "You read the policy report.",
+          "kind": "act"
+        },
+        {
+          "finding": "Deletes of old unlabeled Pods are denied, payments is never evaluated, and the platform deployer is blocked outside kube-system."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Operations limited to CREATE and UPDATE, production selected by its label, and exclusions in an any block"
+                },
+                {
+                  "value": "summary",
+                  "label": "Policy adjusted"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "ops == \"forceDelete\"",
+              "then": [
+                {
+                  "log": "Check-in 2: with the webhook configuration removed for a delete, unrelated security policies stop applying for 40 minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "sel == \"allNs\"",
+              "then": [
+                {
+                  "log": "Check-in 3: CoreDNS restarts during a node update and its new Pods are denied; DNS fails across the cluster.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "exc == \"clusterRole\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the cost report shows 300 new unlabeled Pods created by developers with edit, all exempt.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The policy review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_ops",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: on-call can't delete a broken Pod.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "opsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sel",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: payments is unchecked.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "selPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_exc",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the platform deployer is still blocked.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "excPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "opsPrompt": {
+      "title": "Deletes are being blocked",
+      "context": "A crash-looping, unlabeled Pod in prod-video cannot be deleted.",
+      "choices": [
+        {
+          "id": "createUpdate",
+          "label": "Remove DELETE from the match's operations, leaving CREATE and UPDATE, so deletes are never evaluated",
+          "effects": [
+            {
+              "set": "ops",
+              "to": "\"createUpdate\""
+            },
+            {
+              "set": "opsAt",
+              "to": "t"
+            },
+            {
+              "log": "Only creates and updates are checked.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A label requirement is about what is created or changed; checking deletes only traps old resources."
+        },
+        {
+          "id": "audit",
+          "label": "Switch the policy to Audit until the rest is sorted",
+          "effects": [
+            {
+              "set": "ops",
+              "to": "\"audit\""
+            },
+            {
+              "set": "opsAt",
+              "to": "t"
+            },
+            {
+              "log": "The policy goes to Audit.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Deletes work again, but nothing is enforced while you fix the selection."
+        },
+        {
+          "id": "forceDelete",
+          "label": "Tell on-call to remove Kyverno's webhook configuration when they need to delete",
+          "effects": [
+            {
+              "set": "ops",
+              "to": "\"forceDelete\""
+            },
+            {
+              "set": "opsAt",
+              "to": "t"
+            },
+            {
+              "log": "On-call is told to remove the webhook configuration.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Removing the webhook disables every policy in the cluster, not just this rule."
+        }
+      ]
+    },
+    "selPrompt": {
+      "title": "payments is never evaluated",
+      "context": "Production namespaces are labeled env=prod; payments has the label but not the prefix.",
+      "choices": [
+        {
+          "id": "nsSelector",
+          "label": "Replace the name pattern with a namespaceSelector on env=prod",
+          "effects": [
+            {
+              "set": "sel",
+              "to": "\"nsSelector\""
+            },
+            {
+              "set": "selAt",
+              "to": "t"
+            },
+            {
+              "log": "Every namespace labeled env=prod is in scope.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Selecting by the label the organization uses catches new production namespaces whatever their name."
+        },
+        {
+          "id": "addName",
+          "label": "Add payments to the namespaces list",
+          "effects": [
+            {
+              "set": "sel",
+              "to": "\"addName\""
+            },
+            {
+              "set": "selAt",
+              "to": "t"
+            },
+            {
+              "log": "payments is added by name.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "payments is covered, but the next production namespace will be missed again."
+        },
+        {
+          "id": "allNs",
+          "label": "Remove the namespace match so every namespace is in scope",
+          "effects": [
+            {
+              "set": "sel",
+              "to": "\"allNs\""
+            },
+            {
+              "set": "selAt",
+              "to": "t"
+            },
+            {
+              "log": "Every namespace is matched.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "kube-system and other system Pods have no cost-center label; their next restart is denied."
+        }
+      ]
+    },
+    "excPrompt": {
+      "title": "An all block that excludes almost nothing",
+      "context": "The deployer should be exempt everywhere; kube-system should be exempt for everyone.",
+      "choices": [
+        {
+          "id": "any",
+          "label": "Change exclude to an any block with two entries: namespaces kube-system, and subjects platform-deployer",
+          "effects": [
+            {
+              "set": "exc",
+              "to": "\"any\""
+            },
+            {
+              "set": "excAt",
+              "to": "t"
+            },
+            {
+              "log": "Either condition now excludes a request.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "all requires every condition at once; any excludes a request that meets either."
+        },
+        {
+          "id": "twoPolicies",
+          "label": "Make a second copy of the policy for the platform namespaces without the requirement",
+          "effects": [
+            {
+              "set": "exc",
+              "to": "\"twoPolicies\""
+            },
+            {
+              "set": "excAt",
+              "to": "t"
+            },
+            {
+              "log": "A duplicate policy is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but two copies drift apart over time."
+        },
+        {
+          "id": "clusterRole",
+          "label": "Exclude the clusterRole edit, which the deployer has",
+          "effects": [
+            {
+              "set": "exc",
+              "to": "\"clusterRole\""
+            },
+            {
+              "set": "excAt",
+              "to": "t"
+            },
+            {
+              "log": "Everyone with edit is excluded.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every developer has edit: the policy now exempts almost all the people it was meant for."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: what the policy's match and exclude blocks did wrong, and what they select now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Match",
+          "criteria": "DELETE in the operations list meant deletes were checked; a name prefix missed payments; now CREATE and UPDATE with a namespaceSelector on env=prod.",
+          "modelAnswer": "With DELETE in its operations the rule checked deletes; it matched names, so payments was missed. It now checks CREATE and UPDATE on namespaces labeled env=prod."
+        },
+        {
+          "label": "Exclude",
+          "criteria": "all required both conditions; any excludes either kube-system or the deployer.",
+          "modelAnswer": "The all block only excluded the deployer inside kube-system; an any block now excludes either one."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (ops == \"audit\") and (sel == \"addName\") and (exc == \"twoPolicies\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Kyverno Certified Associate (KCA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cncf.io/training/certification/kca/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Fundamentals of Kyverno 18%, Installation, Configuration, and Upgrades 18%, Kyverno CLI 12%, Applying Policies 10%, Writing Policies 32%, Policy Management 10%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "opsHarm": {
+      "label": "Every policy disabled",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and ops == \"forceDelete\"",
+      "narrative": "Removing Kyverno's webhook configuration to delete one Pod disabled every policy in the cluster for 40 minutes."
+    },
+    "selHarm": {
+      "label": "System Pods denied",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sel == \"allNs\"",
+      "narrative": "Matching every namespace denied CoreDNS's replacement Pods; DNS failed across the cluster."
+    },
+    "excHarm": {
+      "label": "The policy exempted nearly everyone",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and exc == \"clusterRole\"",
+      "narrative": "Excluding the edit clusterRole exempted every developer; 300 unlabeled Pods appeared."
+    },
+    "target": {
+      "label": "A policy that selects what it means",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (ops == \"createUpdate\") and (sel == \"nsSelector\") and (exc == \"any\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The cost-center rule now applies to every production Pod on create and update, and to nobody it shouldn't."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "opsHarm",
+    "selHarm",
+    "excHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "opsCrit",
+        "label": "Limited the rule to the operations it should check",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "ops == \"createUpdate\"",
+            "score": "met",
+            "why": "Right operations."
+          },
+          {
+            "when": "ops == \"audit\"",
+            "score": "partial",
+            "why": "Relieved, not fixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Disabled all policies."
+          }
+        ]
+      },
+      {
+        "id": "selCrit",
+        "label": "Selected production by its label, not by a name pattern",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sel == \"nsSelector\"",
+            "score": "met",
+            "why": "Selected by label."
+          },
+          {
+            "when": "sel == \"addName\"",
+            "score": "partial",
+            "why": "Patched by name."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Matched system namespaces."
+          }
+        ]
+      },
+      {
+        "id": "excCrit",
+        "label": "Wrote the exclusions as separate conditions in an any block",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "exc == \"any\"",
+            "score": "met",
+            "why": "any, not all."
+          },
+          {
+            "when": "exc == \"twoPolicies\"",
+            "score": "partial",
+            "why": "Works by duplication."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Excluded too broadly."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(polAt) and not isNull(reportAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(polAt) or not isNull(reportAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the policy's match and exclude blocks and its policy report first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Match only CREATE and UPDATE."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Select production with a namespaceSelector on env=prod."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Use an any block with the namespace and the subject as separate entries."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "opsHarm": {
+        "headline": "Fix the rule's operations",
+        "body": "Match CREATE and UPDATE for a label requirement; never remove the webhook."
+      },
+      "selHarm": {
+        "headline": "Select what you mean",
+        "body": "Use a namespaceSelector for production; never sweep system namespaces into an Enforce rule."
+      },
+      "excHarm": {
+        "headline": "Exclude exactly who you mean",
+        "body": "Name the subject and the namespace in an any block."
+      },
+      "target": {
+        "headline": "Good: a policy that selects what it means",
+        "body": "Operations, selectors and exclusions match the intent."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A rule's match and exclude blocks decide what it sees. Listing DELETE in its operations makes it evaluate deletes too, trapping old resources; without an operations list a rule matches CREATE and UPDATE only. Select by the labels the organization uses (a namespaceSelector on env=prod) rather than name patterns. In match and exclude, any is satisfied by one entry and all needs every entry at once, so separate exclusions go in an any block, and excluding a broad role exempts everyone who has it."
+  }
+}

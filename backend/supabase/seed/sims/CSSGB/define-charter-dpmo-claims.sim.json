@@ -1,0 +1,1067 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "define-charter-dpmo-claims",
+  "title": "Defining an improvement project for insurance claims: the charter, the defect metrics and the scope",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "claims_defects_last_month",
+      "flags": [
+        {
+          "id": "fProb",
+          "label": "Problem statement and scope",
+          "text": "{prob == \"specific\" ? \"Measurable problem and scope\" : prob == \"broad\" ? \"Broad and unmeasured\" : prob == \"solution\" ? \"Solution in the problem\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fMetric",
+          "label": "Primary and consequential metrics",
+          "text": "{metric == \"dpmo\" ? \"DPMO primary; cycle time consequential\" : metric == \"dpu\" ? \"DPU only\" : metric == \"count\" ? \"Complaints only\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "info"
+        },
+        {
+          "id": "fRisk",
+          "label": "Plan and risks",
+          "text": "{risk == \"plan\" ? \"Plan with tollgates and risks\" : risk == \"datesOnly\" ? \"End date only\" : risk == \"noPlan\" ? \"No plan or risks\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "info"
+        },
+        {
+          "id": "iData",
+          "label": "Pull last month's defect data",
+          "text": "2,000 claims, 5 opportunities each, 380 defects: DPU 0.19, DPMO 38,000; 310 claims had at least one defect.",
+          "when": "not isNull(dataAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iOwner",
+          "label": "Interview the process owner",
+          "text": "Payment errors drive complaints; missing documents drive most rework hours.",
+          "when": "not isNull(ownerAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rProb",
+              "cells": [
+                "Charter: problem statement",
+                "{prob == \"specific\" ? \"Measurable problem and scope\" : prob == \"broad\" ? \"Broad and unmeasured\" : prob == \"solution\" ? \"Solution in the problem\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "prob == \"solution\""
+            },
+            {
+              "id": "rMetric",
+              "cells": [
+                "Charter: metrics",
+                "{metric == \"dpmo\" ? \"DPMO primary; cycle time consequential\" : metric == \"dpu\" ? \"DPU only\" : metric == \"count\" ? \"Complaints only\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "metric == \"count\""
+            },
+            {
+              "id": "rRisk",
+              "cells": [
+                "Charter: plan and risks",
+                "{risk == \"plan\" ? \"Plan with tollgates and risks\" : risk == \"datesOnly\" ? \"End date only\" : risk == \"noPlan\" ? \"No plan or risks\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "risk == \"noPlan\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Review",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Writing a project charter: problem statement, scope, primary and consequential metrics, plan and risks",
+  "secondaryObjectives": [
+    "Calculating process performance metrics: defects per unit, defects per million opportunities, rolled throughput yield and the cost of poor quality"
+  ],
+  "sources": [
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+      "checkedAt": "2026-11-16",
+      "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+      "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar chart UCL = x-double-bar + A2 R-bar, center line x-double-bar, LCL = x-double-bar - A2 R-bar; R chart UCL = R-bar D4, center line R-bar, LCL = R-bar D3; A2 = 3/(d2 sqrt(n)). The factor values used (A2 = 0.577, D3 = 0, D4 = 2.114 for subgroups of 5) are the standard table values and were not on the fetched page; the limits in the case (R-bar 3.1 g: 500.2 to 503.8 g, R up to 6.55 g) are computed from them. Reused for REQ-336 from this course's cssgb-fill-weight-chart (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the improvement lead for claims processing at a fictional insurer, Harlow Mutual. The champion wants 'claims fixed' and has given you a team for 16 weeks.",
+    "handover": [
+      "Last month: 2,000 claims; 380 defects found across 5 checks per claim (missing documents, wrong codes, late letters, payment errors, wrong addresses).",
+      "Rework costs about 45 dollars per defect."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a review at a time. A decision comes to you at each tollgate; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owner": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "prob": {
+      "type": "enum",
+      "values": [
+        "none",
+        "specific",
+        "broad",
+        "solution"
+      ],
+      "init": "none"
+    },
+    "probAt": {
+      "type": "time",
+      "init": null
+    },
+    "metric": {
+      "type": "enum",
+      "values": [
+        "none",
+        "dpmo",
+        "dpu",
+        "count"
+      ],
+      "init": "none"
+    },
+    "metricAt": {
+      "type": "time",
+      "init": null
+    },
+    "risk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "plan",
+        "datesOnly",
+        "noPlan"
+      ],
+      "init": "none"
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "dataAt": {
+      "type": "time",
+      "init": null
+    },
+    "ownerAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, owner), team)"
+    },
+    "missCount": {
+      "expr": "((prob == \"solution\") ? 1 : 0) + ((metric == \"count\") ? 1 : 0) + ((risk == \"noPlan\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(prob == \"none\" or (prob == \"solution\") ? 1 : 0) + (metric == \"none\" or (metric == \"count\") ? 1 : 0) + (risk == \"none\" or (risk == \"noPlan\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Define phase",
+      "clock": "turns",
+      "actions": [
+        "data",
+        "owner"
+      ]
+    },
+    "close": {
+      "label": "Tollgate record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "data": {
+      "label": "Pull last month's defect data",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dataAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dataAt",
+          "to": "t"
+        },
+        {
+          "log": "Pull last month's defect data.",
+          "kind": "act"
+        },
+        {
+          "finding": "2,000 claims, 5 opportunities each, 380 defects: DPU 0.19, DPMO 38,000; 310 claims had at least one defect."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "owner": {
+      "label": "Interview the process owner",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(ownerAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "ownerAt",
+          "to": "t"
+        },
+        {
+          "log": "Interview the process owner.",
+          "kind": "act"
+        },
+        {
+          "finding": "Payment errors drive complaints; missing documents drive most rework hours."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A measured problem statement and scope, DPMO with yield and a consequential metric, and a tollgate plan with risks"
+                },
+                {
+                  "value": "summary",
+                  "label": "Charter signed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "prob == \"solution\"",
+              "then": [
+                {
+                  "log": "Day 2: the team spends weeks on system requirements; the defects' causes are never measured.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "metric == \"count\"",
+              "then": [
+                {
+                  "log": "Day 3: the team cuts complaints by speeding replies, while payment errors stay at the same rate.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "risk == \"noPlan\"",
+              "then": [
+                {
+                  "log": "Day 4: in peak season the team is pulled back to claims for three weeks; the project stalls with no agreed response.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Define tollgate is reached.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_prob",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the charter.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "probPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_metric",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: metrics.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "metricPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_risk",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: plan and risks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "riskPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "probPrompt": {
+      "title": "What problem?",
+      "context": "The champion's words: 'claims are a mess'.",
+      "choices": [
+        {
+          "id": "specific",
+          "label": "Problem statement with data: 380 defects in 2,000 claims last month (DPMO 38,000), costing about 17,000 dollars in rework; scope: motor claims from receipt to payment",
+          "effects": [
+            {
+              "set": "prob",
+              "to": "\"specific\""
+            },
+            {
+              "set": "probAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "A measurable charter is drafted.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A charter's problem statement is specific and measured, with a clear scope."
+        },
+        {
+          "id": "broad",
+          "label": "Problem: 'claims quality is poor', scope all claim types",
+          "effects": [
+            {
+              "set": "prob",
+              "to": "\"broad\""
+            },
+            {
+              "set": "probAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "A broad charter.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Too broad to finish in 16 weeks and nothing to measure against."
+        },
+        {
+          "id": "solution",
+          "label": "Problem: 'we need a new claims system'",
+          "effects": [
+            {
+              "set": "prob",
+              "to": "\"solution\""
+            },
+            {
+              "set": "probAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "A solution-as-problem charter.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A charter that states a solution skips the analysis."
+        }
+      ]
+    },
+    "metricPrompt": {
+      "title": "What to measure",
+      "context": "Each claim has 5 defect opportunities.",
+      "choices": [
+        {
+          "id": "dpmo",
+          "label": "Primary metric DPMO (38,000 baseline), with first-pass yield (1,690 of 2,000 = 84.5%) and a consequential metric: claim cycle time must not rise",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"dpmo\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "1"
+            },
+            {
+              "log": "Metrics and baseline are set.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "DPMO normalizes defects by opportunities; a consequential metric guards against side effects."
+        },
+        {
+          "id": "dpu",
+          "label": "Use DPU only",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"dpu\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-1"
+            },
+            {
+              "log": "DPU 0.19.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "DPU ignores opportunities and there's no guard metric."
+        },
+        {
+          "id": "count",
+          "label": "Use the number of complaints",
+          "effects": [
+            {
+              "set": "metric",
+              "to": "\"count\""
+            },
+            {
+              "set": "metricAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-2"
+            },
+            {
+              "log": "Complaints counted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Complaints are a lagging fraction of defects."
+        }
+      ]
+    },
+    "riskPrompt": {
+      "title": "Charter plan and risks",
+      "context": "The claims team is in peak season in weeks 8 to 10.",
+      "choices": [
+        {
+          "id": "plan",
+          "label": "A DMAIC plan with tollgate dates, team roles, and risks (peak season pulls the team in weeks 8 to 10; data access) with mitigations",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"plan\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "The plan and risks are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A charter includes the plan and risks so the champion can support it."
+        },
+        {
+          "id": "datesOnly",
+          "label": "Add an end date only",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"datesOnly\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "End date only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "No tollgates or risks to manage."
+        },
+        {
+          "id": "noPlan",
+          "label": "Skip plan and risks; start measuring",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"noPlan\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "No plan.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Peak season hits the team unplanned."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the Define tollgate summary for the champion.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Problem and metrics",
+          "criteria": "380 defects in 2,000 claims, DPMO 38,000, about 17,000 dollars of rework; first-pass yield 84.5%; cycle time as the guard.",
+          "modelAnswer": "Motor claims had 380 defects in 2,000 claims last month: DPMO 38,000, first-pass yield 84.5%, about 17,000 dollars of rework."
+        },
+        {
+          "label": "Plan",
+          "criteria": "Tollgates, roles, peak-season risk mitigated.",
+          "modelAnswer": "The plan sets tollgate dates and roles; we mitigate the peak-season risk by front-loading measurement."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (prob == \"broad\") and (metric == \"dpu\") and (risk == \"datesOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 6.3.2.1 Shewhart X-bar and R and S Control Charts",
+        "checkedAt": "2026-11-16",
+        "url": "https://itl.nist.gov/div898/handbook/pmc/section3/pmc321.htm",
+        "note": "Read through a summarizing fetch 2026-11-16. Relevant text: X-bar chart UCL = x-double-bar + A2 R-bar, center line x-double-bar, LCL = x-double-bar - A2 R-bar; R chart UCL = R-bar D4, center line R-bar, LCL = R-bar D3; A2 = 3/(d2 sqrt(n)). The factor values used (A2 = 0.577, D3 = 0, D4 = 2.114 for subgroups of 5) are the standard table values and were not on the fetched page; the limits in the case (R-bar 3.1 g: 500.2 to 503.8 g, R up to 6.55 g) are computed from them. Reused for REQ-336 from this course's cssgb-fill-weight-chart (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "probHarm": {
+      "label": "Analysis skipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and prob == \"solution\"",
+      "narrative": "The charter assumed a new system; the defects' causes were never studied."
+    },
+    "metricHarm": {
+      "label": "The wrong number improved",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and metric == \"count\"",
+      "narrative": "The team improved complaint handling while defects didn't change."
+    },
+    "riskHarm": {
+      "label": "A stalled project",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and risk == \"noPlan\"",
+      "narrative": "Peak season pulled the team away with no mitigation agreed."
+    },
+    "target": {
+      "label": "A charter the team can deliver",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (prob == \"specific\") and (metric == \"dpmo\") and (risk == \"plan\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The project starts with a measured problem, the right metrics and a realistic plan."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "probHarm",
+    "metricHarm",
+    "riskHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "probCrit",
+        "label": "Wrote a specific, measurable problem statement and scope",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "prob == \"specific\"",
+            "score": "met",
+            "why": "Measurable."
+          },
+          {
+            "when": "prob == \"broad\"",
+            "score": "partial",
+            "why": "Vague."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Jumped to a solution."
+          }
+        ]
+      },
+      {
+        "id": "metricCrit",
+        "label": "Calculated the right performance metrics with a consequential metric",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "metric == \"dpmo\"",
+            "score": "met",
+            "why": "Right metrics."
+          },
+          {
+            "when": "metric == \"dpu\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong metric."
+          }
+        ]
+      },
+      {
+        "id": "riskCrit",
+        "label": "Included a plan with tollgates and charter risks",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "risk == \"plan\"",
+            "score": "met",
+            "why": "Planned."
+          },
+          {
+            "when": "risk == \"datesOnly\"",
+            "score": "partial",
+            "why": "Thin."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unplanned."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(dataAt) and not isNull(ownerAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(dataAt) or not isNull(ownerAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Pull the defect data and talk to the process owner first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Write a measured problem statement with a bounded scope."
+      },
+      {
+        "at": "Day 2",
+        "text": "Use DPMO as primary with yield and a consequential cycle-time metric."
+      },
+      {
+        "at": "Day 3",
+        "text": "Add a tollgate plan, roles and risks with mitigations."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "probHarm": {
+        "headline": "State the problem, not a solution",
+        "body": "Measured problem, clear scope."
+      },
+      "metricHarm": {
+        "headline": "Measure defects properly",
+        "body": "DPMO with a consequential metric."
+      },
+      "riskHarm": {
+        "headline": "Plan and risks in the charter",
+        "body": "Tollgates, roles and risks."
+      },
+      "target": {
+        "headline": "Good: a charter the team can deliver",
+        "body": "Problem, metrics, plan and risks in the charter."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A project charter states a specific, measured problem (not a solution), a bounded scope, a primary metric with a consequential one, a plan with tollgates and its risks. Defects per million opportunities = defects / (units x opportunities) x 1,000,000; here 380 / (2,000 x 5) x 1,000,000 = 38,000."
+  }
+}

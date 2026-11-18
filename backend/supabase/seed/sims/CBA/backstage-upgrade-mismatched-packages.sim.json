@@ -1,0 +1,1017 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "backstage-upgrade-mismatched-packages",
+  "title": "A Backstage upgrade that broke the build: aligned packages, real type errors and a clean image",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dev@tallowmere:~/portal$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "CI: yarn tsc failed: 41 errors in plugins/ and packages/app",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineAlign",
+          "text": "{align == \"bump\" ? \"Aligned on one release by versions:bump\" : align == \"pinBack\" ? \"Plugin pinned back; upgrade deferred\" : align == \"nuke\" ? \"Lockfile regenerated: hundreds of untested upgrades\" : \"\"}",
+          "when": "align != \"none\"",
+          "at": "timeAt(alignAt)",
+          "error": "align == \"nuke\""
+        },
+        {
+          "id": "lineTypes",
+          "text": "{types == \"fix\" ? \"Route bound; yarn tsc clean\" : types == \"tsIgnore\" ? \"Suppressed with a ticket\" : types == \"skipTsc\" ? \"Type check removed from CI\" : \"\"}",
+          "when": "types != \"none\"",
+          "at": "timeAt(typesAt)",
+          "error": "types == \"skipTsc\""
+        },
+        {
+          "id": "lineImage",
+          "text": "{image == \"multi\" ? \"Multi-stage image; secrets at runtime\" : image == \"hostBuild\" ? \"Host build from a laptop\" : image == \"bakeSecrets\" ? \"Tokens baked into the image\" : \"\"}",
+          "when": "image != \"none\"",
+          "at": "timeAt(imageAt)",
+          "error": "image == \"bakeSecrets\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nAlign",
+          "label": "Yarn workspace dependencies",
+          "spokenLabel": "Yarn workspace dependencies",
+          "kind": "lockfile",
+          "status": "{align == \"bump\" ? \"Aligned on one release by versions:bump\" : align == \"pinBack\" ? \"Plugin pinned back; upgrade deferred\" : align == \"nuke\" ? \"Lockfile regenerated: hundreds of untested upgrades\" : \"Waiting\"}",
+          "tone": "align == \"bump\" ? \"up\" : align == \"pinBack\" ? \"degraded\" : align == \"nuke\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nTypes",
+          "label": "yarn tsc",
+          "spokenLabel": "yarn tsc",
+          "kind": "type check",
+          "status": "{types == \"fix\" ? \"Route bound; yarn tsc clean\" : types == \"tsIgnore\" ? \"Suppressed with a ticket\" : types == \"skipTsc\" ? \"Type check removed from CI\" : \"Waiting\"}",
+          "tone": "types == \"fix\" ? \"up\" : types == \"tsIgnore\" ? \"degraded\" : types == \"skipTsc\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nImage",
+          "label": "backend container image",
+          "spokenLabel": "backend container image",
+          "kind": "Docker image",
+          "status": "{image == \"multi\" ? \"Multi-stage image; secrets at runtime\" : image == \"hostBuild\" ? \"Host build from a laptop\" : image == \"bakeSecrets\" ? \"Tokens baked into the image\" : \"Waiting\"}",
+          "tone": "image == \"multi\" ? \"up\" : image == \"hostBuild\" ? \"degraded\" : image == \"bakeSecrets\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nAlign",
+          "to": "nTypes",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nTypes",
+          "to": "nImage",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Download and install dependencies for a Backstage project with NPM/Yarn: Yarn workspaces, the lockfile, backstage-cli versions:bump and keeping @backstage packages aligned",
+  "secondaryObjectives": [
+    "Compile a Backstage project with TypeScript: yarn tsc, type checking across packages, and common type errors in plugins",
+    "Use Docker to build a container image of a Backstage project: yarn build:backend, the Dockerfile the CLI generates, host versus multi-stage builds and runtime configuration"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://cncf.io/training/certification/cba",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Backstage documentation, Keeping Backstage Updated",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/getting-started/keeping-backstage-updated",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: yarn backstage-cli versions:bump bumps all @backstage packages to the latest release on the main line (monthly), and bumping them together maintains the dependencies between them."
+    },
+    {
+      "cite": "Backstage documentation, Composability System",
+      "checkedAt": "2026-11-17",
+      "url": "https://backstage.io/docs/next/plugins/composability",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a plugin's external routes (createExternalRouteRef) are bound once at app startup with bindRoutes in createApp, in the app's App.tsx."
+    },
+    {
+      "cite": "GrokDevOps wiki, Backstage footguns",
+      "checkedAt": "2026-11-17",
+      "url": "https://grokdatum.github.io/grokdevops-wiki/library/topics/backstage/footguns",
+      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. The default scaffold uses an in-memory SQLite database, so catalog data is lost on restart (use database.client pg outside development); unpinned plugins break after a core upgrade (check versions, upgrade on a cadence); secrets belong in environment variable substitution from Kubernetes Secrets or a secrets manager, never committed in app-config."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the repositories, the services and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the internal developer portal at Tallowmere, a fictional insurer. A teammate upgraded one community plugin to its newest version on Friday; since then yarn tsc fails in CI and the portal cannot be released. A security fix in the backend must ship today.",
+    "handover": [
+      "The repo is a Yarn workspaces monorepo: packages/app, packages/backend and plugins/.",
+      "The plugin's newest version depends on @backstage packages one release newer than the rest of the app."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "align": {
+      "type": "enum",
+      "values": [
+        "none",
+        "bump",
+        "pinBack",
+        "nuke"
+      ],
+      "init": "none"
+    },
+    "alignAt": {
+      "type": "time",
+      "init": null
+    },
+    "types": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fix",
+        "tsIgnore",
+        "skipTsc"
+      ],
+      "init": "none"
+    },
+    "typesAt": {
+      "type": "time",
+      "init": null
+    },
+    "image": {
+      "type": "enum",
+      "values": [
+        "none",
+        "multi",
+        "hostBuild",
+        "bakeSecrets"
+      ],
+      "init": "none"
+    },
+    "imageAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "tscAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((align == \"nuke\") ? 1 : 0) + ((types == \"skipTsc\") ? 1 : 0) + ((image == \"bakeSecrets\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(align == \"none\" or (align == \"nuke\") ? 1 : 0) + (types == \"none\" or (types == \"skipTsc\") ? 1 : 0) + (image == \"none\" or (image == \"bakeSecrets\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The upgrade",
+      "clock": "turns",
+      "actions": [
+        "why",
+        "tsc"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "why": {
+      "label": "yarn why @backstage/core-plugin-api",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(whyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "output": "@backstage/core-plugin-api@1.9.4 (packages/app)\n@backstage/core-plugin-api@1.10.1 (via the upgraded plugin)"
+        },
+        {
+          "log": "You check which versions are installed.",
+          "kind": "act"
+        },
+        {
+          "finding": "Two versions of @backstage/core-plugin-api are installed: the app's release and the newer one the upgraded plugin brought in. Mixed releases give duplicate API refs and type errors."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "tsc": {
+      "label": "yarn tsc 2>&1 | head",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(tscAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "tscAt",
+          "to": "t"
+        },
+        {
+          "output": "plugins/claims-status/src/api.ts(14,3): error TS2322: Type 'FetchApi' is not assignable to type 'FetchApi'\npackages/app/src/App.tsx(52,7): error TS2741: Property 'routeRef' is missing"
+        },
+        {
+          "log": "You read the first type errors.",
+          "kind": "act"
+        },
+        {
+          "finding": "The errors are the two releases' types disagreeing, plus one real change: the newer plugin needs a routeRef that the app's route binding does not pass."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Two @backstage releases found and aligned with versions:bump, the route binding fixed, and a clean image with runtime secrets"
+                },
+                {
+                  "value": "summary",
+                  "label": "Upgrade done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "align == \"nuke\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the regenerated lockfile pulled 300 new versions; the backend starts but the catalog's database driver now fails at runtime.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "types == \"skipTsc\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the release goes out; the claims-status page crashes for every user who opens it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "image == \"bakeSecrets\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the image is in the shared registry; the GitHub token inside it has to be revoked and every integration re-keyed.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_align",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the release needs a green build today.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "alignPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_types",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: one type error remains after alignment.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "typesPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_image",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: time to build the release image.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "imagePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "alignPrompt": {
+      "title": "Two @backstage releases installed",
+      "context": "The app is on one Backstage release and the upgraded plugin on the next. The security fix must ship today.",
+      "choices": [
+        {
+          "id": "bump",
+          "label": "Run yarn backstage-cli versions:bump to move every @backstage package to the same release, then yarn install and yarn tsc",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"bump\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "log": "Every @backstage package is on one release; the lockfile changes together.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "versions:bump moves all @backstage packages together, which is what keeps their APIs and types compatible."
+        },
+        {
+          "id": "pinBack",
+          "label": "Pin the plugin back to its previous version for today and plan the full upgrade for next sprint",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"pinBack\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "log": "The plugin goes back to its old version.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "That is safe for today's fix, but the upgrade still has to be done as a whole release later."
+        },
+        {
+          "id": "nuke",
+          "label": "Delete yarn.lock and run yarn install so everything resolves to the newest versions",
+          "effects": [
+            {
+              "set": "align",
+              "to": "\"nuke\""
+            },
+            {
+              "set": "alignAt",
+              "to": "t"
+            },
+            {
+              "log": "The lockfile is regenerated from scratch.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Deleting the lockfile upgrades every transitive dependency at once, untested, on the day a security fix must ship."
+        }
+      ]
+    },
+    "typesPrompt": {
+      "title": "The plugin's route binding",
+      "context": "After alignment, one error remains: the plugin now requires a routeRef binding in App.tsx.",
+      "choices": [
+        {
+          "id": "fix",
+          "label": "Bind the plugin's external route in App.tsx as its upgrade notes describe, and run yarn tsc until it is clean",
+          "effects": [
+            {
+              "set": "types",
+              "to": "\"fix\""
+            },
+            {
+              "set": "typesAt",
+              "to": "t"
+            },
+            {
+              "log": "The route is bound; yarn tsc passes.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The type error was a real API change; fixing it is what keeps the page from failing at runtime."
+        },
+        {
+          "id": "tsIgnore",
+          "label": "Add // @ts-expect-error on the line and open a ticket",
+          "effects": [
+            {
+              "set": "types",
+              "to": "\"tsIgnore\""
+            },
+            {
+              "set": "typesAt",
+              "to": "t"
+            },
+            {
+              "log": "The error is suppressed; a ticket is open.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It is visible and tracked, but the claims page will fail when someone clicks the link."
+        },
+        {
+          "id": "skipTsc",
+          "label": "Remove yarn tsc from CI so the build goes green",
+          "effects": [
+            {
+              "set": "types",
+              "to": "\"skipTsc\""
+            },
+            {
+              "set": "typesAt",
+              "to": "t"
+            },
+            {
+              "log": "CI no longer type-checks.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without the type check, the next mismatch reaches production unseen."
+        }
+      ]
+    },
+    "imagePrompt": {
+      "title": "Building the image for the fix",
+      "context": "The release needs a new backend image. The CLI's generated Dockerfile expects yarn build:backend first; production settings live in app-config.production.yaml with secrets from environment variables.",
+      "choices": [
+        {
+          "id": "multi",
+          "label": "Build with yarn build:backend and the multi-stage Dockerfile from a clean checkout; supply secrets as environment variables at runtime",
+          "effects": [
+            {
+              "set": "image",
+              "to": "\"multi\""
+            },
+            {
+              "set": "imageAt",
+              "to": "t"
+            },
+            {
+              "log": "A clean multi-stage image is built; no secret is inside it.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A clean, multi-stage build is reproducible, and runtime configuration keeps secrets out of the image."
+        },
+        {
+          "id": "hostBuild",
+          "label": "Use the host build: run yarn build:backend on your laptop and copy the output into the image",
+          "effects": [
+            {
+              "set": "image",
+              "to": "\"hostBuild\""
+            },
+            {
+              "set": "imageAt",
+              "to": "t"
+            },
+            {
+              "log": "The image is built from your laptop's output.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The host build is supported, but your laptop's state is now part of the release."
+        },
+        {
+          "id": "bakeSecrets",
+          "label": "Copy app-config.local.yaml, with its tokens, into the image so it runs without setup",
+          "effects": [
+            {
+              "set": "image",
+              "to": "\"bakeSecrets\""
+            },
+            {
+              "set": "imageAt",
+              "to": "t"
+            },
+            {
+              "log": "The local config, tokens included, goes into the image.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Anyone who can pull the image can read the GitHub and database tokens."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record: why the build broke, how the dependencies and the type error were fixed, and how the image was built.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Dependencies and types",
+          "criteria": "Two @backstage releases installed, aligned with versions:bump; the remaining error fixed by binding the route.",
+          "modelAnswer": "One plugin brought in the next Backstage release, so two versions of core packages were installed. versions:bump aligned them; the last error was a real API change, fixed in App.tsx."
+        },
+        {
+          "label": "The image",
+          "criteria": "A clean multi-stage build with secrets supplied at runtime.",
+          "modelAnswer": "The image was built with build:backend and the multi-stage Dockerfile from a clean checkout; secrets come from the environment."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (align == \"pinBack\") and (types == \"tsIgnore\") and (image == \"hostBuild\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Certified Backstage Associate (CBA) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://cncf.io/training/certification/cba",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Backstage Development Workflow 24%, Backstage Infrastructure 22%, Backstage Catalog 22%, Customizing Backstage 32%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "alignHarm": {
+      "label": "The lockfile thrown away",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and align == \"nuke\"",
+      "narrative": "Regenerating the lockfile pulled hundreds of untested versions; the release with the security fix failed at runtime."
+    },
+    "typesHarm": {
+      "label": "A broken page shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and types == \"skipTsc\"",
+      "narrative": "With the type check removed, the missing route binding shipped and the claims page crashed for every user."
+    },
+    "imageHarm": {
+      "label": "Secrets shipped in the image",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and image == \"bakeSecrets\"",
+      "narrative": "The image carried the local tokens to the shared registry; they had to be revoked and every integration re-keyed."
+    },
+    "target": {
+      "label": "Upgraded cleanly and shipped",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (align == \"bump\") and (types == \"fix\") and (image == \"multi\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The portal moved to one Backstage release, type-checks clean, and the security fix shipped in a clean image."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "alignHarm",
+    "typesHarm",
+    "imageHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "alignCrit",
+        "label": "Kept the @backstage packages on one release",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "align == \"bump\"",
+            "score": "met",
+            "why": "Aligned with versions:bump."
+          },
+          {
+            "when": "align == \"pinBack\"",
+            "score": "partial",
+            "why": "Safe for today, upgrade deferred."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Threw away the lockfile."
+          }
+        ]
+      },
+      {
+        "id": "typesCrit",
+        "label": "Fixed the real type error instead of hiding it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "types == \"fix\"",
+            "score": "met",
+            "why": "Fixed the cause."
+          },
+          {
+            "when": "types == \"tsIgnore\"",
+            "score": "partial",
+            "why": "Hidden but tracked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the check."
+          }
+        ]
+      },
+      {
+        "id": "imageCrit",
+        "label": "Built a reproducible image with configuration supplied at runtime",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "image == \"multi\"",
+            "score": "met",
+            "why": "Reproducible and clean."
+          },
+          {
+            "when": "image == \"hostBuild\"",
+            "score": "partial",
+            "why": "Works, less reproducible."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Secrets in the image."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(whyAt) and not isNull(tscAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(whyAt) or not isNull(tscAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Find the duplicate @backstage versions and read the type errors before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Align every @backstage package with versions:bump, then install and type-check."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Bind the route the plugin now requires and get yarn tsc clean."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Build from a clean checkout with build:backend and the multi-stage Dockerfile; secrets at runtime."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "alignHarm": {
+        "headline": "The lockfile is the build",
+        "body": "Keep @backstage packages on one release with versions:bump; never regenerate the lockfile to fix a version mismatch."
+      },
+      "typesHarm": {
+        "headline": "A type error is a runtime error waiting",
+        "body": "Keep yarn tsc in CI and fix the API change the error points to."
+      },
+      "imageHarm": {
+        "headline": "Configuration at runtime",
+        "body": "Secrets come from environment variables at runtime, never from a config file inside the image."
+      },
+      "target": {
+        "headline": "Good: upgraded cleanly and shipped",
+        "body": "Packages aligned with versions:bump, the type error fixed at its cause, and a reproducible image with runtime secrets."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Backstage's @backstage packages move together on a release train; mixing releases installs duplicate core packages and breaks types, so align them with backstage-cli versions:bump rather than pinning one plugin forward or regenerating the lockfile. A remaining type error after alignment is usually a real API change: fix it and keep yarn tsc in CI. Build the backend with build:backend and the generated multi-stage Dockerfile from a clean checkout, and supply configuration and secrets at runtime."
+  }
+}

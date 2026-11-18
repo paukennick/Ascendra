@@ -1,0 +1,27 @@
+{
+  "band": "ace",
+  "label": "Google Cloud Associate Cloud Engineer",
+  "base": {
+    "course": "GCPNET",
+    "slug": "cloud-nat-port-exhaustion-payment-api"
+  },
+  "slug": "cloud-nat-port-exhaustion-payment-api-ace",
+  "patch": {
+    "objective": "Using Cloud DNS and Cloud NAT",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Google Cloud, Associate Cloud Engineer exam guide (PDF linked from the certification page): setting up a cloud solution environment (~20%), planning and implementing a cloud solution (~30%), ensuring the successful operation of a cloud solution (~30%), configuring access and security (~20%)",
+        "checkedAt": "2026-11-18",
+        "url": "https://services.google.com/fh/files/misc/associate_cloud_engineer_exam_guide_english.pdf",
+        "note": "Read through a summarizing fetch on 2026-11-18. Four sections with the weights above match the course seed's units; subsections 3.3 'Managing networking resources' and 4.2 'Managing service accounts'; the guide names CMEK (3.2), Query Insights (3.4) and Gemini Enterprise Agent Platform (2.1, 3.1). The HTML page at cloud.google.com/certification/guides/cloud-engineer/ still shows an older five-section outline (Cloud Functions, Cloud Run for Anthos); the PDF is the current guide."
+      },
+      {
+        "cite": "Google Cloud documentation, Cloud NAT: Troubleshoot configuration",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/nat/docs/troubleshooting",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'If there aren't enough available NAT tuples, the dropped_sent_packets_count reason is OUT_OF_RESOURCES'; a five-tuple 'cannot be reused within the TCP TIME_WAIT timeout', so many connections to one destination exhaust tuples; fixes: 'adjust the minimum number of ports per VM', dynamic port allocation (doubles a VM's allocation when it is close to running out), 'Manually add more IP addresses'. The 'IP addresses and ports' page (read 2026-11-18): each NAT IP address offers '64,512 TCP source ports and 64,512 UDP source ports'; the default minimum is 64 ports per VM (static) or 32 (dynamic), and dynamic allocation scales each VM from a minimum toward a maximum. The gcloud flag names are authored renderings (the reference page did not load in full)."
+      }
+    ]
+  }
+}

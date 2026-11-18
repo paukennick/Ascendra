@@ -1,0 +1,57 @@
+{
+  "band": "aif",
+  "label": "AWS AI Practitioner (AIF-C01)",
+  "base": {
+    "course": "AWSMLA",
+    "slug": "fraud-model-drift"
+  },
+  "slug": "fraud-model-drift-aif",
+  "patch": {
+    "objective": "MLOps fundamentals: experimentation, repeatable processes, scalable systems, technical debt, production readiness, model monitoring, retraining",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "AWS Certified AI Practitioner (AIF-C01) exam guide: Fundamentals of AI and ML 20%, Fundamentals of Generative AI 24%, Applications of Foundation Models 28%, Guidelines for Responsible AI 14%, Security, Compliance, and Governance for AI Solutions 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/aws-certification/latest/examguides/ai-practitioner-01-domain3.html",
+        "note": "On 2026-11-17 a summarizing fetch of the AWS domain 3 page returned only page metadata, so the official text was not read. A third-party study guide (dennisk.neocities.org/aws_ai/domain3-study-guide.html, read the same day) gives Domain 3 as 28% and lists under Task 3.2 prompt injection or hijacking, jailbreaking, prompt poisoning and data exposure. The domain weights and objective wording are the course seed's (backend/supabase/seed/tracks/aws.ts). To verify against the AWS page. (read for this round by an earlier pass on 2026-11-17)"
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Data quality (Model Monitor)",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-data-quality.html",
+        "note": "Read 2026-11-11: the baseline job 'computes baseline schema constraints and statistics for each feature' from 'an input dataset that you provide' (Deequ on Spark); monitoring jobs compare captured data with it. Also: 'Amazon SageMaker Model Monitor is no longer open to new customers. Existing customers can continue to use the service as normal.' The scenario's team is an existing customer."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Model Monitor availability change",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-availability-change.html",
+        "note": "Read 2026-11-11: no longer open to new customers; existing customers continue as normal; the replacement for new teams is the open-source SageMaker AI monitoring solutions with Amazon QuickSight and Amazon CloudWatch (for lightweight data quality, CloudWatch custom metrics with anomaly detection alarms). The page gives no date for the change."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Schedule expressions for monitoring",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-schedule-expression.html",
+        "note": "Read 2026-11-11: 'Hourly: cron(0 * ? * * *)'; 'SageMaker AI only supports hourly integer rates between 1 hour and 24 hours'; there 'could be a delay of 0-20 minutes from the actual requested time to run the execution'."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: CloudWatch metrics for Model Monitor",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-interpreting-cloudwatch.html",
+        "note": "Read 2026-11-11: when emit_metrics is Enabled in the baseline constraints file, each feature gets metrics including feature_baseline_drift_{feature_name} in /aws/sagemaker/Endpoints/data-metric (EndpointName and ScheduleName dimensions)."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Model quality monitoring",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/model-monitor-model-quality.html",
+        "note": "Read 2026-11-11: model quality jobs compare predictions 'with the actual Ground Truth labels', merging captured data 'with actual labels that you store in an Amazon S3 bucket'. The page says nothing about how late labels arrive; the 30-60 day chargeback delay is scenario data."
+      },
+      {
+        "cite": "AWS. SageMaker AI Developer Guide: Shadow tests",
+        "checkedAt": "2026-11-11",
+        "url": "https://docs.aws.amazon.com/sagemaker/latest/dg/shadow-tests.html",
+        "note": "Read 2026-11-11: SageMaker 'routes a copy of the inference requests to it in real time within the same endpoint. Only the responses of the production variant are returned to the calling application'; shadow responses can be logged 'for offline comparison'."
+      }
+    ]
+  }
+}

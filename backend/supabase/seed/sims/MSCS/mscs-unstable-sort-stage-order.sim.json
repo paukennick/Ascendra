@@ -1,0 +1,989 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mscs-unstable-sort-stage-order",
+  "title": "The ceremony order is scrambled within each honor",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "stage_order.py, commencement stage list, Ridgefield Community College (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Registrar, Ines Moreau",
+          "text": "Graduates cross the stage by honor, then alphabetically within each honor. Today's list has the honors right but the names out of order inside them. The printer needs it at 13:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "ties",
+          "label": "Pattern",
+          "text": "Within 'cum laude', Abara follows Zhou; the honor groups themselves are correct.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "edited",
+          "label": "Data",
+          "text": "Graduate records were renamed with honor prefixes to force the order.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Printer",
+          "text": "13:00: the programs printed from the old list.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "sample",
+          "label": "Cum laude, first five on the list",
+          "spokenLabel": "the sample",
+          "columns": [
+            {
+              "id": "n",
+              "label": "#"
+            },
+            {
+              "id": "name",
+              "label": "Name"
+            }
+          ],
+          "rows": [
+            {
+              "id": "r1",
+              "cells": [
+                "1",
+                "{fixed ? \"Abara\" : \"Zhou\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "r2",
+              "cells": [
+                "2",
+                "{fixed ? \"Baptiste\" : \"Abara\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "r3",
+              "cells": [
+                "3",
+                "{fixed ? \"Chen\" : \"Ng\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "r4",
+              "cells": [
+                "4",
+                "{fixed ? \"Ng\" : \"Chen\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "r5",
+              "cells": [
+                "5",
+                "{fixed ? \"Zhou\" : \"Baptiste\"}"
+              ],
+              "flag": "not fixed"
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "stage_order.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "grads = sorted(grads, key=lambda g: g.last_name)"
+            },
+            {
+              "id": "c1",
+              "text": "grads = quicksort(grads, key=lambda g: HONOR_RANK[g.honor])  # 'faster' since last week",
+              "when": "fix == \"none\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "grads = sorted(grads, key=lambda g: HONOR_RANK[g.honor])  # stable: keeps name order within an honor",
+              "when": "fix == \"cache\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "grads = quicksort(grads, key=lambda g: (HONOR_RANK[g.honor], g.last_name))",
+              "when": "fix == \"append\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Printer deadline",
+          "value": "13:00"
+        },
+        {
+          "id": "altered",
+          "label": "Records changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Understand stability and in-place behavior",
+  "secondaryObjectives": [
+    "Compare insertion/merge/quick/heap sort"
+  ],
+  "sources": [
+    {
+      "cite": "ACM/IEEE-CS/AAAI, Computer Science Curricula 2023 (CS2023), knowledge areas (AL: Algorithmic Foundations)",
+      "checkedAt": "2026-11-17",
+      "url": "https://csed.acm.org/wp-content/uploads/2025/11/CS2023-Report.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch of the report's first part: AL, Algorithmic Foundations, is one of 17 knowledge areas; the fetch did not reach its topic lists. The MSCS course cites CS2023 and MIT 6.006 for sorting (dated 2026-11-11, not re-read)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Ridgefield Community College, its graduates and times are invented teaching values. That Python's built-in sorted() is stable (equal keys keep their order) and that a typical quicksort is not are standard facts stated as the author's; the Python Sorting HOWTO was not opened for this round (to verify). The case's quicksort is the team's own code."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain stage_order.py at Ridgefield Community College (fictional). It orders 840 graduates by honor (summa, magna, cum laude, none) and alphabetically within each honor. Last week a teammate swapped the second sort for a hand-written quicksort 'for speed'. Today's list has every honor group right, but names inside the groups out of order. The printer needs the list at 13:00. It is 12:10.",
+    "handover": [
+      "The script sorts twice: by last name, then by honor.",
+      "The roster has 840 rows; either sort takes well under a second."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: inspect the list, change the code, run a check, or send the list. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Sending is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:10",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The rerun window closes at 05:40, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cache",
+        "append"
+      ],
+      "init": "none"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "unstable",
+        "names",
+        "data"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "order",
+        "looks",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"cache\" or fix == \"append\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "fixed"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "inspect",
+        "stable",
+        "tupleKey",
+        "rename",
+        "verify",
+        "send",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "inspect": {
+      "label": "Print the first five of each honor group, and the quicksort's partition step",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "{fixed ? \"cum laude: Abara, Baptiste, Chen, Ng, Zhou\" : \"cum laude: Zhou, Abara, Ng, Chen, Baptiste\"}\nquicksort: Lomuto partition, swaps elements across the array"
+        },
+        {
+          "finding": "{fixed ? \"Names are in order within each honor.\" : \"Equal honor keys come out in a new order: the quicksort is not stable, so the earlier sort by name is lost for ties.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "stable": {
+      "label": "Use the built-in sorted() (stable) for the honor sort",
+      "group": "Change the code",
+      "available": "not busy and fix != \"cache\"",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"cache\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "The honor sort is stable again: equal honors keep the name order from the first pass.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "tupleKey": {
+      "label": "Keep the quicksort, but sort once by (honor, last name)",
+      "group": "Change the code",
+      "available": "not busy and fix == \"none\"",
+      "why": "A fix is already in place.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"append\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "One sort on a composite key: ties on honor are broken by name explicitly.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "rename": {
+      "label": "Prefix each graduate's stored last name with an honor code so the name sort alone gives the order",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "840"
+        },
+        {
+          "log": "840 graduate records now hold names like '2-Abara'; the diplomas print from the same table.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check: every adjacent pair is in (honor, last name) order, and 840 graduates are listed",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "set": "testPassed",
+              "to": "true"
+            },
+            {
+              "output": "840 graduates; 839 adjacent pairs, 0 out of order"
+            }
+          ],
+          "else": [
+            {
+              "output": "{rowsAlteredOutsideFix > 0 ? \"840 graduates; order holds on the prefixed names, which are not real names\" : \"840 graduates; 214 adjacent pairs out of order within an honor\"}"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "send": {
+      "label": "Send the stage list to the printer",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "Sent: 840 graduates."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why names fell out of order",
+              "options": [
+                {
+                  "value": "unstable",
+                  "label": "The quicksort is not stable, so it did not keep the name order for graduates with the same honor"
+                },
+                {
+                  "value": "names",
+                  "label": "Some names have odd characters"
+                },
+                {
+                  "value": "data",
+                  "label": "The registrar's data changed"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the list is right",
+              "options": [
+                {
+                  "value": "order",
+                  "label": "Every adjacent pair is in (honor, name) order, all 840 present"
+                },
+                {
+                  "value": "looks",
+                  "label": "The first page looks right"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "13:00: the programs printed from the old list.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the registrar: why the names were out of order, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Sorting by name and then by honor works only if the second sort is stable (equal keys keep their relative order); the hand-written quicksort is not, so graduates with the same honor were reordered arbitrarily.",
+          "modelAnswer": "An unstable second sort lost the first sort's order for ties."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "A stable sort for the second pass (the built-in sorted()), or one sort on the composite key (honor, name); never rewriting names in the records.",
+          "modelAnswer": "sorted() on honor, after the name sort."
+        },
+        {
+          "label": "How you know",
+          "criteria": "After the last change, every adjacent pair is in (honor, name) order and all 840 are present.",
+          "modelAnswer": "0 of 839 pairs out of order."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The rerun window, 50 minutes after the start; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing prints nothing wrong, but the programs go out from the old list.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Graduate records renamed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "840 records carry honor prefixes in their names, and the diplomas print from that table."
+    },
+    "wrongSent": {
+      "label": "Scrambled list printed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Graduates are called to the stage out of the promised order."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong list went out, but the programs printed from the old one."
+    },
+    "right": {
+      "label": "Stable, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fix == \"cache\" and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Every honor group is in name order, proved pair by pair."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The list is right, but it went late or unchecked, or still depends on a sort that is not stable."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Saw how ties came out before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Saw names reordered within honors first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "A stable second sort (or an explicit tie-break key)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fix == \"cache\" and rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Stable sorted()."
+          },
+          {
+            "when": "fix == \"append\" and rowsAlteredOutsideFix == 0",
+            "score": "partial",
+            "why": "Right order, but the unstable sort stays for the next key someone adds."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"The data was bent to fit the sort.\" : \"The unstable sort is still there.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed no graduate record",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Records untouched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Renamed {rowsAlteredOutsideFix} records."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked every adjacent pair after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "0 pairs out of order."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names stability and the pairwise check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"unstable\" and checkDoc == \"order\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"unstable\" or checkDoc == \"order\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "pairsK",
+        "label": "Adjacent pairs out of order",
+        "value": "fixed ? 0 : 214",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "altered",
+        "label": "Records changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until sent",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 13"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Honors right, names scrambled within them; the quicksort swaps across the array."
+      },
+      {
+        "at": "4-8 min",
+        "text": "Use the stable sorted() for the honor pass."
+      },
+      {
+        "at": "8-11 min",
+        "text": "0 of 839 pairs out of order."
+      },
+      {
+        "at": "11-13 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: stability carries the first sort",
+        "body": "Two sorts in a row only compose when the second is stable. The built-in sort is; the hand-written quicksort was not, so ties lost their name order."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The list is right; it went late or unchecked, or still relies on the unstable sort with a composite key."
+      },
+      "wrongSent": {
+        "headline": "Scrambled list printed",
+        "body": "Speed was never the problem at 840 rows; stability was."
+      },
+      "altered": {
+        "headline": "Records renamed",
+        "body": "Bending data to suit a sort damages every other use of it. Fix the sort."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the printer needed the list, and the fix is one line."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "Sorting by name and then by honor gives 'by honor, then by name' only if the second sort is stable: elements with equal keys keep their relative order. Python's built-in sorted() is stable; a typical quicksort partitions by swapping across the array and is not, so graduates with the same honor came out in arbitrary order. Use sorted() for the second pass (or one sort on the composite key), check every adjacent pair, and never rewrite records to fit a sort. At 840 rows the speed gain was never real."
+  }
+}

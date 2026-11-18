@@ -1,0 +1,443 @@
+{
+  "slug": "tilt-table-pounding-headache-t4",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: pressure, sits up and loosens, calls, frees the catheter, skin and bowel, documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "trigQ",
+          "choice": "bladder",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "posQ",
+          "choice": "up",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 9,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 10,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "bowel",
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "sitC": "met",
+          "trigC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "6c443e9616f32f4a"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Sits him up and frees the catheter, but calls 6 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "trigQ",
+          "choice": "bladder",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cath",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "bowel",
+          "seq": 7,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 8,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 9,
+          "tick": 85
+        },
+        {
+          "type": "teach",
+          "prompt": "posQ",
+          "choice": "up",
+          "seq": 10,
+          "tick": 85
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 85
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "sitC": "met",
+          "trigC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 365,
+          "toKey": 60
+        },
+        "stateHash": "b94e8ae56418cc1a"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "flatFirst",
+      "title": "Lays him flat first, then calls; never finds the trigger",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "trigQ",
+          "choice": "bladder",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ad"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "rrt"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "posQ",
+          "choice": "up",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "sit",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "sitC": "missed",
+          "trigC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "210d3d3fd521f247"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "ortho",
+      "title": "Failure: calls it orthostatic, lays him flat with legs up and leaves it for later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "bpCheck",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "trigQ",
+          "choice": "bladder",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ortho"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "flat",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "later"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "sitC": "missed",
+          "trigC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "12c1f712ab6156a0"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "migraine",
+      "title": "Failure: calls it a migraine and lets him rest in the frame",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "migraine"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rest",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "bleed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "sitC": "missed",
+          "trigC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "e008db5f84be1684"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

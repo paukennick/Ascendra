@@ -1,0 +1,353 @@
+{
+  "slug": "aemt-copd-tripod-cpap",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: oximeter and capnography, albuterol at once, oxygen titrated, CPAP at 5 then 10, vital signs; loaded early, notified, a second nebulizer in line",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "probe",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "target",
+          "choice": "ninety",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nc",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 8,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "onCpap",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 10,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "raise",
+          "seq": 11,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "raise",
+          "seq": 12,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 13,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 14,
+          "tick": 200
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 15,
+          "tick": 300
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 16,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "better",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "neb": "met",
+          "cpap": "met",
+          "fail": "na",
+          "o2": "met",
+          "capno": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": 0
+        },
+        "stateHash": "33184985d5c53b28"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCpap",
+      "title": "Non-rebreather at 15 L/min, albuterol at 6 minutes, CPAP only at 9; arrives still struggling",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "probe",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 4,
+          "tick": 360
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "cpap",
+          "seq": 6,
+          "tick": 540
+        },
+        {
+          "type": "chapter",
+          "chapter": "onCpap",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 8,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 9,
+          "tick": 540
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 10,
+          "tick": 540
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "neb": "partial",
+          "cpap": "partial",
+          "fail": "na",
+          "o2": "missed",
+          "capno": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": 540
+        },
+        "stateHash": "0cc4bb1cabc1f037"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "tiredEscalated",
+      "title": "Albuterol early but high-flow oxygen and no CPAP; he tires on the way; BVM and an intercept at once",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neb",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "capno",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 5,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 6,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 7,
+          "tick": 480
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 8,
+          "tick": 931
+        },
+        {
+          "type": "act",
+          "action": "als",
+          "seq": 9,
+          "tick": 931
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "neb": "met",
+          "cpap": "missed",
+          "fail": "met",
+          "o2": "missed",
+          "capno": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toCpap": -1
+        },
+        "stateHash": "e759745fee1a68d1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "oxygenOnly",
+      "title": "Non-rebreather only: no bronchodilator, no CPAP, no escalation when he tires",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "nrb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 480
+        }
+      ],
+      "expect": {
+        "ending": "arrest",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "neb": "missed",
+          "cpap": "missed",
+          "fail": "missed",
+          "o2": "missed",
+          "capno": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toCpap": -1
+        },
+        "stateHash": "c946ba90c2b81678"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

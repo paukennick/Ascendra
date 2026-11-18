@@ -1,0 +1,434 @@
+{
+  "slug": "she-pulls-him-up-by-the-arms",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: wound first, calls, asks, teaches with teach-back, risk factors, documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "liftQ",
+          "choice": "light",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "inf"
+          },
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "teach",
+          "prompt": "callQ",
+          "choice": "f101",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "know",
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "risk",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "woundC": "met",
+          "teachC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 65
+        },
+        "stateHash": "b9da83084a95bcd2"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Teaches well, but checks the wound late and calls late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "know",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "liftQ",
+          "choice": "light",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "risk",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "meds",
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 6,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "teach",
+          "seq": 7,
+          "tick": 142
+        },
+        {
+          "type": "act",
+          "action": "plan",
+          "seq": 8,
+          "tick": 142
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "inf"
+          },
+          "seq": 9,
+          "tick": 142
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 10,
+          "tick": 142
+        },
+        {
+          "type": "teach",
+          "prompt": "callQ",
+          "choice": "f101",
+          "seq": 11,
+          "tick": 142
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 12,
+          "tick": 142
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "reportC": "met",
+          "woundC": "missed",
+          "teachC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 710
+        },
+        "stateHash": "588c9619086f36b7"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noTeach",
+      "title": "Finds the wound and calls, but sends them off untaught",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "liftQ",
+          "choice": "light",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "inf"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "surgeon"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "callQ",
+          "choice": "f101",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "risk",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 24
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "reportC": "met",
+          "woundC": "met",
+          "teachC": "missed",
+          "lookC": "partial",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "fffebfaa2b756ca5"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "exercised",
+      "title": "Failure: skips the wound and exercises him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "normal"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ex",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "infection",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "woundC": "missed",
+          "teachC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "260590bcdf6860a1"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "watched",
+      "title": "Failure: sees the wound, decides to watch it, exercises him",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wound",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "liftQ",
+          "choice": "light",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "later"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "ex",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "infection",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "reportC": "missed",
+          "woundC": "met",
+          "teachC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": 60
+        },
+        "stateHash": "07c0f0ef44d5dfd1"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

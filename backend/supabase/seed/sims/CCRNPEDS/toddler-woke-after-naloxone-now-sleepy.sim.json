@@ -1,0 +1,1115 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "toddler-woke-after-naloxone-now-sleepy",
+  "title": "Awake after naloxone, now sleepy again",
+  "objective": "Manage acetaminophen and opioid ingestions with timed levels and N-acetylcysteine, or naloxone with continued monitoring",
+  "secondaryObjectives": [
+    "Administer and monitor medications safely, including polypharmacy, sedation and procedural sedation"
+  ],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Pediatric test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-pediatric",
+      "note": "Relayed from the CCRN Pediatric course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Pediatric course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Allegra S. Pediatric Methadone Ingestion (case report). ACEP Toxicology Section newsletter, 2019-10-15",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.acep.org/toxicology/newsroom/oct2019/pediatric-methadone-ingestion",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Methadone exposure and toxicity in children can be delayed and prolonged'; 'the relatively short half-life of naloxone'; 'a high risk of death with early discharge'; 'repeat bolus dosing of naloxone can be given as needed for respiratory depression'; 'a naloxone infusion may be indicated'; the child 'was placed on telemetry, continuous pulse oximetry, and end tidal CO2 monitoring' and admitted to the PICU."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "23:00 in the PICU. You are the nurse for Mia, 2 years old, 13 kg, admitted from the emergency department after she was found at 19:30 with her grandmother's open bottle of liquid methadone. She was apneic and pinpoint on arrival, woke after one dose of the ordered naloxone at 20:10, and has been on continuous pulse oximetry and capnography since.",
+    "handover": [
+      "She was playful until about 22:30. Her mother asks whether she can go home in the morning since 'the antidote worked'.",
+      "Her grandmother is not sure how much was missing.",
+      "Unit standing order for opioid toxicity: the nurse may give the ordered repeat naloxone dose for a respiratory rate under the ordered threshold or apnea and calls the intensivist at once for any recurrence of respiratory depression; a naloxone infusion is started on the intensivist's order. The poison center has been called."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "23:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Methadone outlasts the naloxone and breathing slows. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It slows once naloxone is repeated and an infusion is running under the intensivist. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of apnea. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The intensivist called within 5 minutes of recurrence (standing order: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the infusion to start and her breathing to settle."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.45,
+      "min": 0,
+      "max": 2
+    },
+    "rouseAt": {
+      "type": "time",
+      "init": null
+    },
+    "respAt": {
+      "type": "time",
+      "init": null
+    },
+    "glucoseAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rouse",
+        "resp",
+        "glucose",
+        "history"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "morning"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "recur",
+        "tired",
+        "sugar"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "naloxAt": {
+      "type": "time",
+      "init": null
+    },
+    "bvmAt": {
+      "type": "time",
+      "init": null
+    },
+    "sleepAt": {
+      "type": "time",
+      "init": null
+    },
+    "silenceAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(104 - 30 * max(0, prog - 0.8) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(max(4, (isNull(naloxAt) ? 16 : 22) - 22 * max(0, prog - 0.45)))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(97 - 20 * max(0, prog - 0.6))",
+      "unit": "%",
+      "precision": 0
+    },
+    "etco2": {
+      "expr": "round(40 + 40 * max(0, prog - 0.45))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(naloxAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 150
+          },
+          "announce": {
+            "bands": [
+              130,
+              150
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 40
+          },
+          "announce": {
+            "bands": [
+              30,
+              40
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              95,
+              92
+            ]
+          },
+          "colour": "spo2"
+        },
+        {
+          "id": "etco2",
+          "label": "EtCO2",
+          "spokenLabel": "End-tidal carbon dioxide",
+          "value": "etco2",
+          "unit": "mmHg",
+          "alarm": {
+            "high": 50
+          },
+          "announce": {
+            "bands": [
+              45,
+              50
+            ]
+          },
+          "colour": "neutral"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Repeat naloxone: {not isNull(naloxAt)|yesno}. Capnography: on.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The intensivist is at the bedside; a naloxone infusion is being started."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "rouse": {
+      "label": "Try to rouse her and check her pupils",
+      "group": "Assess",
+      "available": "not testPending and isNull(rouseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rouse\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "resp": {
+      "label": "Count her breathing for a full minute and read the capnography trend",
+      "group": "Assess",
+      "available": "not testPending and isNull(respAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"resp\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "glucose": {
+      "label": "Point-of-care glucose",
+      "group": "Assess",
+      "available": "not testPending and isNull(glucoseAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"glucose\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "history": {
+      "label": "Read the timeline: ingestion, naloxone, and when she got sleepy",
+      "group": "Assess",
+      "available": "not testPending and isNull(historyAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"history\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "nalox": {
+      "label": "Give the ordered repeat naloxone dose for respiratory depression (standing order)",
+      "group": "Treat",
+      "available": "isNull(naloxAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "naloxAt",
+          "to": "t"
+        },
+        {
+          "log": "Repeat naloxone given; she rouses and her breathing picks up within minutes.",
+          "kind": "act"
+        }
+      ]
+    },
+    "bvm": {
+      "label": "Open the airway, give oxygen, keep the bag-mask ready",
+      "group": "Treat",
+      "available": "isNull(bvmAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "bvmAt",
+          "to": "t"
+        },
+        {
+          "log": "Airway positioned, oxygen on, bag-mask at the bedside.",
+          "kind": "act"
+        }
+      ]
+    },
+    "sleep": {
+      "label": "Let her sleep; she is tired after a long evening",
+      "group": "Treat",
+      "available": "isNull(sleepAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sleepAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Lights dimmed; she is left to sleep.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "silence": {
+      "label": "Turn the capnography alarm limits up so it stops alarming",
+      "group": "Treat",
+      "available": "isNull(silenceAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "silenceAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.1, 2)"
+        },
+        {
+          "log": "Alarm limits widened.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is she sleepy again?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "recur",
+              "label": "Recurrent opioid toxicity: the naloxone has worn off while methadone's long action continues"
+            },
+            {
+              "value": "tired",
+              "label": "She is tired; it is late"
+            },
+            {
+              "value": "sugar",
+              "label": "Low blood sugar"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"recur\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"recur\""
+                },
+                {
+                  "log": "Recurrent opioid toxicity.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tired\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tired\""
+                },
+                {
+                  "log": "Read as tiredness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sugar\""
+                },
+                {
+                  "log": "Read as hypoglycemia.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the intensivist now: methadone ingestion, naloxone at 20:10, now hard to rouse with pinpoint pupils, rate 13 and falling, end-tidal CO2 high 40s; repeat dose given"
+            },
+            {
+              "value": "morning",
+              "label": "Mention it at morning rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The intensivist orders a naloxone infusion with continuous capnography and pulse oximetry and at least 24 hours of observation after it stops; the poison center agrees.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"morning\""
+                },
+                {
+                  "log": "Noted for rounds.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her mother why she cannot go home in the morning, and document",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her mother understands methadone outlasts naloxone and she will be watched for a long time; findings, doses and calls are documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "PICU, bed 7",
+      "clock": "running",
+      "actions": [
+        "rouse",
+        "resp",
+        "glucose",
+        "history",
+        "nalox",
+        "bvm",
+        "sleep",
+        "silence",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"rouse\"",
+              "then": [
+                {
+                  "set": "rouseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Rousable only to a firm rub, then drifts off; pinpoint pupils again.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"resp\"",
+              "then": [
+                {
+                  "set": "respAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Respiratory rate has fallen from 24 to 13 over an hour with shallow breaths; end-tidal CO2 has climbed from 38 into the high 40s.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"glucose\"",
+              "then": [
+                {
+                  "set": "glucoseAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Glucose 96 mg/dL.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "historyAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Ingestion before 19:30; the single naloxone dose at 20:10; drowsy again from about 22:30, consistent with naloxone wearing off while the long-acting opioid persists.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the naloxone infusion settling",
+      "wait": {
+        "skipLabel": "the naloxone infusion settling"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 20 min for the infusion to start and her breathing to settle."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "The naloxone infusion is running; she is breathing normally and rousable.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Mia sleepy again, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Naloxone is short-acting and methadone toxicity in children can be delayed and prolonged; recurrent drowsiness, pinpoint pupils, a falling respiratory rate and rising end-tidal CO2 mean recurrent opioid toxicity.",
+          "modelAnswer": "The naloxone has worn off and the methadone hasn't. She's hard to rouse with pinpoint pupils again, her breathing's slowing and her CO2's climbing."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Gives the ordered repeat naloxone, supports the airway with oxygen and a bag-mask ready, keeps the alarms, calls the intensivist at once for an infusion, and explains the need for prolonged observation.",
+          "modelAnswer": "Give the repeat dose, open her airway with oxygen and the bag ready, keep the alarms on, call the intensivist for an infusion, and tell her mom she's staying a while."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Recurrent opioid toxicity unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Allegra S. Pediatric Methadone Ingestion (case report). ACEP Toxicology Section newsletter, 2019-10-15",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acep.org/toxicology/newsroom/oct2019/pediatric-methadone-ingestion",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Methadone exposure and toxicity in children can be delayed and prolonged'; 'the relatively short half-life of naloxone'; 'a high risk of death with early discharge'; 'repeat bolus dosing of naloxone can be given as needed for respiratory depression'; 'a naloxone infusion may be indicated'; the child 'was placed on telemetry, continuous pulse oximetry, and end tidal CO2 monitoring' and admitted to the PICU."
+      }
+    }
+  },
+  "endings": {
+    "apnea": {
+      "label": "Apnea",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She stops breathing; her saturation falls into the 70s and she needs bag-mask ventilation and naloxone."
+    },
+    "safe": {
+      "label": "Recurrence caught",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(naloxAt) and not isNull(bvmAt)) and isNull(silenceAt) and isNull(sleepAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is on a naloxone infusion with continuous monitoring, breathing normally."
+    },
+    "safeGaps": {
+      "label": "Treated, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is on an infusion, but the call was slow, she was left to sleep, or the alarms were widened."
+    },
+    "time_up": {
+      "label": "Unescalated at midnight",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Midnight and the opioid is still winning."
+    }
+  },
+  "endingOrder": [
+    "apnea",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The intensivist called within 5 minutes of finding her hard to rouse",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "naloxC",
+        "label": "Repeat naloxone given and the airway supported",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(naloxAt) and not isNull(bvmAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "alarmC",
+        "label": "Alarms kept and she was not left to sleep",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(silenceAt) or not isNull(sleepAt)",
+            "score": "missed",
+            "why": "Alarms widened, or left to sleep."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Monitored."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Counted breathing with capnography, checked glucose and the timeline",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(respAt) and not isNull(glucoseAt) and not isNull(historyAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(respAt) or not isNull(glucoseAt) or not isNull(historyAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Read it as recurrent opioid toxicity after naloxone wore off",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"recur\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"tired\"",
+            "score": "missed",
+            "why": "Pinpoint pupils and rising CO2 are not tiredness."
+          },
+          {
+            "when": "dxEnum == \"sugar\"",
+            "score": "missed",
+            "why": "Her glucose is normal."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told her mother and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: naloxone wore off, methadone persists; repeat dose, airway, call; long observation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Recurrence to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "23:00 to the repeat dose",
+        "value": "isNull(naloxAt) ? -1 : timeAt(naloxAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "23:00",
+        "text": "Hard to rouse, pinpoint pupils."
+      },
+      {
+        "at": "~23:01",
+        "text": "Airway, oxygen, bag-mask ready; repeat naloxone."
+      },
+      {
+        "at": "~23:02",
+        "text": "Call the intensivist."
+      },
+      {
+        "at": "~23:04",
+        "text": "Breathing and capnography trend, glucose, timeline; tell her mother; document."
+      }
+    ],
+    "debrief": {
+      "apnea": {
+        "headline": "Apnea",
+        "body": "Methadone outlasts naloxone. Recurrent sleepiness, pinpoint pupils and a rising CO2 mean the opioid is winning again: repeat naloxone, support the airway and call."
+      },
+      "safe": {
+        "headline": "Recurrence caught",
+        "body": "You saw the recurrence, gave the repeat dose, supported her airway, kept the alarms and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Treated, with gaps",
+        "body": "Check how soon you called, whether she was left to sleep, and whether the alarms were widened."
+      },
+      "time_up": {
+        "headline": "Unescalated at midnight",
+        "body": "Recurrent respiratory depression goes to the intensivist at once."
+      }
+    },
+    "modelReasoning": "Methadone toxicity in children can be delayed and prolonged, and naloxone's half-life is short, so respiratory depression recurs and early discharge carries a high risk of death. Mia has recurrent drowsiness, pinpoint pupils, a falling rate and a rising end-tidal CO2: give the ordered repeat naloxone, support the airway with oxygen and a bag-mask ready, keep the alarms, and call the intensivist at once for a naloxone infusion with continuous capnography and pulse oximetry and a long observation period."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "obsQ": {
+      "during": "leaveT",
+      "ask": "While the infusion settles: when could she go home?",
+      "choices": [
+        {
+          "id": "long",
+          "label": "Only after a long observation off naloxone; early discharge carries a high risk of death"
+        },
+        {
+          "id": "am",
+          "label": "In the morning if she looks well"
+        },
+        {
+          "id": "now",
+          "label": "Once she wakes up"
+        }
+      ],
+      "expect": "long",
+      "explain": "Children with methadone exposure have a high risk of death with early discharge; extended observation after the last dose is needed.",
+      "source": {
+        "cite": "Allegra S. Pediatric Methadone Ingestion (case report). ACEP Toxicology Section newsletter, 2019-10-15",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acep.org/toxicology/newsroom/oct2019/pediatric-methadone-ingestion",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Methadone exposure and toxicity in children can be delayed and prolonged'; 'the relatively short half-life of naloxone'; 'a high risk of death with early discharge'; 'repeat bolus dosing of naloxone can be given as needed for respiratory depression'; 'a naloxone infusion may be indicated'; the child 'was placed on telemetry, continuous pulse oximetry, and end tidal CO2 monitoring' and admitted to the PICU."
+      }
+    },
+    "halfQ": {
+      "during": "testT",
+      "ask": "While you check: why did her symptoms come back?",
+      "choices": [
+        {
+          "id": "short",
+          "label": "Naloxone wears off before methadone does"
+        },
+        {
+          "id": "new",
+          "label": "She found more methadone"
+        },
+        {
+          "id": "allergy",
+          "label": "A reaction to naloxone"
+        }
+      ],
+      "expect": "short",
+      "explain": "Naloxone has a relatively short half-life, and methadone toxicity in children can be delayed and prolonged.",
+      "source": {
+        "cite": "Allegra S. Pediatric Methadone Ingestion (case report). ACEP Toxicology Section newsletter, 2019-10-15",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.acep.org/toxicology/newsroom/oct2019/pediatric-methadone-ingestion",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Methadone exposure and toxicity in children can be delayed and prolonged'; 'the relatively short half-life of naloxone'; 'a high risk of death with early discharge'; 'repeat bolus dosing of naloxone can be given as needed for respiratory depression'; 'a naloxone infusion may be indicated'; the child 'was placed on telemetry, continuous pulse oximetry, and end tidal CO2 monitoring' and admitted to the PICU."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

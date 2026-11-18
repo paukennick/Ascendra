@@ -1,0 +1,407 @@
+{
+  "slug": "aemt-chest-pressure-pill-last-night",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: monitor and vital signs, aspirin, 12-lead transmitted, the direct question about sildenafil, no nitrate, IV; to the PCI center",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "pde",
+          "choice": "sild",
+          "seq": 6,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 7,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "pci"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 10,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "pci",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "noNtg": "met",
+          "pde": "met",
+          "ecg": "met",
+          "dest": "met",
+          "asa": "met",
+          "iv": "met"
+        },
+        "kpis": {
+          "toEcg": 120
+        },
+        "stateHash": "d8434a7def2aad5f"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "closest",
+      "title": "Everything right, no nitrate, but to the community hospital without a cath lab",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "local"
+          },
+          "seq": 6,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "noNtg": "met",
+          "pde": "met",
+          "ecg": "met",
+          "dest": "partial",
+          "asa": "met",
+          "iv": "met"
+        },
+        "kpis": {
+          "toEcg": 120
+        },
+        "stateHash": "d70e0bee64f2442e"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "ntgCorrected",
+      "title": "Nitroglycerin before asking about medications; his pressure falls to 72; flat, legs up and fluid bring it back; the PCI center",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "ntg",
+          "seq": 5,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "legs",
+          "seq": 6,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 7,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "bolus",
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "pci"
+          },
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 180
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "noNtg": "partial",
+          "pde": "partial",
+          "ecg": "met",
+          "dest": "met",
+          "asa": "met",
+          "iv": "met"
+        },
+        "kpis": {
+          "toEcg": 120
+        },
+        "stateHash": "f06d4984390ef858"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "lateEcg",
+      "title": "No nitrate and the PCI center, but the 12-lead only at 11 minutes and aspirin late",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "history",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "iv",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "aspirin",
+          "seq": 4,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "ecg",
+          "seq": 5,
+          "tick": 620
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "params": {
+            "to": "pci"
+          },
+          "seq": 6,
+          "tick": 740
+        },
+        {
+          "type": "chapter",
+          "chapter": "rolling",
+          "choice": "continue",
+          "seq": 7,
+          "tick": 740
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 800
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "noNtg": "met",
+          "pde": "met",
+          "ecg": "partial",
+          "dest": "met",
+          "asa": "partial",
+          "iv": "met"
+        },
+        "kpis": {
+          "toEcg": 740
+        },
+        "stateHash": "184a5f8c802ac4a8"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "ntgCrash",
+      "title": "Nitroglycerin at once without a history, aspirin or an IV, and no move to transport; his pressure stays below 80",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ntg",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "vitals",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "crashed",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "noNtg": "missed",
+          "pde": "missed",
+          "ecg": "missed",
+          "dest": "missed",
+          "asa": "missed",
+          "iv": "missed"
+        },
+        "kpis": {
+          "toEcg": -1
+        },
+        "stateHash": "3d09e9188921ffcc"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

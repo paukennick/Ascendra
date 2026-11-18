@@ -1,0 +1,1004 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rollouts-analysis-gate-passes-bad-canary",
+  "title": "A canary that passed its analysis with no traffic: fixing the AnalysisTemplate that gates a rollout",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "release@quillpay:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "postmortem: last week's canary passed analysis while every checkout on it failed",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineCond",
+          "text": "{cond == \"fixed\" ? \"Query fixed; empty or low results fail\" : cond == \"manualGate\" ? \"Manual pause instead of analysis\" : cond == \"keep\" ? \"Unchanged: empty results still pass\" : \"\"}",
+          "when": "cond != \"none\"",
+          "at": "timeAt(condAt)",
+          "error": "cond == \"keep\""
+        },
+        {
+          "id": "lineAbort",
+          "text": "{abort == \"letAbort\" ? \"Aborted to stable; the bug found at 10%\" : abort == \"retryLater\" ? \"Paused at 10%: one in ten checkouts slow\" : abort == \"promote\" ? \"Promoted over a failing analysis\" : \"\"}",
+          "when": "abort != \"none\"",
+          "at": "timeAt(abortAt)",
+          "error": "abort == \"promote\""
+        },
+        {
+          "id": "lineBg",
+          "text": "{bg == \"background\" ? \"Background analysis through promotion\" : bg == \"longPause\" ? \"Long pause at 50%\" : bg == \"removeAnalysis\" ? \"No analysis: weights only\" : \"\"}",
+          "when": "bg != \"none\"",
+          "at": "timeAt(bgAt)",
+          "error": "bg == \"removeAnalysis\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nCond",
+          "label": "AnalysisTemplate checkout-success-rate",
+          "spokenLabel": "AnalysisTemplate checkout-success-rate",
+          "kind": "AnalysisTemplate",
+          "status": "{cond == \"fixed\" ? \"Query fixed; empty or low results fail\" : cond == \"manualGate\" ? \"Manual pause instead of analysis\" : cond == \"keep\" ? \"Unchanged: empty results still pass\" : \"Waiting\"}",
+          "tone": "cond == \"fixed\" ? \"up\" : cond == \"manualGate\" ? \"degraded\" : cond == \"keep\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAbort",
+          "label": "Rollout checkout (canary 10%)",
+          "spokenLabel": "Rollout checkout (canary 10%)",
+          "kind": "Rollout",
+          "status": "{abort == \"letAbort\" ? \"Aborted to stable; the bug found at 10%\" : abort == \"retryLater\" ? \"Paused at 10%: one in ten checkouts slow\" : abort == \"promote\" ? \"Promoted over a failing analysis\" : \"Waiting\"}",
+          "tone": "abort == \"letAbort\" ? \"up\" : abort == \"retryLater\" ? \"degraded\" : abort == \"promote\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nBg",
+          "label": "Rollout steps",
+          "spokenLabel": "Rollout steps",
+          "kind": "Rollout spec",
+          "status": "{bg == \"background\" ? \"Background analysis through promotion\" : bg == \"longPause\" ? \"Long pause at 50%\" : bg == \"removeAnalysis\" ? \"No analysis: weights only\" : \"Waiting\"}",
+          "tone": "bg == \"background\" ? \"up\" : bg == \"longPause\" ? \"degraded\" : bg == \"removeAnalysis\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nCond",
+          "to": "nAbort",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nAbort",
+          "to": "nBg",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Design AnalysisTemplates and AnalysisRuns: metric providers (Prometheus, Datadog, Kayenta, web, job), success and failure conditions, and how analysis gates a rollout",
+  "secondaryObjectives": [
+    "Implement progressive rollout strategies: canary with steps (setWeight, pause, analysis), blue/green with preview and active Services, and manual or automatic promotion and abort"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Argo Rollouts documentation, Analysis & Progressive Delivery (stable)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-rollouts.readthedocs.io/en/stable/features/analysis",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: successCondition and failureCondition, failureLimit, Inconclusive pausing the Rollout; a failed background analysis aborts the Rollout and sets the canary weight back to zero; background analysis runs across the canary steps until stopped or failed; Prometheus can return an empty array or NaN, and a condition such as len(result) > 0 and result[0] >= 0.95 makes an empty result fail."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the metrics and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You own the delivery pipeline for Quillpay, a fictional payments startup. The checkout service ships through an Argo Rollouts canary: 10% of traffic, an analysis step, then 50% and full promotion. Last week a canary with a broken card form was promoted automatically because its AnalysisRun 'Successful'. Today's release starts its canary in ten minutes.",
+    "handover": [
+      "AnalysisTemplate checkout-success-rate: Prometheus query of the canary's 2xx ratio over 5 minutes, successCondition result[0] >= 0.95, count 3, interval 1m.",
+      "The Rollout's steps: setWeight 10, analysis (checkout-success-rate), setWeight 50, pause 10m, promote."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-14T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cond": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixed",
+        "manualGate",
+        "keep"
+      ],
+      "init": "none"
+    },
+    "condAt": {
+      "type": "time",
+      "init": null
+    },
+    "abort": {
+      "type": "enum",
+      "values": [
+        "none",
+        "letAbort",
+        "retryLater",
+        "promote"
+      ],
+      "init": "none"
+    },
+    "abortAt": {
+      "type": "time",
+      "init": null
+    },
+    "bg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "background",
+        "longPause",
+        "removeAnalysis"
+      ],
+      "init": "none"
+    },
+    "bgAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastRunAt": {
+      "type": "time",
+      "init": null
+    },
+    "queryAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((cond == \"keep\") ? 1 : 0) + ((abort == \"promote\") ? 1 : 0) + ((bg == \"removeAnalysis\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(cond == \"none\" or (cond == \"keep\") ? 1 : 0) + (abort == \"none\" or (abort == \"promote\") ? 1 : 0) + (bg == \"none\" or (bg == \"removeAnalysis\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The canary",
+      "clock": "turns",
+      "actions": [
+        "lastRun",
+        "query"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "lastRun": {
+      "label": "kubectl argo rollouts get rollout checkout (last week's AnalysisRun)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lastRunAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lastRunAt",
+          "to": "t"
+        },
+        {
+          "output": "AnalysisRun checkout-6f9-2: Successful\n  metric success-rate: 3 measurements: [], [], []  (empty)\n  successCondition: result[0] >= 0.95"
+        },
+        {
+          "log": "You read last week's AnalysisRun.",
+          "kind": "act"
+        },
+        {
+          "finding": "Last week's three measurements were empty: the query selected the canary by a pod label the new chart no longer sets, so it matched nothing. An empty result was counted as success, and the analysis gated nothing."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "query": {
+      "label": "kubectl get analysistemplate checkout-success-rate -o yaml",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(queryAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "queryAt",
+          "to": "t"
+        },
+        {
+          "output": "provider: prometheus\nquery: the 2xx rate of http_requests_total for app=checkout, track=canary over 5m, divided by the total rate\nsuccessCondition: result[0] >= 0.95\nfailureLimit: (unset)"
+        },
+        {
+          "log": "You read the template.",
+          "kind": "act"
+        },
+        {
+          "finding": "The query uses track=\"canary\", but pods now carry rollouts-pod-template-hash instead; there is no failureCondition, failureLimit is unset (0), and nothing says what an empty result means."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the release record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Why last week's analysis passed (an empty query), the template fixed, the abort accepted, and background analysis added"
+                },
+                {
+                  "value": "summary",
+                  "label": "Release delayed by analysis issues"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "cond == \"keep\"",
+              "then": [
+                {
+                  "log": "Check-in 2: today's canary has a bad payment-provider timeout; the empty analysis passes and the Rollout goes to 50%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "abort == \"promote\"",
+              "then": [
+                {
+                  "log": "Check-in 3: the new build serves all traffic; 12% of checkouts time out during the launch.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "bg == \"removeAnalysis\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the retried build has a pool leak at 50%; with no analysis the Rollout promotes it, and checkouts fail for 20 minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_cond",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the canary is about to start.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "condPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_abort",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the canary's success rate is 0.88.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "abortPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_bg",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the fixed build is ready to try again.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "bgPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "condPrompt": {
+      "title": "Fix the template before the canary",
+      "context": "The query matched nothing last week and an empty result passed. You can change the template before today's canary reaches its analysis step.",
+      "choices": [
+        {
+          "id": "fixed",
+          "label": "Select the canary by the pod-template-hash argument the Rollout passes, add failureCondition result[0] < 0.95, treat an empty result as failure (len(result) == 0 fails), and set failureLimit 1",
+          "effects": [
+            {
+              "set": "cond",
+              "to": "\"fixed\""
+            },
+            {
+              "set": "condAt",
+              "to": "t"
+            },
+            {
+              "log": "The template now selects the canary's pods and fails on empty or low success.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A success condition is only a gate if the query measures the canary and an empty result cannot pass."
+        },
+        {
+          "id": "manualGate",
+          "label": "Replace the analysis step with a manual pause and have someone eyeball the dashboard before promoting",
+          "effects": [
+            {
+              "set": "cond",
+              "to": "\"manualGate\""
+            },
+            {
+              "set": "condAt",
+              "to": "t"
+            },
+            {
+              "log": "The analysis step becomes an indefinite pause.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A person can catch it, but the gate now depends on someone looking at the right panel at the right time."
+        },
+        {
+          "id": "keep",
+          "label": "Keep the template as it is; last week was a one-off",
+          "effects": [
+            {
+              "set": "cond",
+              "to": "\"keep\""
+            },
+            {
+              "set": "condAt",
+              "to": "t"
+            },
+            {
+              "log": "The template stays as it was.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The template still measures nothing, so the next bad canary passes too."
+        }
+      ]
+    },
+    "abortPrompt": {
+      "title": "The AnalysisRun is failing",
+      "context": "Two of three measurements show 0.88 (timeouts to the payment provider on the new build). The product manager wants to promote anyway: the release has a launch announcement at noon.",
+      "choices": [
+        {
+          "id": "letAbort",
+          "label": "Let the AnalysisRun fail; the Rollout aborts and traffic returns to the stable version; tell the product manager what the analysis showed",
+          "effects": [
+            {
+              "set": "abort",
+              "to": "\"letAbort\""
+            },
+            {
+              "set": "abortAt",
+              "to": "t"
+            },
+            {
+              "log": "The Rollout aborts to stable; the timeout bug goes back to the team.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "That is what the gate is for: the canary failed at 10% of traffic instead of 100%."
+        },
+        {
+          "id": "retryLater",
+          "label": "Pause the Rollout at 10% and ask the team to look, leaving the canary serving 10% of checkouts",
+          "effects": [
+            {
+              "set": "abort",
+              "to": "\"retryLater\""
+            },
+            {
+              "set": "abortAt",
+              "to": "t"
+            },
+            {
+              "log": "The canary stays at 10% while the team looks.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Pausing keeps the evidence, but a known-bad canary keeps serving 10% of real checkouts while you wait."
+        },
+        {
+          "id": "promote",
+          "label": "Run kubectl argo rollouts promote --full to skip the analysis for the launch",
+          "effects": [
+            {
+              "set": "abort",
+              "to": "\"promote\""
+            },
+            {
+              "set": "abortAt",
+              "to": "t"
+            },
+            {
+              "log": "You promote over the failing analysis.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Promoting past a failed gate sends the timeout bug to every customer."
+        }
+      ]
+    },
+    "bgPrompt": {
+      "title": "Analysis only at 10%?",
+      "context": "The analysis step runs once at 10%. Problems that only show at higher load (connection pools) would pass it. The team asks how to keep watching through 50% without slowing every release.",
+      "choices": [
+        {
+          "id": "background",
+          "label": "Add background analysis on the Rollout's canary strategy so the same template runs from the first step to promotion, aborting at any step",
+          "effects": [
+            {
+              "set": "bg",
+              "to": "\"background\""
+            },
+            {
+              "set": "bgAt",
+              "to": "t"
+            },
+            {
+              "log": "Background analysis now runs for the whole canary.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Background analysis keeps measuring at every weight, so a failure at 50% aborts too."
+        },
+        {
+          "id": "longPause",
+          "label": "Add a 30-minute pause at 50% and check the dashboard before promotion",
+          "effects": [
+            {
+              "set": "bg",
+              "to": "\"longPause\""
+            },
+            {
+              "set": "bgAt",
+              "to": "t"
+            },
+            {
+              "log": "A long pause is added at 50%.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "More time to notice, but nothing aborts on its own, and every release is 30 minutes slower."
+        },
+        {
+          "id": "removeAnalysis",
+          "label": "Remove the analysis step: it caused today's drama, and the canary weights alone limit the damage",
+          "effects": [
+            {
+              "set": "bg",
+              "to": "\"removeAnalysis\""
+            },
+            {
+              "set": "bgAt",
+              "to": "t"
+            },
+            {
+              "log": "The analysis step is removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without analysis the weights move on time, not on evidence; nothing aborts a bad canary."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record: why the analysis passed last week, what the fixed template measures and fails on, and how the canary is gated now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The template",
+          "criteria": "Explains the empty result passing, and names the fixed selector, the failure condition and the empty-result rule.",
+          "modelAnswer": "The query selected a label the pods no longer had, so it returned nothing and the condition passed. It now selects the canary's pod-template-hash and fails on an empty result or below 0.95."
+        },
+        {
+          "label": "The gate",
+          "criteria": "The failing run was allowed to abort to stable, and background analysis now covers every step.",
+          "modelAnswer": "Today's run failed at 0.88 and aborted to stable, as designed. Background analysis now runs from 10% to promotion."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (cond == \"manualGate\") and (abort == \"retryLater\") and (bg == \"longPause\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+        "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "condHarm": {
+      "label": "A bad canary promoted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cond == \"keep\"",
+      "narrative": "The unchanged analysis measured nothing; the bad canary went to 50% and then all traffic."
+    },
+    "abortHarm": {
+      "label": "Promoted over the gate",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and abort == \"promote\"",
+      "narrative": "The full promotion sent the timeout bug to every customer during the launch."
+    },
+    "bgHarm": {
+      "label": "Promoted with no analysis",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and bg == \"removeAnalysis\"",
+      "narrative": "With the analysis removed, a connection-pool leak at 50% was promoted and checkouts failed for 20 minutes."
+    },
+    "target": {
+      "label": "Gated on evidence at every step",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (cond == \"fixed\") and (abort == \"letAbort\") and (bg == \"background\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The bad build was stopped at 10%, the fixed one went out under background analysis, and the gate now measures the canary."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "condHarm",
+    "abortHarm",
+    "bgHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "condCrit",
+        "label": "Fixed the query and made an empty or failing result fail the analysis",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cond == \"fixed\"",
+            "score": "met",
+            "why": "Query, failure condition and empty result fixed."
+          },
+          {
+            "when": "cond == \"manualGate\"",
+            "score": "partial",
+            "why": "Gated by hand, not by analysis."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left the template measuring nothing."
+          }
+        ]
+      },
+      {
+        "id": "abortCrit",
+        "label": "Let the failed analysis abort the canary instead of overriding it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "abort == \"letAbort\"",
+            "score": "met",
+            "why": "The gate did its job."
+          },
+          {
+            "when": "abort == \"retryLater\"",
+            "score": "partial",
+            "why": "Kept a failing canary serving."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overrode the gate."
+          }
+        ]
+      },
+      {
+        "id": "bgCrit",
+        "label": "Kept analysis running through the whole rollout",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bg == \"background\"",
+            "score": "met",
+            "why": "Analysis covers every step."
+          },
+          {
+            "when": "bg == \"longPause\"",
+            "score": "partial",
+            "why": "A pause, not a gate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed the gate."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(lastRunAt) and not isNull(queryAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(lastRunAt) or not isNull(queryAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read last week's AnalysisRun and the template's query before the canary starts."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Fix the query's selector, add a failure condition and make an empty result fail."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Let the failed analysis abort the canary back to stable and explain it."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Run the template as background analysis across the whole canary."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "condHarm": {
+        "headline": "An analysis that measures nothing gates nothing",
+        "body": "Check that the query measures the canary, and make an empty result and a low result fail."
+      },
+      "abortHarm": {
+        "headline": "A gate you override is not a gate",
+        "body": "A failed AnalysisRun aborts the canary to stable. Promote only on a passing analysis."
+      },
+      "bgHarm": {
+        "headline": "Weights are not a gate",
+        "body": "Steps move a canary on; analysis decides whether it may. Keep analysis, in the background if needed."
+      },
+      "target": {
+        "headline": "Good: gated on evidence at every step",
+        "body": "The template measures the canary and fails on empty or low results, the failed run aborted, and analysis runs across the rollout."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "An AnalysisTemplate gates a rollout only if its query measures the canary and its conditions fail when they should: last week the selector matched nothing and an empty result passed. Select the canary by what the Rollout passes, add a failure condition, make an empty result fail, and set a failure limit. A failed AnalysisRun aborts the Rollout to the stable version; promoting over it defeats the gate. Inline analysis at one step misses load-dependent failures; background analysis keeps measuring until promotion."
+  }
+}

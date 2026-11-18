@@ -1,0 +1,1217 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "medic-racing-heart-pressure-falling",
+  "title": "A racing heart and a falling pressure",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate on the monitor",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 150
+          },
+          "announce": {
+            "bands": [
+              150,
+              180
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "monOn"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              90,
+              80,
+              70
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 94
+          },
+          "announce": {
+            "bands": [
+              94,
+              90
+            ]
+          },
+          "colour": "spo2",
+          "hiddenUntil": "monOn"
+        }
+      ],
+      "infusions": "Rhythm: {rhythm == \"svt\" ? \"narrow, regular, 196\" : rhythm == \"vf\" ? \"ventricular fibrillation\" : \"sinus, 98\"}. Pads: {padsOn ? \"on\" : \"off\"}; sync: {syncOn ? \"on\" : \"off\"}. IV: {isNull(ivAt) ? \"none\" : \"18 g right antecubital\"}. Adenosine: {adenoN} dose(s).",
+      "banner": [
+        {
+          "when": "rhythm == \"svt\"",
+          "text": "Lena, 58, pale and sweaty on her kitchen floor, hand on her chest, slow to answer."
+        },
+        {
+          "when": "rhythm == \"sinus\"",
+          "text": "Lena's color is back; she asks what happened."
+        },
+        {
+          "when": "rhythm == \"vf\"",
+          "text": "Lena is unresponsive and not breathing normally."
+        }
+      ]
+    }
+  },
+  "objective": "Generate and prioritize solutions, then take action and evaluate the response for an unstable tachycardia",
+  "secondaryObjectives": [
+    "Manage tachycardia with a pulse: decide stable or unstable, then vagal maneuvers, adenosine, rate control or synchronized cardioversion",
+    "Interpret common rhythms on the monitor and identify STEMI on a 12-lead ECG"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. Paramedic examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://www.nremt.org/getmedia/1f27af23-e889-4edc-8041-55d1854d66ed/Paramedic-Test-Plan_1July2024",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Clinical Judgment: generate and prioritize solutions, act and evaluate; Cardiology and Resuscitation: tachycardia with a pulse."
+    },
+    {
+      "cite": "American Heart Association. Adult Tachyarrhythmia With a Pulse Algorithm, 2025 Guidelines for CPR and ECC (accessible long description)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cpr.heart.org/-/media/CPR-Files/CPR-Guidelines-Files/2025-Accessible/Algorithm-ACLS-Tachyarrhythmia-LngDscrp-250726-Ed.pdf?sc_lang=en",
+      "note": "Read 2026-11-17 through a summarizing fetch; no date on the page beyond its file name. Instability: 'Hypotension', 'Acutely altered mental status', 'Signs of shock', 'Ischemic chest discomfort', 'Acute heart failure': synchronized cardioversion, sedation whenever feasible, the device's recommended energy; a regular narrow-complex rhythm may get adenosine while cardioversion is prepared; stable narrow regular: vagal maneuvers, then adenosine 6 mg rapid IV push with a flush, 12 mg if needed."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Tachycardia with a Pulse",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Unstable regular narrow-complex tachycardia: 'Deliver a synchronized shock based on manufacturer's recommendations'; 'For responsive patients, consider sedation and analgesia'; adenosine 6 mg rapid IV at a proximal site, then 12 mg."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT Paramedic course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Her pressure falling about 1.5 mmHg a minute while the tachycardia continues, the time each step takes, that 6 mg of adenosine breaks it only for seconds and 12 mg does not hold it in this case, that a synchronized shock converts it, and that an unsynchronized shock brings ventricular fibrillation are authored for the case; FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+    }
+  ],
+  "brief": {
+    "situation": "19:05. You are a paramedic with an EMT partner. Lena, 58, called with a racing heart for an hour; now she feels faint and has chest tightness.",
+    "handover": [
+      "You carry a monitor-defibrillator with synchronized cardioversion and pacing, adenosine 6 mg/2 mL, IV supplies and the agency's procedural sedation protocol.",
+      "The emergency department is 15 minutes away."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "19:05",
+    "tick": "1s",
+    "maxDuration": "45min",
+    "calendar": "clock"
+  },
+  "params": {
+    "fall": {
+      "value": 1.5,
+      "unit": "mmHg/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Systolic falling while the tachycardia continues. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "arrestBp": {
+      "value": 62,
+      "unit": "mmHg",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. She loses her pulse below this pressure. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "ivTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An IV: about 90 seconds. Authored for the case; real times vary."
+      }
+    },
+    "adenoTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Draw up, rapid push with a flush, watch the monitor: about a minute. Authored for the case; real times vary."
+      }
+    },
+    "vagalTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A modified Valsalva attempt: about 90 seconds. Authored for the case; real times vary."
+      }
+    },
+    "sedTime": {
+      "value": 90,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sedation per the agency protocol: about 90 seconds, when it does not delay the shock. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 45,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A blood pressure: about 45 seconds. Authored for the case; real times vary."
+      }
+    },
+    "goal": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Converted within 5 minutes of reaching her; the AHA algorithm gives no time, only that instability means cardioversion. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "driveTime": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive: about 20 minutes. Authored for the case; real times vary."
+      }
+    }
+  },
+  "state": {
+    "rhythm": {
+      "type": "enum",
+      "values": [
+        "svt",
+        "sinus",
+        "vf"
+      ],
+      "init": "svt"
+    },
+    "sbp": {
+      "type": "number",
+      "init": 80,
+      "min": 30,
+      "max": 160,
+      "unit": "mmHg"
+    },
+    "adenoN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 3
+    },
+    "monOn": {
+      "type": "bool",
+      "init": false
+    },
+    "padsOn": {
+      "type": "bool",
+      "init": false
+    },
+    "syncOn": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "ivPending": {
+      "type": "bool",
+      "init": false
+    },
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "arrested": {
+      "type": "bool",
+      "init": false
+    },
+    "unsync": {
+      "type": "bool",
+      "init": false
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "monAt": {
+      "type": "time",
+      "init": null
+    },
+    "unstableAt": {
+      "type": "time",
+      "init": null
+    },
+    "ivAt": {
+      "type": "time",
+      "init": null
+    },
+    "sedAt": {
+      "type": "time",
+      "init": null
+    },
+    "shockAt": {
+      "type": "time",
+      "init": null
+    },
+    "convertAt": {
+      "type": "time",
+      "init": null
+    },
+    "vfAt": {
+      "type": "time",
+      "init": null
+    },
+    "defibAt": {
+      "type": "time",
+      "init": null
+    },
+    "ecg12At": {
+      "type": "time",
+      "init": null
+    },
+    "departAt": {
+      "type": "time",
+      "init": null
+    },
+    "arrivedAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "vagalAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "rhythm == \"svt\" ? 196 : rhythm == \"vf\" ? 0 : 98",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "rhythm == \"vf\" ? 70 : 95",
+      "unit": "%",
+      "precision": 0
+    }
+  },
+  "processes": [
+    {
+      "id": "bp",
+      "when": "rhythm == \"svt\" and isNull(arrivedAt)",
+      "update": {
+        "sbp": "clamp(sbp - fall * dt / 60, 30, 160)"
+      }
+    }
+  ],
+  "phases": {
+    "call": {
+      "label": "On the call",
+      "clock": "running",
+      "actions": [
+        "look",
+        "monitor",
+        "vitals",
+        "iv",
+        "vagal",
+        "adenosine",
+        "pads",
+        "sync",
+        "sedate",
+        "shock",
+        "defib",
+        "ecg12",
+        "transport",
+        "notify"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "look": {
+      "label": "Primary assessment: airway, breathing, perfusion, mental status",
+      "group": "Assess",
+      "available": "isNull(lookAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(unstableAt)",
+          "then": [
+            {
+              "set": "unstableAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Airway open; breathing fast; skin pale, cool, sweaty; radial pulse fast and weak; slow to answer, not sure what day it is; 'tight' chest.",
+          "kind": "find"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Monitor and pulse oximetry",
+      "group": "Assess",
+      "available": "not monOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "monOn",
+          "to": "true"
+        },
+        {
+          "if": "isNull(monAt)",
+          "then": [
+            {
+              "set": "monAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Narrow-complex, regular tachycardia at 196; no visible P waves.",
+          "kind": "find"
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Blood pressure",
+      "group": "Assess",
+      "available": "not vPending",
+      "why": "Measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Cuff cycling."
+        }
+      ]
+    },
+    "iv": {
+      "label": "IV access, proximal (antecubital)",
+      "group": "Treat",
+      "available": "isNull(ivAt) and not ivPending",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "true"
+        },
+        {
+          "schedule": "ivT",
+          "after": "ivTime"
+        },
+        {
+          "log": "Starting an IV in the right antecubital."
+        }
+      ]
+    },
+    "vagal": {
+      "label": "Coach a modified Valsalva maneuver",
+      "group": "Treat",
+      "available": "rhythm == \"svt\" and isNull(vagalAt) and not busy",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(vagalAt)",
+          "then": [
+            {
+              "set": "vagalAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "workT",
+          "after": "vagalTime"
+        },
+        {
+          "log": "She tries to strain into a syringe; she can barely follow you."
+        }
+      ]
+    },
+    "adenosine": {
+      "label": "Adenosine rapid IV push with a flush (6 mg, then 12 mg)",
+      "group": "Treat",
+      "available": "rhythm == \"svt\" and not isNull(ivAt) and adenoN < 2 and not busy",
+      "why": "Needs an IV; two doses at most.",
+      "effects": [
+        {
+          "add": "adenoN",
+          "by": "1"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "workT",
+          "after": "adenoTime"
+        },
+        {
+          "log": "{adenoN == 1 ? \"6 mg\" : \"12 mg\"} rapid push and flush: a pause on the monitor, then the same rhythm returns."
+        }
+      ]
+    },
+    "pads": {
+      "label": "Defibrillation pads on",
+      "group": "Treat",
+      "available": "not padsOn",
+      "why": "On.",
+      "effects": [
+        {
+          "set": "padsOn",
+          "to": "true"
+        },
+        {
+          "log": "Pads on, front and back."
+        }
+      ]
+    },
+    "sync": {
+      "label": "Turn on SYNC and check the markers sit on each QRS",
+      "group": "Treat",
+      "available": "padsOn and not syncOn and rhythm == \"svt\"",
+      "why": "Pads first.",
+      "effects": [
+        {
+          "set": "syncOn",
+          "to": "true"
+        },
+        {
+          "log": "SYNC on; a marker on every QRS."
+        }
+      ]
+    },
+    "sedate": {
+      "label": "Sedation per protocol, if it does not delay the shock",
+      "group": "Treat",
+      "available": "not isNull(ivAt) and isNull(sedAt) and not busy and rhythm == \"svt\"",
+      "why": "Needs an IV; once.",
+      "effects": [
+        {
+          "if": "isNull(sedAt)",
+          "then": [
+            {
+              "set": "sedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "workT",
+          "after": "sedTime"
+        },
+        {
+          "log": "Sedation given per protocol; she drifts."
+        }
+      ]
+    },
+    "shock": {
+      "label": "Deliver the shock at the device's recommended energy",
+      "group": "Treat",
+      "available": "padsOn and rhythm == \"svt\" and not busy",
+      "why": "Pads first.",
+      "effects": [
+        {
+          "if": "isNull(shockAt)",
+          "then": [
+            {
+              "set": "shockAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "syncOn",
+          "then": [
+            {
+              "set": "rhythm",
+              "to": "\"sinus\""
+            },
+            {
+              "if": "isNull(convertAt)",
+              "then": [
+                {
+                  "set": "convertAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "set": "sbp",
+              "to": "112"
+            },
+            {
+              "log": "Synchronized shock: sinus rhythm at 98. She opens her eyes.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "unsync",
+              "to": "true"
+            },
+            {
+              "set": "rhythm",
+              "to": "\"vf\""
+            },
+            {
+              "if": "isNull(vfAt)",
+              "then": [
+                {
+                  "set": "vfAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Unsynchronized shock on the T wave: ventricular fibrillation.",
+              "kind": "bad"
+            }
+          ]
+        }
+      ]
+    },
+    "defib": {
+      "label": "Ventricular fibrillation: CPR and defibrillate",
+      "group": "Treat",
+      "available": "rhythm == \"vf\"",
+      "why": "Only in VF.",
+      "effects": [
+        {
+          "if": "isNull(defibAt)",
+          "then": [
+            {
+              "set": "defibAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "rhythm",
+          "to": "\"sinus\""
+        },
+        {
+          "if": "isNull(convertAt)",
+          "then": [
+            {
+              "set": "convertAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "sbp",
+          "to": "96"
+        },
+        {
+          "log": "CPR, then a shock: sinus rhythm with a pulse.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ecg12": {
+      "label": "12-lead after conversion",
+      "group": "Assess",
+      "available": "rhythm == \"sinus\" and isNull(ecg12At)",
+      "why": "After conversion.",
+      "effects": [
+        {
+          "if": "isNull(ecg12At)",
+          "then": [
+            {
+              "set": "ecg12At",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Sinus 98; no ST elevation.",
+          "kind": "find"
+        }
+      ]
+    },
+    "transport": {
+      "label": "Load and go",
+      "group": "Transport",
+      "available": "isNull(departAt)",
+      "why": "Moving.",
+      "effects": [
+        {
+          "if": "isNull(departAt)",
+          "then": [
+            {
+              "set": "departAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "arriveT",
+          "after": "driveTime"
+        },
+        {
+          "log": "Loading and going."
+        }
+      ]
+    },
+    "notify": {
+      "label": "Notify the ED",
+      "group": "Transport",
+      "available": "not isNull(departAt) and isNull(notifyAt)",
+      "why": "Once moving.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "ED notified.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "workT": {
+      "label": "the treatment",
+      "wait": {
+        "skipLabel": "the treatment"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "As each step takes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "ivT": {
+      "label": "IV",
+      "wait": {
+        "skipLabel": "the IV (about 90 s)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 90 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "ivPending",
+          "to": "false"
+        },
+        {
+          "if": "isNull(ivAt)",
+          "then": [
+            {
+              "set": "ivAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "IV in."
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "BP",
+      "wait": {
+        "skipLabel": "the blood pressure"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 45 seconds. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vSbp",
+          "to": "round(sbp)"
+        },
+        {
+          "set": "vDbp",
+          "to": "round(sbp * 0.62)"
+        },
+        {
+          "log": "BP {round(sbp)}/{round(sbp * 0.62)}.",
+          "kind": "find"
+        }
+      ]
+    },
+    "arriveT": {
+      "label": "arrival",
+      "wait": {
+        "skipLabel": "arrival"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Load and drive. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(arrivedAt)",
+          "then": [
+            {
+              "set": "arrivedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "At the emergency department.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "arrest",
+      "when": "rhythm == \"svt\" and sbp < arrestBp and not arrested",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "arrested",
+          "to": "true"
+        },
+        {
+          "set": "rhythm",
+          "to": "\"vf\""
+        },
+        {
+          "if": "isNull(vfAt)",
+          "then": [
+            {
+              "set": "vfAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Her pulse disappears; the monitor shows ventricular fibrillation.",
+          "kind": "alarm"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "not isNull(convertAt) and t >= timeAt(convertAt) + 30",
+      "question": "Explain how you decided this was unstable, why you chose what you did first, and how you checked it worked.",
+      "parts": [
+        {
+          "label": "Unstable",
+          "criteria": "A tachyarrhythmia causing hypotension, acutely altered mental status, signs of shock and ischemic chest discomfort is unstable (AHA): synchronized cardioversion, not a stable-pathway workup.",
+          "modelAnswer": "196 and regular with a pressure near 80, confusion, shock and chest tightness: unstable on every count, so synchronized cardioversion was the priority."
+        },
+        {
+          "label": "Prioritize and act",
+          "criteria": "Pads, SYNC on and checked, the device's recommended energy, sedation when feasible without delaying; adenosine may be considered for a regular narrow rhythm only if it does not delay the shock; vagal maneuvers are for stable patients; never an unsynchronized shock for a rhythm with a pulse.",
+          "modelAnswer": "Pads, SYNC confirmed on every QRS, sedation because the IV was in and it cost little time, then the shock at the device's energy. Adenosine only if the shock would be delayed; no Valsalva in someone this sick."
+        },
+        {
+          "label": "Evaluate",
+          "criteria": "Rhythm, pulse, pressure and mental status after the shock; a 12-lead; reassess on the way.",
+          "modelAnswer": "Sinus at 98, pressure back to 112, talking again; a 12-lead and repeat checks en route."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(arrivedAt) and rhythm == \"svt\"",
+      "class": "harm",
+      "rationale": "She arrived still in an unstable tachycardia that a synchronized shock could have ended.",
+      "source": {
+        "cite": "American Heart Association. Adult Tachyarrhythmia With a Pulse Algorithm, 2025 Guidelines for CPR and ECC (accessible long description)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cpr.heart.org/-/media/CPR-Files/CPR-Guidelines-Files/2025-Accessible/Algorithm-ACLS-Tachyarrhythmia-LngDscrp-250726-Ed.pdf?sc_lang=en",
+        "note": "Read 2026-11-17 through a summarizing fetch; no date on the page beyond its file name. Instability: 'Hypotension', 'Acutely altered mental status', 'Signs of shock', 'Ischemic chest discomfort', 'Acute heart failure': synchronized cardioversion, sedation whenever feasible, the device's recommended energy; a regular narrow-complex rhythm may get adenosine while cardioversion is prepared; stable narrow regular: vagal maneuvers, then adenosine 6 mg rapid IV push with a flush, 12 mg if needed."
+      }
+    }
+  },
+  "endings": {
+    "vf": {
+      "label": "Ventricular fibrillation",
+      "class": "harm",
+      "terminal": true,
+      "when": "(unsync or arrested) and (not isNull(arrivedAt) or t >= timeAt(vfAt) + 240)",
+      "narrative": "{arrested ? \"Her pressure fell until she lost her pulse.\" : \"The unsynchronized shock threw her into ventricular fibrillation.\"} {isNull(defibAt) ? \"No defibrillation followed.\" : \"CPR and defibrillation brought her back, after a cardiac arrest that should not have happened.\"}"
+    },
+    "converted": {
+      "label": "Converted, reassessed",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(arrivedAt) and not unsync and not arrested and not isNull(convertAt) and timeAt(convertAt) <= goal and isNull(vagalAt) and not isNull(ecg12At) and not isNull(firstVAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: Lena arrives in sinus rhythm, talking, BP {round(sbp)}, with her 12-lead and your strips."
+    },
+    "arrived": {
+      "label": "Converted, by a slower route",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(arrivedAt)",
+      "narrative": "{timeAt(arrivedAt)|clock}: she arrives {rhythm == \"sinus\" ? \"in sinus rhythm\" : \"still tachycardic\"}, but {not isNull(vagalAt) ? \"time went on a vagal maneuver she could not do\" : isNull(convertAt) or timeAt(convertAt) > goal ? \"conversion came late\" : \"the reassessment was incomplete\"}."
+    },
+    "time_up": {
+      "label": "45 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty-five minutes."
+    }
+  },
+  "endingOrder": [
+    "vf",
+    "converted",
+    "arrived"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cv",
+        "label": "Synchronized cardioversion within 5 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "unsync",
+            "score": "missed",
+            "why": "Unsynchronized shock."
+          },
+          {
+            "when": "not isNull(convertAt) and timeAt(convertAt) <= goal and not arrested",
+            "score": "met",
+            "why": "Converted at {timeAt(convertAt)|clock}."
+          },
+          {
+            "when": "not isNull(convertAt) and not arrested",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not converted in time."
+          }
+        ]
+      },
+      {
+        "id": "stable",
+        "label": "Treated as unstable: no vagal maneuver",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(vagalAt)",
+            "score": "met",
+            "why": "No stable-pathway delay."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A vagal maneuver in an unstable patient."
+          }
+        ]
+      },
+      {
+        "id": "eval",
+        "label": "Rhythm, pressure and a 12-lead after conversion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(convertAt)",
+            "score": "missed",
+            "why": "Never converted."
+          },
+          {
+            "when": "not isNull(ecg12At) and not isNull(firstVAt)",
+            "score": "met",
+            "why": "Reassessed."
+          },
+          {
+            "when": "not isNull(ecg12At) or not isNull(firstVAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No reassessment."
+          }
+        ]
+      },
+      {
+        "id": "sed",
+        "label": "Sedation when it did not delay the shock",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(sedAt) and not isNull(convertAt) and timeAt(convertAt) <= goal",
+            "score": "met",
+            "why": "Sedated in time."
+          },
+          {
+            "when": "isNull(sedAt)",
+            "score": "partial",
+            "why": "No sedation."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sedation that delayed the shock."
+          }
+        ]
+      },
+      {
+        "id": "notify",
+        "label": "ED notified",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(notifyAt)",
+            "score": "met",
+            "why": "Notified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not notified."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written clinical judgment for an unstable tachycardia",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCv",
+        "label": "Arrival to conversion",
+        "value": "isNull(convertAt) ? -1 : timeAt(convertAt)",
+        "format": "duration",
+        "expert": "under 4 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:05",
+        "text": "Pale, confused, chest tightness, weak pulse; monitor: narrow regular 196; BP about 80: unstable."
+      },
+      {
+        "at": "19:06",
+        "text": "Pads, IV, SYNC on and checked; sedation per protocol."
+      },
+      {
+        "at": "~19:08",
+        "text": "Synchronized shock: sinus 98. Pressure, 12-lead, load, notify."
+      }
+    ],
+    "debrief": {
+      "converted": {
+        "headline": "Unstable means cardioversion",
+        "body": "Hypotension, confusion, shock signs and chest discomfort: pads, SYNC, sedation if it didn't delay, shock, then reassess."
+      },
+      "arrived": {
+        "headline": "Converted, by a slower route",
+        "body": "Time spent on a Valsalva or repeated adenosine let her pressure keep falling."
+      },
+      "vf": {
+        "headline": "Sync, or too long",
+        "body": "An unsynchronized shock can land on the T wave; waiting too long lets the pressure fall until the pulse goes."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Forty-five minutes."
+      }
+    },
+    "modelReasoning": "A regular narrow-complex tachycardia at 196 with hypotension, acutely altered mental status, signs of shock and ischemic chest discomfort is unstable (AHA): synchronized cardioversion at the device's recommended energy, with sedation whenever feasible. Adenosine 6 mg then 12 mg rapid IV may be considered for a regular narrow rhythm only if it does not delay the shock; vagal maneuvers belong to the stable pathway. Confirm SYNC markers on every QRS; never shock unsynchronized with a pulse. Evaluate: rhythm, pressure, mental status, a 12-lead, reassess en route and notify."
+  },
+  "chapters": [
+    {
+      "id": "converted",
+      "label": "Converted",
+      "when": "rhythm == \"sinus\""
+    }
+  ],
+  "teaching": {
+    "unst": {
+      "during": "ivT",
+      "ask": "While the IV goes in: which finding makes this tachycardia unstable?",
+      "choices": [
+        {
+          "id": "all",
+          "label": "Her low pressure, confusion and chest tightness"
+        },
+        {
+          "id": "rate",
+          "label": "The rate above 150 alone"
+        },
+        {
+          "id": "narrow",
+          "label": "The narrow QRS"
+        }
+      ],
+      "expect": "all",
+      "explain": "AHA 2025: instability means the tachyarrhythmia is causing hypotension, acutely altered mental status, signs of shock, ischemic chest discomfort or acute heart failure; then synchronized cardioversion.",
+      "source": {
+        "cite": "American Heart Association. Adult Tachyarrhythmia With a Pulse Algorithm, 2025 Guidelines for CPR and ECC (accessible long description)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cpr.heart.org/-/media/CPR-Files/CPR-Guidelines-Files/2025-Accessible/Algorithm-ACLS-Tachyarrhythmia-LngDscrp-250726-Ed.pdf?sc_lang=en",
+        "note": "Read 2026-11-17 through a summarizing fetch; no date on the page beyond its file name. Instability: 'Hypotension', 'Acutely altered mental status', 'Signs of shock', 'Ischemic chest discomfort', 'Acute heart failure': synchronized cardioversion, sedation whenever feasible, the device's recommended energy; a regular narrow-complex rhythm may get adenosine while cardioversion is prepared; stable narrow regular: vagal maneuvers, then adenosine 6 mg rapid IV push with a flush, 12 mg if needed."
+      }
+    }
+  }
+}

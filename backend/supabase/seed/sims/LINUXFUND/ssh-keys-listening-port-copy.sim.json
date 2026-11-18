@@ -1,0 +1,999 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ssh-keys-listening-port-copy",
+  "title": "A new web server: key-based SSH, an unexpected listening port, and copying the site safely",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "admin@laptop:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "web02 auth.log: 1,840 failed password logins for root in the last hour",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineKeys",
+          "text": "{keys == \"keyFirst\" ? \"Keys only; root login off\" : keys == \"keepPw\" ? \"Key added; passwords still allowed\" : keys == \"pwOffFirst\" ? \"Passwords off before any key\" : \"\"}",
+          "when": "keys != \"none\"",
+          "at": "timeAt(keysAt)",
+          "error": "keys == \"pwOffFirst\""
+        },
+        {
+          "id": "lineRedis",
+          "text": "{redis == \"bindLocal\" ? \"Bound to 127.0.0.1; verified\" : redis == \"firewall\" ? \"Firewalled, still bound to all\" : redis == \"ignorePort\" ? \"Redis open to the internet\" : \"\"}",
+          "when": "redis != \"none\"",
+          "at": "timeAt(redisAt)",
+          "error": "redis == \"ignorePort\""
+        },
+        {
+          "id": "lineCopy",
+          "text": "{copy == \"rsync\" ? \"rsync -a over SSH; verified\" : copy == \"scp\" ? \"scp -r copy\" : copy == \"ftp\" ? \"Plain FTP with the admin password\" : \"\"}",
+          "when": "copy != \"none\"",
+          "at": "timeAt(copyAt)",
+          "error": "copy == \"ftp\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nKeys",
+          "label": "web02 sshd",
+          "spokenLabel": "web02 sshd",
+          "kind": "service",
+          "status": "{keys == \"keyFirst\" ? \"Keys only; root login off\" : keys == \"keepPw\" ? \"Key added; passwords still allowed\" : keys == \"pwOffFirst\" ? \"Passwords off before any key\" : \"Waiting\"}",
+          "tone": "keys == \"keyFirst\" ? \"up\" : keys == \"keepPw\" ? \"degraded\" : keys == \"pwOffFirst\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nRedis",
+          "label": "redis-server on 0.0.0.0:6379",
+          "spokenLabel": "redis-server on 0.0.0.0:6379",
+          "kind": "service",
+          "status": "{redis == \"bindLocal\" ? \"Bound to 127.0.0.1; verified\" : redis == \"firewall\" ? \"Firewalled, still bound to all\" : redis == \"ignorePort\" ? \"Redis open to the internet\" : \"Waiting\"}",
+          "tone": "redis == \"bindLocal\" ? \"up\" : redis == \"firewall\" ? \"degraded\" : redis == \"ignorePort\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nCopy",
+          "label": "site copy web01 to web02",
+          "spokenLabel": "site copy web01 to web02",
+          "kind": "transfer",
+          "status": "{copy == \"rsync\" ? \"rsync -a over SSH; verified\" : copy == \"scp\" ? \"scp -r copy\" : copy == \"ftp\" ? \"Plain FTP with the admin password\" : \"Waiting\"}",
+          "tone": "copy == \"rsync\" ? \"up\" : copy == \"scp\" ? \"degraded\" : copy == \"ftp\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nKeys",
+          "to": "nRedis",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nRedis",
+          "to": "nCopy",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure key-based SSH login with ssh-keygen and ssh-copy-id",
+  "secondaryObjectives": [
+    "List listening ports and the processes behind them with ss",
+    "Copy files between machines with scp, sftp and rsync"
+  ],
+  "sources": [
+    {
+      "cite": "inode(7), file mode bits: set-group-ID and sticky bit (man7.org, man-pages 6.19)",
+      "checkedAt": "2026-11-14",
+      "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+      "note": "Relevant text: 'For newly created files, the file group ID is either the group ID of the parent directory or the effective group ID of the creating process, depending on whether or not the set-group-ID bit is set on the parent directory'; 'The sticky bit (S_ISVTX) on a directory means that a file in that directory can be renamed or deleted only by the owner of the file, by the owner of the directory, and by a privileged process.' Read in full 2026-11-14. Reused for REQ-336 from this course's shared-folder-permission-denied (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are setting up web02 for Ferngrove Bakery's online shop, a fictional small business. The server is on the internet with password SSH login enabled. You need to log in securely, check what's listening, and copy the site from web01.",
+    "handover": [
+      "web02: fresh install, root login and password authentication allowed.",
+      "The site is 3 GB on web01 under /var/www/shop."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-14T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "keys": {
+      "type": "enum",
+      "values": [
+        "none",
+        "keyFirst",
+        "keepPw",
+        "pwOffFirst"
+      ],
+      "init": "none"
+    },
+    "keysAt": {
+      "type": "time",
+      "init": null
+    },
+    "redis": {
+      "type": "enum",
+      "values": [
+        "none",
+        "bindLocal",
+        "firewall",
+        "ignorePort"
+      ],
+      "init": "none"
+    },
+    "redisAt": {
+      "type": "time",
+      "init": null
+    },
+    "copy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rsync",
+        "scp",
+        "ftp"
+      ],
+      "init": "none"
+    },
+    "copyAt": {
+      "type": "time",
+      "init": null
+    },
+    "authAt": {
+      "type": "time",
+      "init": null
+    },
+    "portsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((keys == \"pwOffFirst\") ? 1 : 0) + ((redis == \"ignorePort\") ? 1 : 0) + ((copy == \"ftp\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(keys == \"none\" or (keys == \"pwOffFirst\") ? 1 : 0) + (redis == \"none\" or (redis == \"ignorePort\") ? 1 : 0) + (copy == \"none\" or (copy == \"ftp\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The setup",
+      "clock": "turns",
+      "actions": [
+        "auth",
+        "ports"
+      ]
+    },
+    "close": {
+      "label": "Setup notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "auth": {
+      "label": "ssh admin@web02 'sudo tail -3 /var/log/auth.log'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(authAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "authAt",
+          "to": "t"
+        },
+        {
+          "output": "Failed password for root from 203.0.113.77 port 51122 ssh2\nFailed password for root from 198.51.100.9 port 40210 ssh2"
+        },
+        {
+          "log": "You read web02's authentication log.",
+          "kind": "act"
+        },
+        {
+          "finding": "Automated password guessing against root has already started."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "ports": {
+      "label": "ssh admin@web02 'sudo ss -tlnp'",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(portsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "portsAt",
+          "to": "t"
+        },
+        {
+          "output": "LISTEN 0.0.0.0:22 sshd\nLISTEN 0.0.0.0:80 nginx\nLISTEN 0.0.0.0:6379 redis-server"
+        },
+        {
+          "log": "You list listening TCP ports.",
+          "kind": "act"
+        },
+        {
+          "finding": "Redis is listening on all interfaces on 6379 with no password; the shop only needs it locally."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the setup notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Key-only SSH with root login off after testing, Redis bound to localhost and verified with ss, and the site copied with rsync over SSH"
+                },
+                {
+                  "value": "summary",
+                  "label": "web02 set up"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "keys == \"pwOffFirst\"",
+              "then": [
+                {
+                  "log": "Check-in 2: no one can log in over SSH; the fix takes an hour through the hosting panel's slow console.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "redis == \"ignorePort\"",
+              "then": [
+                {
+                  "log": "Check-in 3: an internet scanner finds the open Redis and overwrites a key the shop uses for cart prices.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "copy == \"ftp\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the admin password, sent in clear over FTP, is reused in a login attempt on web01 from an unknown address.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "web02 is ready.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_keys",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: SSH access.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "keysPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_redis",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the Redis port.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "redisPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_copy",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: copying the site.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "copyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "keysPrompt": {
+      "title": "Passwords under attack",
+      "context": "You have console access through the hosting panel as a fallback.",
+      "choices": [
+        {
+          "id": "keyFirst",
+          "label": "ssh-keygen an ed25519 key with a passphrase, ssh-copy-id it to your admin account, confirm a key login works in a second session, then set PasswordAuthentication no and PermitRootLogin no and reload sshd",
+          "effects": [
+            {
+              "set": "keys",
+              "to": "\"keyFirst\""
+            },
+            {
+              "set": "keysAt",
+              "to": "t"
+            },
+            {
+              "log": "Key login works; passwords and root login are off.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Test the key in a second session before turning passwords off, so you never lock yourself out."
+        },
+        {
+          "id": "keepPw",
+          "label": "Add your key but leave password login on",
+          "effects": [
+            {
+              "set": "keys",
+              "to": "\"keepPw\""
+            },
+            {
+              "set": "keysAt",
+              "to": "t"
+            },
+            {
+              "log": "Your key works; passwords stay on.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You're safer, but the guessing against passwords continues."
+        },
+        {
+          "id": "pwOffFirst",
+          "label": "Turn off password login first, then sort out keys",
+          "effects": [
+            {
+              "set": "keys",
+              "to": "\"pwOffFirst\""
+            },
+            {
+              "set": "keysAt",
+              "to": "t"
+            },
+            {
+              "log": "Password login is turned off first.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With no key installed, the reload locks every admin out over SSH."
+        }
+      ]
+    },
+    "redisPrompt": {
+      "title": "Redis open to the internet",
+      "context": "The shop connects to Redis on the same host.",
+      "choices": [
+        {
+          "id": "bindLocal",
+          "label": "Set Redis to bind 127.0.0.1 with protected mode on, restart it, and confirm with ss -tlnp that it listens only on localhost",
+          "effects": [
+            {
+              "set": "redis",
+              "to": "\"bindLocal\""
+            },
+            {
+              "set": "redisAt",
+              "to": "t"
+            },
+            {
+              "log": "Redis listens only on 127.0.0.1.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "ss shows the address a service listens on; local-only services bind to localhost."
+        },
+        {
+          "id": "firewall",
+          "label": "Block 6379 in the host firewall but leave the bind",
+          "effects": [
+            {
+              "set": "redis",
+              "to": "\"firewall\""
+            },
+            {
+              "set": "redisAt",
+              "to": "t"
+            },
+            {
+              "log": "6379 is blocked by the firewall.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Blocked for now, but one firewall change re-exposes it."
+        },
+        {
+          "id": "ignorePort",
+          "label": "Leave it: the shop works",
+          "effects": [
+            {
+              "set": "redis",
+              "to": "\"ignorePort\""
+            },
+            {
+              "set": "redisAt",
+              "to": "t"
+            },
+            {
+              "log": "Redis stays open.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An unauthenticated Redis on the internet is quickly abused."
+        }
+      ]
+    },
+    "copyPrompt": {
+      "title": "3 GB from web01",
+      "context": "The copy may be interrupted; permissions and timestamps matter to the web server.",
+      "choices": [
+        {
+          "id": "rsync",
+          "label": "rsync -a over SSH from web01 to web02 (archive mode keeps permissions and times, and a rerun copies only what's missing), then compare with a dry run",
+          "effects": [
+            {
+              "set": "copy",
+              "to": "\"rsync\""
+            },
+            {
+              "set": "copyAt",
+              "to": "t"
+            },
+            {
+              "log": "The site is copied and verified.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "rsync over SSH is encrypted, preserves attributes and resumes efficiently."
+        },
+        {
+          "id": "scp",
+          "label": "scp -r the whole directory",
+          "effects": [
+            {
+              "set": "copy",
+              "to": "\"scp\""
+            },
+            {
+              "set": "copyAt",
+              "to": "t"
+            },
+            {
+              "log": "scp copies the directory.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Encrypted, but an interruption restarts from zero and some attributes aren't kept."
+        },
+        {
+          "id": "ftp",
+          "label": "Install an FTP server on web02 and upload with the admin password",
+          "effects": [
+            {
+              "set": "copy",
+              "to": "\"ftp\""
+            },
+            {
+              "set": "copyAt",
+              "to": "t"
+            },
+            {
+              "log": "Plain FTP is set up.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "FTP sends the password and files unencrypted and opens another internet-facing service."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the setup notes: how you secured SSH, what ss showed, and how the site was copied.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "SSH and ports",
+          "criteria": "Key installed and tested before disabling passwords and root; Redis bound to localhost, checked with ss.",
+          "modelAnswer": "We added an ed25519 key with ssh-copy-id, tested it, then disabled password and root login. ss showed Redis on all interfaces; it now binds 127.0.0.1."
+        },
+        {
+          "label": "Copy",
+          "criteria": "rsync -a over SSH, verified.",
+          "modelAnswer": "The site was copied with rsync -a over SSH and checked with a dry run."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (keys == \"keepPw\") and (redis == \"firewall\") and (copy == \"scp\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "inode(7), file mode bits: set-group-ID and sticky bit (man7.org, man-pages 6.19)",
+        "checkedAt": "2026-11-14",
+        "url": "https://man7.org/linux/man-pages/man7/inode.7.html",
+        "note": "Relevant text: 'For newly created files, the file group ID is either the group ID of the parent directory or the effective group ID of the creating process, depending on whether or not the set-group-ID bit is set on the parent directory'; 'The sticky bit (S_ISVTX) on a directory means that a file in that directory can be renamed or deleted only by the owner of the file, by the owner of the directory, and by a privileged process.' Read in full 2026-11-14. Reused for REQ-336 from this course's shared-folder-permission-denied (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "keysHarm": {
+      "label": "Locked out",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and keys == \"pwOffFirst\"",
+      "narrative": "Disabling passwords before installing a key locked every admin out; recovery took an hour through the console."
+    },
+    "redisHarm": {
+      "label": "Redis tampered with",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and redis == \"ignorePort\"",
+      "narrative": "An internet scanner found the open Redis and overwrote cart prices."
+    },
+    "copyHarm": {
+      "label": "A password sent in clear",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and copy == \"ftp\"",
+      "narrative": "FTP sent the admin password in clear; it was soon tried against web01."
+    },
+    "target": {
+      "label": "A server ready for the internet",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (keys == \"keyFirst\") and (redis == \"bindLocal\") and (copy == \"rsync\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "web02 accepts only key logins, exposes only the web server, and has the site intact."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "keysHarm",
+    "redisHarm",
+    "copyHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "keysCrit",
+        "label": "Set up key-based login before disabling passwords",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "keys == \"keyFirst\"",
+            "score": "met",
+            "why": "Safe order."
+          },
+          {
+            "when": "keys == \"keepPw\"",
+            "score": "partial",
+            "why": "Half done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Locked out."
+          }
+        ]
+      },
+      {
+        "id": "redisCrit",
+        "label": "Bound the service to localhost and verified with ss",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "redis == \"bindLocal\"",
+            "score": "met",
+            "why": "Not exposed."
+          },
+          {
+            "when": "redis == \"firewall\"",
+            "score": "partial",
+            "why": "One layer."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Exposed."
+          }
+        ]
+      },
+      {
+        "id": "copyCrit",
+        "label": "Copied over SSH with a resumable tool, preserving permissions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "copy == \"rsync\"",
+            "score": "met",
+            "why": "Right tool."
+          },
+          {
+            "when": "copy == \"scp\"",
+            "score": "partial",
+            "why": "Works, less robust."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unencrypted, new exposure."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(authAt) and not isNull(portsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(authAt) or not isNull(portsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the auth log and the listening ports first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Install and test a key, then disable password and root login."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Bind Redis to localhost and verify with ss."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "rsync -a over SSH and verify with a dry run."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "keysHarm": {
+        "headline": "Key first, then passwords off",
+        "body": "ssh-copy-id the key, test it, then disable password login."
+      },
+      "redisHarm": {
+        "headline": "Bind local services locally",
+        "body": "Check with ss and bind to 127.0.0.1."
+      },
+      "copyHarm": {
+        "headline": "Copy over SSH",
+        "body": "Use rsync or scp over SSH, never plain FTP."
+      },
+      "target": {
+        "headline": "Good: a server ready for the internet",
+        "body": "Keys first, local-only services, and encrypted copies."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "ssh-keygen creates a key pair and ssh-copy-id installs the public key; test the key in a second session before setting PasswordAuthentication no and PermitRootLogin no. ss -tlnp lists listening sockets and their processes, showing services bound to all interfaces that should be local only. rsync -a over SSH copies encrypted, keeps permissions and times, and resumes; plain FTP sends credentials in clear."
+  }
+}

@@ -1,0 +1,996 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "merge-duplicates-double-region-revenue",
+  "title": "Board pack: two regions' revenue doubled after a merge",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Sales by Region (Power BI Desktop, Power Query editor), Harbor & Pine Furniture (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Finance lead, Grace Okafor",
+          "text": "The board pack shows North and Coastal revenue far above the ledger: 6.31 million in total against 4.82 million. The pack goes out at 16:00.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Some sales rows appear twice after the Stores merge.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "Rows were deleted from the shared CRM export.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Board pack",
+          "text": "16:00: the board pack went out with the old figures.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "Power Query: Sales (applied steps)",
+          "language": "Power Query M",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Merged = Table.NestedJoin(Sales, 'StoreID', Stores, 'StoreID', 'Store', JoinKind.LeftOuter)"
+            },
+            {
+              "id": "c1",
+              "text": "Stores = CRM_StoreExport",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "Stores = Table.Distinct(Table.SelectRows(CRM_StoreExport, each [Status] = 'Active'), 'StoreID')",
+              "when": "fix == \"active\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "Stores = Table.Distinct(CRM_StoreExport, 'StoreID')",
+              "when": "fix == \"distinct\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Merged = Table.NestedJoin(Sales, 'StoreID', Stores, 'StoreID', 'Store', JoinKind.Inner)",
+              "when": "fix == \"inner\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "Expanded = Table.ExpandTableColumn(Merged, 'Store', 'Region')"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Board pack",
+          "value": "16:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Combining queries with merge (a join) and append (a union)",
+  "secondaryObjectives": [
+    "Cleaning nulls, inconsistent values and import errors in Power Query"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam PL-300: Microsoft Power BI Data Analyst (skills measured as of April 20, 2026; page updated 2026-10-30): prepare the data 25-30%, model the data 25-30%, visualize and analyze the data 25-30%, manage and secure Power BI 15-20%",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/certifications/resources/study-guides/pl-300",
+      "note": "Read through a summarizing fetch on 2026-11-18. Bullets quoted: 'Merge and append queries'; 'Resolve inconsistencies, unexpected or null values, and data quality issues'; 'Select an appropriate visual'. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Microsoft Support, Merge queries (Power Query)",
+      "checkedAt": "2026-11-18",
+      "url": "https://support.microsoft.com/en-us/excel/merge-queries-power-query",
+      "note": "Read through a summarizing fetch on 2026-11-18. 'The related table contains all rows that match each row from a primary table based on a common column value'; a left outer join keeps every primary row with its matches; join kinds listed: inner, left outer, right outer, full outer, left anti, right anti, cross. That a key matching two related rows yields two rows after expanding is the join's arithmetic, stated as the author's."
+    },
+    {
+      "cite": "Microsoft Learn (Power Query), Working with duplicate values",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/power-query/working-with-duplicates",
+      "note": "Read through a summarizing fetch on 2026-11-18. Remove duplicates keeps rows whose selected columns are unique; with one key column 'The output table retains only the first row for each unique' value, but 'Power Query doesn't guarantee that it keeps the first instance in a set of duplicates when it removes duplicates'; Power Query compares case-sensitively."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You build the Sales by Region report at Harbor & Pine Furniture (fictional). Yesterday the Stores query was switched to the CRM's store export, merged into Sales on StoreID to add Region. Today the report's total is 6.31 million; the finance ledger says 4.82 million. The board pack goes out at 16:00. It is 15:05.",
+    "handover": [
+      "The CRM export keeps a row for every store record ever made: a store that closed and reopened has two rows, Status Closed and Active.",
+      "Other reports read the same CRM export."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "active",
+        "distinct",
+        "inner"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"active\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"active\" or fix == \"distinct\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Profile Stores: count rows per StoreID, and compare Sales row counts before and after the merge",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Stores: 175 rows, 175 distinct StoreID\nSales: 48,210 rows before and after the merge"
+            }
+          ],
+          "else": [
+            {
+              "output": "Stores: 212 rows, 175 distinct StoreID (37 StoreIDs have 2 rows: Closed and Active)\nSales: 48,210 rows before the merge, 59,804 after expanding Region"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "One Stores row per StoreID: the merge no longer adds rows."
+            }
+          ],
+          "else": [
+            {
+              "finding": "A key that matches two Stores rows returns both, so every sale of a reopened store is counted twice after expanding."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the Stores query or the merge",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "active",
+              "label": "Keep the Active rows, then remove duplicates on StoreID, before the merge"
+            },
+            {
+              "value": "distinct",
+              "label": "Remove duplicates on StoreID only"
+            },
+            {
+              "value": "inner",
+              "label": "Change the join to Inner"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Delete the 37 Closed rows from the CRM store export so the merge matches once",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "37"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "37 rows deleted from CRM_StoreExport (shared file)"
+        },
+        {
+          "log": "The shared CRM export lost its store history; three other reports read it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Refresh and compare: Sales row count before and after the merge, report total against the ledger, and five reopened stores' regions",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"active\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Sales rows after merge: 48,210 (unchanged)\nReport total 4.82 million = ledger\nRegion per store matches the CRM's current record"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"distinct\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "Sales rows after merge: 48,210\nReport total 4.82 million = ledger\n6 stores show their pre-closure region"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"inner\"",
+              "then": [
+                {
+                  "output": "Sales rows after merge: 59,620\nReport total 6.30 million (ledger 4.82 million)"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "Sales rows after merge: 59,804\nReport total 6.31 million (ledger 4.82 million)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Publish the report to the board pack workspace",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Published: total 4.82 million, matching the ledger."
+            }
+          ],
+          "else": [
+            {
+              "output": "Published with revenue that does not match the ledger."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why revenue doubled",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Stores had two rows for reopened stores, so the merge matched each sale twice"
+                },
+                {
+                  "value": "c1",
+                  "label": "Sales were loaded twice from the source"
+                },
+                {
+                  "value": "c2",
+                  "label": "The ledger was missing a month"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Row count unchanged by the merge and the total matches the ledger"
+                },
+                {
+                  "value": "k1",
+                  "label": "The chart looks smaller now"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: the board pack went out with the old figures.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For finance: why the totals were wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "A merge returns every related row that matches the key; Stores had two rows for 37 reopened stores, so those sales doubled.",
+          "modelAnswer": "212 Stores rows for 175 StoreIDs; 48,210 sales became 59,804."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Filter Stores to Active rows and remove duplicates on StoreID before the merge; an inner join keeps the duplicates; deduplicating alone leaves which row survives to chance; deleting rows from the shared export breaks other reports.",
+          "modelAnswer": "Active rows, then Remove duplicates on StoreID."
+        },
+        {
+          "label": "How you know",
+          "criteria": "The merge no longer changes the row count, and the total matches the ledger.",
+          "modelAnswer": "48,210 rows; 4.82 million."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Shared store history deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "The lease and closure reports that read the CRM export lost every closed store record."
+    },
+    "wrongSent": {
+      "label": "Board pack with wrong revenue",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The board reads revenue 1.49 million higher than the ledger."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong went out, but the board pack left without the fixed report."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The board pack shows revenue that matches the ledger, by each store's current region."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Profiled the Stores key and the merge's row count before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Made Stores one current row per StoreID before the merge",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Active rows, one per StoreID, before the merge."
+          },
+          {
+            "when": "fix == \"distinct\"",
+            "score": "partial",
+            "why": "The total is right, but which of the two rows survives is not guaranteed, so some stores may keep a closed record's old region."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Deleted history from a shared source to fix one report.\" : fix == \"inner\" ? \"An inner join still returns both matching Stores rows, so reopened stores stay doubled.\" : \"Reopened stores still match two Stores rows and their sales are doubled.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed only this report's query",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted history from a shared source to fix one report."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Total matched the ledger after the last change, before publishing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "37 StoreIDs have two rows; the merge adds 11,594 rows."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Stores: Active rows, one per StoreID."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Row count unchanged; total equals the ledger."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Publish."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: one row per key on the lookup side",
+        "body": "Before merging a lookup table, make its key unique, choosing which row is current on purpose."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong revenue published",
+        "body": "A different join kind does not remove duplicate matches; only a unique key on the lookup side does."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Shared store history deleted",
+        "body": "Fix the shape in your own query: filter and deduplicate the dimension before the merge. The source belongs to everyone who reads it."
+      }
+    },
+    "modelReasoning": "A total that is too high after a merge points at duplicate keys on the lookup side. Stores has two rows for 37 reopened stores, so each of their sales matches twice. Filter Stores to the Active record and remove duplicates on StoreID before the merge, then check the merge leaves the row count unchanged and the total equals the ledger. An inner join keeps both matches; removing duplicates without choosing the row leaves some stores on a closed record; deleting rows from the shared export breaks other reports."
+  }
+}

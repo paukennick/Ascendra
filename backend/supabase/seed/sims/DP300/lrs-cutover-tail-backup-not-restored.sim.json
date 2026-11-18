@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "lrs-cutover-tail-backup-not-restored",
+  "title": "Cutover night: the log-tail backup is uploaded but the managed instance never restores it",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "22:20 cutover checklist step 3 waiting: 'log-tail backup shown as restored' not met after 15 minutes; window ends 23:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "23:00: cutover rolled back",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "23:00: cutover complete",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "blob",
+          "label": "Blob backups/sales/",
+          "spokenLabel": "the backup folder",
+          "kind": "flat folder LRS scans",
+          "status": "{fixed and not harmed ? \"tail in backups/sales/\" : \"tail in backups/sales/cutover/ (nested)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "lrs",
+          "label": "LRS job (continuous)",
+          "spokenLabel": "the log replay job",
+          "kind": "sales on mi-prod",
+          "status": "{harmed ? \"completed without the tail\" : fixed ? \"last restored: sales_tail_2206.trn\" : \"last restored: sales_log_2155.trn\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "mi",
+          "label": "mi-prod (sales)",
+          "spokenLabel": "the managed instance",
+          "kind": "restoring",
+          "status": "{fixed and not harmed ? \"caught up, ready to complete\" : \"20 minutes of orders behind\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "lrs",
+          "to": "blob",
+          "label": "scans",
+          "status": "{fixed and not harmed ? \"tail restored\" : \"tail not seen\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting a migration",
+  "secondaryObjectives": [
+    "Implementing an online migration strategy",
+    "Evaluating offline versus online migration strategies"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Overview of Log Replay Service with Azure SQL Managed Instance",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/azure-sql/managed-instance/log-replay-service-overview",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: LRS 'scans all files placed in the Azure Blob Storage account and constructs the backup chain from reading the file headers'; each database's backups go in its own folder, 'Don't use nested folders inside database folders, because nested-folder structure isn't supported'; in continuous mode the cutover is: stop the workload, take the log-tail backup, upload it, 'Confirm the log-tail backup is shown as restored', then run the complete operation (az sql midb log-replay complete); 'Stopping the operation deletes the database that you're restoring'; after completion, more backups cannot be restored without starting over. The az sql midb log-replay show output is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator at Haldane Freight, migrating the sales database from SQL Server to Azure SQL Managed Instance with Log Replay Service in continuous mode. Tonight is cutover: at 22:05 the application was stopped, a colleague took the log-tail backup and uploaded it. The managed instance should show it restored before you complete. The window ends at 23:00, when the application must come back on one side or the other.",
+    "handover": [
+      "LRS has restored the full backup and 312 log backups from blob folder backups/sales/ since Monday.",
+      "The colleague uploaded the tail with a new script to keep tonight's files 'tidy'."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the blob folder LRS scans, the log-tail backup and the managed instance's restore position.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "22:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The cutover window ends at 23:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "statusAt": {
+      "type": "time",
+      "init": null
+    },
+    "filesAt": {
+      "type": "time",
+      "init": null
+    },
+    "srcAt": {
+      "type": "time",
+      "init": null
+    },
+    "scriptAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "folder",
+        "corrupt",
+        "lrs"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "status",
+        "files",
+        "src",
+        "script",
+        "move",
+        "runbook",
+        "complete",
+        "reupload",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "status": {
+      "label": "az sql midb log-replay show (sales)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statusAt)",
+          "then": [
+            {
+              "set": "statusAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az sql midb log-replay show -g rg-data --mi mi-prod -n sales --query \"[status, lastRestoredFileName, currentRestoringFileName]\" -o tsv\n{harmed ? \"Completed  sales_log_2155.trn  (none)\" : fixed ? \"Restoring  sales_tail_2206.trn  (none)\" : \"Restoring  sales_log_2155.trn  (none)\"}"
+        },
+        {
+          "finding": "LRS's last restored file is the 21:55 log backup: the tail has not been restored."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "files": {
+      "label": "az storage blob list (backups/sales/), newest five",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(filesAt)",
+          "then": [
+            {
+              "set": "filesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az storage blob list --account-name hfmig -c backups --prefix sales/ --query \"[-5:].name\" -o tsv\n{fixed and not harmed ? \"sales/sales_log_2140.trn\nsales/sales_log_2155.trn\nsales/sales_tail_2206.trn\" : \"sales/sales_log_2140.trn\nsales/sales_log_2155.trn\nsales/cutover/sales_tail_2206.trn\"}"
+        },
+        {
+          "finding": "The tail was uploaded into a subfolder, sales/cutover/: LRS does not support nested folders, so it never sees it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "src": {
+      "label": "On SQL Server: msdb backup history for the tail",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(srcAt)",
+          "then": [
+            {
+              "set": "srcAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -S sqlprod01 -Q \"SELECT TOP 1 backup_finish_date, type, first_lsn, last_lsn FROM msdb.dbo.backupset WHERE database_name='sales' ORDER BY backup_finish_date DESC\"\n2026-11-17 22:06:41  L  (tail, NORECOVERY)  last_lsn 918231000002217800001"
+        },
+        {
+          "finding": "The tail exists and covers 21:55 to 22:05: 20 minutes of orders."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "script": {
+      "label": "Read the colleague's upload script",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(scriptAt)",
+          "then": [
+            {
+              "set": "scriptAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ grep -n 'az storage blob upload' scripts/upload-tail.sh\n12: az storage blob upload --account-name hfmig -c backups -n \"sales/cutover/$(basename $TAIL)\" -f $TAIL"
+        },
+        {
+          "finding": "The new script adds a 'cutover' folder."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "move": {
+      "label": "Copy the tail into backups/sales/ (flat), wait until LRS shows it restored, then run log-replay complete",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az storage blob copy start --account-name hfmig --destination-container backups --destination-blob sales/sales_tail_2206.trn --source-container backups --source-blob sales/cutover/sales_tail_2206.trn\ndba@cloudshell:~$ watch az sql midb log-replay show ... lastRestoredFileName   # sales_tail_2206.trn after 3 min\ndba@cloudshell:~$ az sql midb log-replay complete -g rg-data --mi mi-prod -n sales --last-backup-name sales_tail_2206.trn"
+        },
+        {
+          "log": "LRS finds the tail in the flat folder and restores it; only then is the migration completed, so every order up to the application stop is on the managed instance.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "runbook": {
+      "label": "Fix the upload script and the cutover runbook for the remaining databases (flat folder, confirm restored before complete)",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ git diff scripts/upload-tail.sh\n-  -n \"sales/cutover/$(basename $TAIL)\"\n+  -n \"$DB/$(basename $TAIL)\"\n(runbook: step 3 now shows lastRestoredFileName must equal the tail's name before step 4)"
+        },
+        {
+          "log": "The next three databases' cutovers use the flat folder, and the runbook makes the restored-tail check explicit.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "complete": {
+      "label": "Run log-replay complete now to stay inside the window",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az sql midb log-replay complete -g rg-data --mi mi-prod -n sales --last-backup-name sales_log_2155.trn\n(completed: sales online)"
+        },
+        {
+          "log": "The database comes online without the tail: the last 20 minutes of orders are missing, and after completion LRS cannot restore more backups without starting over.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reupload": {
+      "label": "Upload the tail again, under a new name, with the same script",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ ./scripts/upload-tail.sh /backup/sales_tail_2206.trn\nuploaded: sales/cutover/sales_tail_2206.trn (overwritten)"
+        },
+        {
+          "log": "The script puts it in the same nested folder: LRS still does not see it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the completed database's last orders against the source",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -S mi-prod... -Q \"SELECT MAX(order_time), COUNT(*) FROM sales.dbo.orders WHERE order_time > '2026-11-17 21:55'\"\n{harmed ? \"2026-11-17 21:54:59  0  (SQL Server has 1,284)\" : fixed ? \"2026-11-17 22:04:58  1,284  (matches SQL Server)\" : \"(database still restoring)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "folder",
+                  "label": "The tail was uploaded into a nested folder, which LRS does not scan"
+                },
+                {
+                  "value": "corrupt",
+                  "label": "The tail backup was corrupt"
+                },
+                {
+                  "value": "lrs",
+                  "label": "The LRS job had stopped"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "23:00: sales is online on the managed instance with every order up to the tail.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "23:00: the window closes; the cutover is rolled back to SQL Server and rescheduled.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the tail was not restored, what you did and in what order, and what changes for the next databases.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects LRS's position to the folder.",
+          "modelAnswer": "LRS's last restored file was the 21:55 log. The tail was uploaded to sales/cutover/, a nested folder; LRS reads only the database's flat folder, so it never saw it."
+        },
+        {
+          "label": "Order",
+          "criteria": "Tail restored before complete.",
+          "modelAnswer": "Copied the tail into sales/, waited until LRS showed it as the last restored file, then completed with it as the last backup. Completing first would have lost 20 minutes of orders permanently."
+        },
+        {
+          "label": "Next",
+          "criteria": "Fixes the process.",
+          "modelAnswer": "The upload script writes to the database's flat folder, and the runbook requires lastRestoredFileName to equal the tail before completing."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The cutover window ends at 23:00, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The migration was completed without the log-tail backup."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the tail unrestored leaves the cutover to roll back at 23:00.",
+      "source": {
+        "cite": "Microsoft Learn, Overview of Log Replay Service with Azure SQL Managed Instance",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/azure-sql/managed-instance/log-replay-service-overview",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: LRS 'scans all files placed in the Azure Blob Storage account and constructs the backup chain from reading the file headers'; each database's backups go in its own folder, 'Don't use nested folders inside database folders, because nested-folder structure isn't supported'; in continuous mode the cutover is: stop the workload, take the log-tail backup, upload it, 'Confirm the log-tail backup is shown as restored', then run the complete operation (az sql midb log-replay complete); 'Stopping the operation deletes the database that you're restoring'; after completion, more backups cannot be restored without starting over. The az sql midb log-replay show output is an authored rendering."
+      }
+    }
+  },
+  "endings": {
+    "ordersMissing": {
+      "label": "Completed without the tail: 20 minutes of orders missing",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Completing at the 21:55 log brought the database online without the orders written before the application stopped."
+    },
+    "rolledBack": {
+      "label": "Cutover rolled back",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 23:00 the tail still sat in a folder LRS does not scan."
+    },
+    "migrated": {
+      "label": "Tail restored, migration complete, runbook fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(statusAt) and not isNull(filesAt) and not isNull(verifiedAt) and causeDoc == \"folder\"",
+      "narrative": "The tail was restored before completion; sales is online on the managed instance with every order."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The migration completed with every order, but the script, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "ordersMissing",
+    "rolledBack",
+    "migrated",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared LRS's last restored file with the uploaded files",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(statusAt) and not isNull(filesAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(statusAt) or not isNull(filesAt) or not isNull(srcAt) or not isNull(scriptAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Completed by 23:00 with the tail restored",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The migration was completed without the log-tail backup.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Script and runbook fixed; last orders checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"folder\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "22:20-22:24",
+        "text": "LRS last restored 21:55 log; tail in sales/cutover/; tail covers 21:55-22:05; script adds a subfolder."
+      },
+      {
+        "at": "22:24-22:32",
+        "text": "Copy the tail to sales/, see it restored, complete; fix script and runbook."
+      },
+      {
+        "at": "22:32-22:34",
+        "text": "Last order 22:04:58, 1,284 rows, matching SQL Server."
+      }
+    ],
+    "debrief": {
+      "ordersMissing": {
+        "headline": "Complete only after the tail is restored",
+        "body": "In continuous mode the cutover is: stop the app, back up the tail, see it restored, then complete. Completing early loses the tail's transactions and closes the door on restoring them."
+      },
+      "rolledBack": {
+        "headline": "LRS reads one flat folder per database",
+        "body": "LRS builds the chain from the files in the database's folder, and nested folders are not supported. A file in a subfolder is invisible to it."
+      },
+      "migrated": {
+        "headline": "Good: no lost transactions",
+        "body": "You compared LRS's restore position with the files, found the tail in a nested folder, put it where LRS reads, waited for it to be restored, completed, checked the last orders, and fixed the runbook."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "LRS has restored up to the 21:55 log, and the tail sits in a nested folder, which LRS does not scan. Put the tail in the database's flat folder, wait until LRS shows it restored, and only then complete the migration. Completing now brings the database online without the last 20 minutes of orders, and nothing more can be restored after completion. Re-uploading with the same script changes nothing. Fix the script and the runbook for the next databases."
+  }
+}

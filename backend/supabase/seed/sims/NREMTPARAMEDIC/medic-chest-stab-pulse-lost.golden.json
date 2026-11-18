@@ -1,0 +1,458 @@
+{
+  "slug": "medic-chest-stab-pulse-lost",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: traumatic arrest recognized; BVM; left then right decompression, pulse back; vented seal; scoop and go; IO en route; trauma center notified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "left",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "first",
+          "choice": "cause",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "rosc",
+          "choice": "continue",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "right",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "seal",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 10,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 11,
+          "tick": 60
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "rosc",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "decomp": "met",
+          "both": "met",
+          "scene": "met",
+          "noEpi": "met",
+          "seal": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toNeedle": 30
+        },
+        "stateHash": "8a599c4ce88ff2b5"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "slowStart",
+      "title": "Monitor and compressions first, the right side at 3 minutes and the left after; pulse back; a long scene",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "right",
+          "seq": 5,
+          "tick": 180
+        },
+        {
+          "type": "act",
+          "action": "left",
+          "seq": 6,
+          "tick": 210
+        },
+        {
+          "type": "teach",
+          "prompt": "first",
+          "choice": "cause",
+          "seq": 7,
+          "tick": 210
+        },
+        {
+          "type": "chapter",
+          "chapter": "rosc",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "seal",
+          "seq": 9,
+          "tick": 240
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 10,
+          "tick": 700
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 11,
+          "tick": 700
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 760
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "decomp": "partial",
+          "both": "met",
+          "scene": "partial",
+          "noEpi": "met",
+          "seal": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toNeedle": 240
+        },
+        "stateHash": "64e0c2a4a24f1eec"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "leftOnly",
+      "title": "Left decompression at once, pulse back; the right side never done",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "look",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "left",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "first",
+          "choice": "cause",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "chapter",
+          "chapter": "rosc",
+          "choice": "continue",
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "seal",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 8,
+          "tick": 30
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 90
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "decomp": "met",
+          "both": "partial",
+          "scene": "met",
+          "noEpi": "met",
+          "seal": "met",
+          "notify": "met"
+        },
+        "kpis": {
+          "toNeedle": 30
+        },
+        "stateHash": "4b6cb677abcb264c"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "epiFirst",
+      "title": "Run as a medical arrest with epinephrine first; decompression at 7 minutes just in time; long scene",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "monitor",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 5,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "left",
+          "seq": 6,
+          "tick": 400
+        },
+        {
+          "type": "teach",
+          "prompt": "first",
+          "choice": "cause",
+          "seq": 7,
+          "tick": 400
+        },
+        {
+          "type": "chapter",
+          "chapter": "rosc",
+          "choice": "continue",
+          "seq": 8,
+          "tick": 430
+        },
+        {
+          "type": "act",
+          "action": "right",
+          "seq": 9,
+          "tick": 430
+        },
+        {
+          "type": "act",
+          "action": "transport",
+          "seq": 10,
+          "tick": 460
+        },
+        {
+          "type": "act",
+          "action": "notify",
+          "seq": 11,
+          "tick": 460
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 12,
+          "tick": 520
+        }
+      ],
+      "expect": {
+        "ending": "arrived",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "decomp": "partial",
+          "both": "met",
+          "scene": "met",
+          "noEpi": "missed",
+          "seal": "missed",
+          "notify": "met"
+        },
+        "kpis": {
+          "toNeedle": 430
+        },
+        "stateHash": "5c06b826172d1e3d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "medicalArrest",
+      "title": "Compressions and epinephrine on scene; no decompression and no transport",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "cpr",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bvm",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "io",
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 4,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "epi",
+          "seq": 5,
+          "tick": 240
+        }
+      ],
+      "expect": {
+        "ending": "noRosc",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "decomp": "missed",
+          "both": "missed",
+          "scene": "missed",
+          "noEpi": "missed",
+          "seal": "missed",
+          "notify": "missed"
+        },
+        "kpis": {
+          "toNeedle": -1
+        },
+        "stateHash": "6765cc0818348843"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}

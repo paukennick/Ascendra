@@ -17,7 +17,19 @@ import { isPerformanceObjective } from "../../scripts/generate-labs-lib.ts";
 const COURSES = ["CYSAPLUS", "PENTESTPLUS", "SECURITYX", "SECAIPLUS"] as const;
 // FAIL-2221: select the console cases by screen too; REQ-314 added a CySA+
 // band on the sandbox report.
-const W2 = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course) && loadDocument(e).screen.type === "security-console");
+// FAIL-2542 (a recurrence of FAIL-2002): the REQ-238 set by slug, so
+// REQ-336's console cases in these courses do not join it.
+const W2_SLUGS = [
+  "alert-triage-lolbin-hunt",
+  "vuln-prioritization-kev-edge",
+  "pentest-third-party-webshell",
+  "pentest-scope-boundary",
+  "federation-token-forgery",
+  "ot-segmentation-breach",
+  "agent-indirect-prompt-injection",
+  "rag-assistant-data-leak",
+];
+const W2 = ALL_DOCUMENTS.filter((e) => (COURSES as readonly string[]).includes(e.course) && W2_SLUGS.includes(e.slug) && loadDocument(e).screen.type === "security-console");
 const docOf = (slug: string): ScenarioDoc => loadDocument(W2.find((e) => e.slug === slug)!);
 
 function driver(doc: ScenarioDoc) {

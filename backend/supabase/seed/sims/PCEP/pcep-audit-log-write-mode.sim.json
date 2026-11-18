@@ -1,0 +1,990 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pcep-audit-log-write-mode",
+  "title": "The audit log only ever has one night in it",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "nightly_audit.py and audit.log, Harborview Credit Union back office (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Compliance officer, Dana Price",
+          "text": "The examiners want 90 days of the access audit log on Monday. The file only holds last night. What happened to the rest?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "audit.log starts at last night's first line every morning.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "altered",
+          "label": "Data",
+          "text": "The audit log and its backups were deleted.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Compliance",
+          "text": "16:00: tonight's run will erase another night.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "nightly_audit.py",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "with open(\"audit.log\", \"w\", encoding=\"utf-8\") as log:",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "with open(\"audit.log\", \"a\", encoding=\"utf-8\") as log:",
+              "when": "fix == \"append\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "with open(\"audit.log\", \"x\", encoding=\"utf-8\") as log:",
+              "when": "fix == \"excl\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "log = open(\"audit.log\", \"a\")",
+              "when": "fix == \"noWith\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "    for event in todays_events():"
+            },
+            {
+              "id": "c5",
+              "text": "        print(event.to_line(), file=log)"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Tonight's run",
+          "value": "16:00"
+        },
+        {
+          "id": "alteredRows",
+          "label": "Changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Open text files in r, w and a modes inside with, and predict what each mode does to existing content",
+  "secondaryObjectives": [
+    "Import a module and call what it provides, and explain why reusing library code beats rewriting it"
+  ],
+  "sources": [
+    {
+      "cite": "Python 3.15 documentation, The Python Tutorial, 7. Input and Output (7.2 Reading and Writing Files)",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.python.org/tutorial/inputoutput.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. \"'w' for only writing (an existing file with the same name will be erased)\"; \"'a' opens the file for appending; any data written to the file is automatically added to the end\"; with closes the file 'even if an exception is raised'; without it, writes may not be 'completely written to the disk'."
+    },
+    {
+      "cite": "Python Institute, PCEP-30-03 exam syllabus (revised November 2, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pythoninstitute.org/pcep-exam-syllabus",
+      "note": "Read 2026-11-17 through a summarizing fetch. Section 02 Control Flow is 23% of the exam and Section 05 File Handling and Module Imports 14%. The PCEP course's objectives name the unreachable-branch and file-mode skills."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain nightly_audit.py at Harborview Credit Union (fictional). Each night it writes the day's staff access events to audit.log. The compliance officer finds the log holds only last night. Tonight's run starts at 16:00. It is 15:05. The nightly backups still hold every earlier night's file.",
+    "handover": [
+      "A cleanup last month rewrote the file handling 'to use with properly'.",
+      "Backups of audit.log are kept for a year."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "append",
+        "noWith",
+        "excl"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"append\") and rowsAlteredOutsideFix == 0"
+    },
+    "correct": {
+      "expr": "(fix == \"append\" or fix == \"noWith\") and rowsAlteredOutsideFix == 0"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "destroy",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compare audit.log's size and first line over three nights, and read the open() call",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "the file grows each night; the first line stays the oldest event"
+            }
+          ],
+          "else": [
+            {
+              "output": "Mon 412 KB  first line 2026-11-16 00:00:03\nTue 398 KB  first line 2026-11-17 00:00:01\nopen(\"audit.log\", \"w\")"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Each night is appended."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Mode 'w' erases an existing file before writing, so each night replaced the last."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the log is opened",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "append",
+              "label": "Open in append mode inside with: open(..., \"a\", encoding=\"utf-8\")"
+            },
+            {
+              "value": "noWith",
+              "label": "Use \"a\" without with and never close the file"
+            },
+            {
+              "value": "excl",
+              "label": "Use \"x\" so the file is never overwritten"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "destroy": {
+      "label": "Delete audit.log and its backups so the examiners see a clean start from tonight",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "90"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "removed audit.log and 89 backup copies"
+        },
+        {
+          "log": "Ninety nights of access evidence are gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the job twice against a test file and compare",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"append\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "run twice on a test file: 2 nights present, oldest first\n1 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"noWith\" and rowsAlteredOutsideFix == 0",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "run twice: 2 nights present (file left open; last lines buffered)\n1 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"excl\"",
+              "then": [
+                {
+                  "output": "FileExistsError: [Errno 17] File exists: 'audit.log'\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "run twice: only the second night present\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Deploy nightly_audit.py and restore the earlier nights from backups",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Deployed with append mode; 89 earlier nights restored from backups."
+            }
+          ],
+          "else": [
+            {
+              "output": "Deployed; tonight's run will not keep the history."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the log held one night",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "open(..., \"w\") erases an existing file, so each night replaced the last"
+                },
+                {
+                  "value": "c1",
+                  "label": "Disk space ran out"
+                },
+                {
+                  "value": "c2",
+                  "label": "Log rotation deleted it"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it keeps history now",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Two test runs leave both nights in the file"
+                },
+                {
+                  "value": "k1",
+                  "label": "The file is bigger tonight"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "16:00: tonight's run will erase another night.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For compliance: why the log held one night, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Mode 'w' erases an existing file before writing; 'a' appends to the end.",
+          "modelAnswer": "open with 'w' truncated the log every night."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Open with 'a' inside with (so the file is closed and flushed); 'x' fails when the file exists; restore past nights from backups; never delete the evidence.",
+          "modelAnswer": "'a' inside with; backups restored."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Two runs against a test file leave both nights, oldest first.",
+          "modelAnswer": "Two nights in the test file."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Audit evidence deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "The examiners will find no access history at all."
+    },
+    "wrongSent": {
+      "label": "Still losing history",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Tonight's run will not leave a log the examiners can use."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No new damage, but tonight's run will erase another night."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The log keeps every night again, and the history is back from backups."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Looked at the file over several nights and the open mode before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Opened the log for appending inside with",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Append mode inside with."
+          },
+          {
+            "when": "fix == \"noWith\"",
+            "score": "partial",
+            "why": "Appends, but an unclosed file may lose the last writes."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{rowsAlteredOutsideFix > 0 ? \"Deleted ninety nights of audit evidence.\" : fix == \"excl\" ? \"Exclusive mode fails as soon as the file exists, so nothing is written.\" : \"Mode w still erases the log every night.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Kept the audit evidence",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "Nothing changed outside the fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted ninety nights of audit evidence."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Two runs leave both nights in the file, checked after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Three mornings: the file restarts each night; open uses 'w'."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Open with 'a' inside with."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Two test runs keep both nights."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Deploy; restore from backups."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: append, inside with",
+        "body": "'w' truncates and 'a' appends. With closes the file even on an error, so every line reaches the disk."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still losing history",
+        "body": "'x' refuses an existing file; the mode that keeps history is 'a'."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      },
+      "altered": {
+        "headline": "Audit evidence deleted",
+        "body": "The log was evidence; the bug was the open mode. Fix the mode and restore the history from backups."
+      }
+    },
+    "modelReasoning": "A log that always starts at last night's first line is being truncated. open(..., 'w') erases an existing file; 'a' adds to the end; 'x' fails if the file exists. Use 'a' inside with so the file is closed and flushed even on an error, check with two runs, and restore earlier nights from the backups rather than deleting anything."
+  }
+}

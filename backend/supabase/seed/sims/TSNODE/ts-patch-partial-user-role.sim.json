@@ -1,0 +1,928 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ts-patch-partial-user-role",
+  "title": "A user made themselves an admin",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "users.ts, PATCH /users/:id in the volunteer portal, Hillcrest Food Bank (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Security lead, Ola Nwosu",
+          "text": "A volunteer account sent PATCH with role: admin and got admin rights. The portal reopens at 18:00 after we revoked it.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The handler spreads the whole request body into the user.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Portal",
+          "text": "18:00: the portal reopened on the code as it stood.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "users.ts",
+          "language": "TypeScript",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "const body = req.body as Partial<User>;",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "Object.assign(user, body);",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c2",
+              "text": "type ProfilePatch = Partial<Pick<User, 'name' | 'email' | 'phone'>>;",
+              "when": "fix == \"pick\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "const patch: ProfilePatch = pickKeys(parseJson(req.body), ['name', 'email', 'phone']);  // copies only these keys, validates strings",
+              "when": "fix == \"pick\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "Object.assign(user, patch);",
+              "when": "fix == \"pick\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c5",
+              "text": "const body = req.body as Omit<User, 'role'>;",
+              "when": "fix == \"omit\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c6",
+              "text": "Object.assign(user, body);",
+              "when": "fix == \"omit\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c7",
+              "text": "if ('role' in req.body) return res.status(400);",
+              "when": "fix == \"deny\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c8",
+              "text": "Object.assign(user, req.body);",
+              "when": "fix == \"deny\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Portal reopens",
+          "value": "18:00"
+        }
+      ]
+    }
+  },
+  "objective": "Apply utility types (Partial, Required, Pick, Omit, Record, ReturnType) instead of repeating shapes",
+  "secondaryObjectives": [
+    "Write generic functions and constrain type parameters with extends"
+  ],
+  "sources": [
+    {
+      "cite": "TypeScript Handbook, Utility Types (Korean edition)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.typescriptlang.org/ko/docs/handbook/utility-types.html",
+      "note": "Read 2026-11-17 through a summarizing fetch. Partial<Type> constructs a type with all properties of Type optional; Pick<Type, Keys> constructs a type from the chosen properties Keys (author's translation of the Korean text; the code examples are the English handbook's)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the volunteer portal at Hillcrest Food Bank (fictional), written in TypeScript. PATCH /users/:id lets volunteers edit their profile. The body is typed Partial<User> and spread into the stored user. A volunteer set their own role to admin. The portal is closed and reopens at 18:00. It is 17:05.",
+    "handover": [
+      "User has id, name, email, phone, role and isActive.",
+      "Volunteers may change name, email and phone."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "17:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "pick",
+        "omit",
+        "deny"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"pick\")"
+    },
+    "correct": {
+      "expr": "(fix == \"pick\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Replay the request on staging and diff the stored user",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "stored user: name changed; role and isActive untouched"
+            }
+          ],
+          "else": [
+            {
+              "output": "PATCH body: role admin\nstored user: role volunteer -> admin"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Only allowed fields change."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Partial<User> describes the whole user, and types are erased at run time: every field in the body is copied, including role."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change the patch type and handler",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "pick",
+              "label": "Type the patch as Partial<Pick<User, name | email | phone>> and copy only those keys at run time"
+            },
+            {
+              "value": "omit",
+              "label": "Cast the body to Omit<User, 'role'>"
+            },
+            {
+              "value": "deny",
+              "label": "Reject requests that include role, then copy the body"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the API tests: role, isActive, id and extra fields in PATCH bodies",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"pick\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "role, isActive and id ignored; profile fields update; bad types 400\n3 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"omit\"",
+              "then": [
+                {
+                  "output": "role admin accepted at run time\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"deny\"",
+              "then": [
+                {
+                  "output": "isActive true and id 1 accepted\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "role escalation accepted\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Reopen the portal",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Reopened: volunteers edit only their profile."
+            }
+          ],
+          "else": [
+            {
+              "output": "Reopened: still escalatable."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "How the volunteer became admin",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "The handler copied the whole body; Partial<User> allowed role, and types do not check run-time input"
+                },
+                {
+                  "value": "c1",
+                  "label": "A stolen admin password"
+                },
+                {
+                  "value": "c2",
+                  "label": "A database trigger"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is fixed",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Tests show role, isActive and id are ignored and profile fields still update"
+                },
+                {
+                  "value": "k1",
+                  "label": "The volunteer is no longer admin"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "18:00: the portal reopened on the code as it stood.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For security: how the escalation happened, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Partial<User> makes every field of User optional, including role; casts and types are erased, so the whole body was copied.",
+          "modelAnswer": "Partial<User> plus a spread."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Partial<Pick<User, allowed keys>> for the type, and code that copies only those keys at run time; Omit as a cast is erased; a deny list misses fields.",
+          "modelAnswer": "Pick the allowed keys, enforce them."
+        },
+        {
+          "label": "How you know",
+          "criteria": "API tests for role, isActive, id and extra fields.",
+          "modelAnswer": "All ignored; profile updates."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Escalation still open",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Any volunteer can still raise their own privileges."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Safe, but the portal stayed closed tonight."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Volunteers can edit their profile and nothing else."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Replayed the request before changing code",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Allowed only profile fields, by type and at run time",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "An allow-list type, enforced at run time."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"omit\" ? \"A cast is erased: the body is still copied whole, and isActive and id were never excluded.\" : fix == \"deny\" ? \"A deny list misses isActive and id.\" : \"The whole body is still copied into the user.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "API tests passed after the last change, before the portal reopened",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "Replay: role changes."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Pick allowed keys; copy only those."
+      },
+      {
+        "at": "9-12 min",
+        "text": "API tests pass."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Reopen."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: say what may change",
+        "body": "Pick the allowed keys in the type and copy only those keys in the code; the type alone checks nothing at run time."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Still open",
+        "body": "Casts are erased, and deny lists miss the next field."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The body is typed Partial<User>, which makes every User field optional, role included, and then copied whole. Types are erased, so no check happens at run time. Define the patch as Partial<Pick<User, 'name' | 'email' | 'phone'>> and copy only those keys after validating them. A cast to Omit<User, 'role'> is erased; rejecting role alone misses isActive and id."
+  }
+}

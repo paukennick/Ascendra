@@ -1,0 +1,820 @@
+{
+  "slug": "mscs-renewed-cert-missing-intermediate",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "s_client shows the leaf alone, nginx config, fullchain.pem, reload, verified clean",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sclient",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "conf",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "full"
+          },
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 11,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 12,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "chain",
+            "fix": "fullchain"
+          },
+          "seq": 13,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "fixed",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "evidence": "met",
+          "chain": "met",
+          "trust": "met",
+          "tested": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "depthK": 2,
+          "insecureK": 0,
+          "fixedMin": 6
+        },
+        "stateHash": "b98b4c76026b9392"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "verifyOff",
+      "title": "Reads the partner's error and accepts their offer to switch verification off",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "partnerLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "verifyOff",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 7,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 12,
+          "seq": 6,
+          "tick": 7
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "root",
+            "fix": "verifyOff"
+          },
+          "seq": 11,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "insecure",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "evidence": "missed",
+          "chain": "missed",
+          "trust": "missed",
+          "tested": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "depthK": 1,
+          "insecureK": 1,
+          "fixedMin": 0
+        },
+        "stateHash": "f4bb8262aa400627"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "addRoot",
+      "title": "Adds the root instead of the intermediate, reloads, verify still fails, closes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "partnerLog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "leafroot"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "root",
+            "fix": "fullchain"
+          },
+          "seq": 11,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "stillFailing",
+        "class": "harm",
+        "rating": "bad",
+        "score": 33,
+        "criteria": {
+          "evidence": "missed",
+          "chain": "missed",
+          "trust": "met",
+          "tested": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "depthK": 2,
+          "insecureK": 0,
+          "fixedMin": 0
+        },
+        "stateHash": "da357bd9366b7955"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "oldCert",
+      "title": "Looks at the chain, then goes back to last year's certificate",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "sclient",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "old"
+          },
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 5,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 5,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "chain",
+            "fix": "oldCert"
+          },
+          "seq": 11,
+          "tick": 10
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 67,
+        "criteria": {
+          "evidence": "met",
+          "chain": "partial",
+          "trust": "met",
+          "tested": "partial",
+          "note": "partial"
+        },
+        "kpis": {
+          "depthK": 2,
+          "insecureK": 0,
+          "fixedMin": 5
+        },
+        "stateHash": "6005249f5c832f69"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "blind",
+      "title": "Switches to fullchain.pem without looking, reloads, closes unverified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "full"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "chain",
+            "fix": "fullchain"
+          },
+          "seq": 7,
+          "tick": 4
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 58,
+        "criteria": {
+          "evidence": "missed",
+          "chain": "met",
+          "trust": "met",
+          "tested": "missed",
+          "note": "met"
+        },
+        "kpis": {
+          "depthK": 2,
+          "insecureK": 0,
+          "fixedMin": 3
+        },
+        "stateHash": "8c40ed56c6691fbf"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "late",
+      "title": "Tries leaf plus root first, then looks, then fullchain after the cutoff, verified",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "leafroot"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 9,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 7,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 14,
+          "seq": 8,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 9,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 19,
+          "seq": 10,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 11,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 24,
+          "seq": 12,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 13,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 29,
+          "seq": 14,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 15,
+          "tick": 29
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 34,
+          "seq": 16,
+          "tick": 29
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 17,
+          "tick": 34
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 9,
+          "to": 39,
+          "seq": 18,
+          "tick": 34
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 19,
+          "tick": 39
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 10,
+          "to": 44,
+          "seq": 20,
+          "tick": 39
+        },
+        {
+          "type": "act",
+          "action": "watch",
+          "seq": 21,
+          "tick": 44
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 11,
+          "to": 49,
+          "seq": 22,
+          "tick": 44
+        },
+        {
+          "type": "act",
+          "action": "sclient",
+          "seq": 23,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 51,
+          "seq": 24,
+          "tick": 49
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 12,
+          "to": 51,
+          "seq": 25,
+          "tick": 50
+        },
+        {
+          "type": "act",
+          "action": "stage",
+          "params": {
+            "p": "full"
+          },
+          "seq": 26,
+          "tick": 51
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 13,
+          "to": 54,
+          "seq": 27,
+          "tick": 51
+        },
+        {
+          "type": "act",
+          "action": "reload",
+          "seq": 28,
+          "tick": 54
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 14,
+          "to": 55,
+          "seq": 29,
+          "tick": 54
+        },
+        {
+          "type": "act",
+          "action": "verify",
+          "seq": 30,
+          "tick": 55
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 15,
+          "to": 59,
+          "seq": 31,
+          "tick": 55
+        },
+        {
+          "type": "act",
+          "action": "closeOutage",
+          "seq": 32,
+          "tick": 59
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 33,
+          "tick": 59
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "chain",
+            "fix": "fullchain"
+          },
+          "seq": 34,
+          "tick": 59
+        }
+      ],
+      "expect": {
+        "ending": "fixedGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 92,
+        "criteria": {
+          "evidence": "partial",
+          "chain": "met",
+          "trust": "met",
+          "tested": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "depthK": 2,
+          "insecureK": 0,
+          "fixedMin": 54
+        },
+        "stateHash": "a57f1678a4b57033"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    }
+  ]
+}

@@ -1,0 +1,806 @@
+{
+  "slug": "mshi-a1c-units-quality-dashboard",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Profile by lab (median 58), read the messages (59261-8, mmol/mol), convert in the view, check against the lab's reports, ticket, send",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "profile",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "messages",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 8,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "rewrite",
+          "params": {
+            "f": "convert"
+          },
+          "seq": 5,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 16,
+          "seq": 6,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 7,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "raise",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 25,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 11,
+          "tick": 25
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 27,
+          "seq": 12,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 13,
+          "tick": 27
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 14,
+          "tick": 27
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "reconcile"
+          },
+          "seq": 15,
+          "tick": 27
+        }
+      ],
+      "expect": {
+        "ending": "right",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "looked": "met",
+          "fixed": "met",
+          "data": "met",
+          "checked": "met",
+          "raised": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "rateSent": 18.1,
+          "altered": 0,
+          "sentAtMin": 25
+        },
+        "stateHash": "1b62351447056001"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "sendAsIs",
+      "title": "Trusts the dashboard and sends 41.2% to the committee",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "real",
+            "check": "none"
+          },
+          "seq": 5,
+          "tick": 2
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 14,
+        "criteria": {
+          "looked": "missed",
+          "fixed": "missed",
+          "data": "met",
+          "checked": "missed",
+          "raised": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "rateSent": 41.2,
+          "altered": 0,
+          "sentAtMin": 0
+        },
+        "stateHash": "a665d20c7bf0bd88"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "overwrite",
+      "title": "Profiles, then rewrites the stored results as %, checks and sends",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "profile",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "overwrite",
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 9,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 5,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 17,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 17
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "reconcile"
+          },
+          "seq": 11,
+          "tick": 17
+        }
+      ],
+      "expect": {
+        "ending": "altered",
+        "class": "harm",
+        "rating": "bad",
+        "score": 43,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "data": "missed",
+          "checked": "met",
+          "raised": "missed",
+          "note": "met"
+        },
+        "kpis": {
+          "rateSent": 18.1,
+          "altered": 1406,
+          "sentAtMin": 15
+        },
+        "stateHash": "55bf1744222c5150"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "exclude",
+      "title": "Reads the messages, leaves Harbor out, checks (640 patients now untested) and holds the dashboard",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "messages",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rewrite",
+          "params": {
+            "f": "exclude"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 17,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "raise",
+          "seq": 7,
+          "tick": 17
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 20,
+          "seq": 8,
+          "tick": 17
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 9,
+          "tick": 20
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 10,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "none"
+          },
+          "seq": 11,
+          "tick": 20
+        }
+      ],
+      "expect": {
+        "ending": "notSent",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 64,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "data": "met",
+          "checked": "partial",
+          "raised": "met",
+          "note": "partial"
+        },
+        "kpis": {
+          "rateSent": 0,
+          "altered": 0,
+          "sentAtMin": 0
+        },
+        "stateHash": "0be9293b65daa412"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    },
+    {
+      "id": "divide",
+      "title": "Reads the messages, divides mmol/mol by 10, sends 14.7% unchecked",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "messages",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 3,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rewrite",
+          "params": {
+            "f": "divide"
+          },
+          "seq": 3,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 11,
+          "seq": 4,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 5,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 13,
+          "seq": 6,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "lower"
+          },
+          "seq": 9,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "wrongSent",
+        "class": "harm",
+        "rating": "bad",
+        "score": 36,
+        "criteria": {
+          "looked": "met",
+          "fixed": "missed",
+          "data": "met",
+          "checked": "missed",
+          "raised": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "rateSent": 14.7,
+          "altered": 0,
+          "sentAtMin": 11
+        },
+        "stateHash": "56cf98232047a82b"
+      },
+      "reasoning": {
+        "writeup": "missed"
+      }
+    },
+    {
+      "id": "lateChecked",
+      "title": "Converts first, then profiles and checks, waits on the ticket, and sends after 15:00",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "rewrite",
+          "params": {
+            "f": "convert"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 8,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "profile",
+          "seq": 3,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 13,
+          "seq": 4,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "check",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 19,
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "raise",
+          "seq": 7,
+          "tick": 19
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 4,
+          "to": 22,
+          "seq": 8,
+          "tick": 19
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 5,
+          "to": 37,
+          "seq": 10,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 6,
+          "to": 52,
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 67,
+          "seq": 14,
+          "tick": 52
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 7,
+          "to": 67,
+          "seq": 15,
+          "tick": 60
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 16,
+          "tick": 67
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 8,
+          "to": 69,
+          "seq": 17,
+          "tick": 67
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 18,
+          "tick": 69
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 19,
+          "tick": 69
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "reconcile"
+          },
+          "seq": 20,
+          "tick": 69
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 93,
+        "criteria": {
+          "looked": "partial",
+          "fixed": "met",
+          "data": "met",
+          "checked": "met",
+          "raised": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "rateSent": 18.1,
+          "altered": 0,
+          "sentAtMin": 67
+        },
+        "stateHash": "7253994a481f2009"
+      },
+      "reasoning": {
+        "writeup": "met"
+      }
+    },
+    {
+      "id": "unchecked",
+      "title": "Profiles, converts and sends without a check or a ticket",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "profile",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 1,
+          "to": 5,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "rewrite",
+          "params": {
+            "f": "convert"
+          },
+          "seq": 3,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 13,
+          "seq": 4,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "send",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 15,
+          "seq": 6,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "finish",
+          "seq": 7,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "writeup",
+          "answered": true,
+          "seq": 8,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "document",
+          "params": {
+            "cause": "units",
+            "check": "lower"
+          },
+          "seq": 9,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "gaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 57,
+        "criteria": {
+          "looked": "met",
+          "fixed": "met",
+          "data": "met",
+          "checked": "missed",
+          "raised": "missed",
+          "note": "partial"
+        },
+        "kpis": {
+          "rateSent": 18.1,
+          "altered": 0,
+          "sentAtMin": 13
+        },
+        "stateHash": "e005e6686988206c"
+      },
+      "reasoning": {
+        "writeup": "partial"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1029 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "two-wounds-one-dressing-choice",
+  "title": "Two wounds, two different answers",
+  "objective": "Dressing selection matched to wound characteristics and moisture balance",
+  "secondaryObjectives": [
+    "Use a silicone foam dressing for a moisture-balanced, non-infected pressure injury, and plan repositioning around the person's risk factors (malnutrition, anemia, age, cognition, sensation) instead of a fixed turning schedule"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: wound management (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/wound-management/specialist-certification-examination-outline-wound-management",
+      "note": "Relayed from the wound management specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Interventions and outcomes (20%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra wound management specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSWMS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Britto EJ, et al.. Wound Dressings. StatPearls (updated 2024-01-23), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DRESS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: dressing selection is matched to wound characteristics and moisture balance; a silicone foam dressing suits a moisture-balanced, non-infected pressure injury, with repositioning planned around the person's risk factors (malnutrition, anemia, age, cognition, sensation) instead of a fixed turning schedule (the course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in a skilled nursing facility. You are the wound management physical therapist. Mr. Ortega, 72, has a sacral pressure injury and a left lateral ankle wound. The standing order says 'hydrocolloid to all wounds, change every 5 days'.",
+    "handover": [
+      "He has diabetes, mild anemia and eats about half his meals. Staff turn him every 2 hours by the clock.",
+      "Facility policy: the wound team recommends dressings to match each wound and calls the provider the same day for signs of infection."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Infection spreads under an occlusive dressing. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of spreading infection. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of signs of infection (facility policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish dressings and the plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "sacrumAt": {
+      "type": "time",
+      "init": null
+    },
+    "ankleAt": {
+      "type": "time",
+      "init": null
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sacrum",
+        "ankle",
+        "risk"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "next"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "match",
+        "same",
+        "both"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "foamAt": {
+      "type": "time",
+      "init": null
+    },
+    "occludeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 + 20 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "temp": {
+      "expr": "round((38.1 + 0.8 * max(0, prog - 0.5)) * 10) / 10",
+      "unit": "C",
+      "precision": 1
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mr. Ortega, 72, skilled nursing facility, wound consult",
+        "presentation": "Two wounds: a sacral pressure injury and a left lateral ankle wound. {not isNull(occludeAt) ? \"Ankle wound under a sealed hydrocolloid.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "temp",
+          "label": "Temp",
+          "spokenLabel": "Temperature",
+          "value": "temp",
+          "unit": "C",
+          "colour": "neutral",
+          "alarm": {
+            "high": 38
+          },
+          "announce": {
+            "bands": [
+              37.5,
+              38
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Consult complete.\" : \"Side-lying for the wound assessment.\"}",
+      "measures": [
+        {
+          "id": "sacrumResult",
+          "label": "Sacral wound",
+          "result": "Stage 2, 3 x 2 cm, pink moist bed, moderate serous exudate, no signs of infection.",
+          "when": "not isNull(sacrumAt)"
+        },
+        {
+          "id": "ankleResult",
+          "label": "Ankle wound",
+          "result": "Yellow slough, purulent drainage, foul odor; redness spreading 6 cm up the leg, warm and tender; T 38.1.",
+          "when": "not isNull(ankleAt)",
+          "flag": "true"
+        },
+        {
+          "id": "riskResult",
+          "label": "Risk factors",
+          "result": "Malnutrition, anemia, age, reduced sensation from neuropathy.",
+          "when": "not isNull(riskAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Sacrum: silicone foam",
+            "when": "not isNull(foamAt)"
+          },
+          {
+            "label": "Ankle: not occluded; provider called",
+            "when": "route == \"md\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleInf",
+          "label": "Signs of spreading infection",
+          "text": "Don't occlude; same-day medical assessment.",
+          "met": "not isNull(ankleAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "sacrum": {
+      "label": "Assess the sacral wound: depth, bed, exudate, edges, surrounding skin",
+      "group": "Examine",
+      "available": "not testPending and isNull(sacrumAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sacrum\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ankle": {
+      "label": "Assess the ankle wound and the leg around it",
+      "group": "Examine",
+      "available": "not testPending and isNull(ankleAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ankle\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "risk": {
+      "label": "Review his risk factors for repositioning",
+      "group": "Examine",
+      "available": "not testPending and isNull(riskAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"risk\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "foam": {
+      "label": "Sacrum: silicone foam dressing; repositioning planned around his risks",
+      "group": "Treat",
+      "available": "isNull(foamAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "foamAt",
+          "to": "t"
+        },
+        {
+          "log": "Silicone foam on the sacrum; a repositioning plan built around his malnutrition, anemia and sensation.",
+          "kind": "act"
+        }
+      ]
+    },
+    "occlude": {
+      "label": "Ankle: hydrocolloid sealed on for 5 days per the standing order",
+      "group": "Treat",
+      "available": "isNull(occludeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "occludeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.35, 2)"
+        },
+        {
+          "log": "The ankle wound is sealed under a hydrocolloid.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does each wound need?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "match",
+              "label": "Sacrum: clean, moist stage 2, silicone foam and risk-based repositioning; ankle: spreading infection with fever, needs medical assessment, not an occlusive dressing"
+            },
+            {
+              "value": "same",
+              "label": "Both get hydrocolloid per the order"
+            },
+            {
+              "value": "both",
+              "label": "Both are infected"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"match\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"match\""
+                },
+                {
+                  "log": "Two wounds, two plans.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"same\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"same\""
+                },
+                {
+                  "log": "Read as one plan.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"both\""
+                },
+                {
+                  "log": "Read as both infected.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call the provider today: left ankle wound with purulence, spreading cellulitis 6 cm, T 38.1 in a person with diabetes; dressing changed to absorbent, non-occlusive; sacrum clean on silicone foam"
+            },
+            {
+              "value": "next",
+              "label": "Recheck at next week's wound rounds"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The provider sees him this afternoon, orders cultures, labs and antibiotics as ordered, and an X-ray of the ankle.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"next\""
+                },
+                {
+                  "log": "Left for next week.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document each wound, the dressings chosen and the repositioning plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Both wounds measured and described; dressings and plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Skilled nursing facility",
+      "clock": "running",
+      "actions": [
+        "sacrum",
+        "ankle",
+        "risk",
+        "foam",
+        "occlude",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"sacrum\"",
+              "then": [
+                {
+                  "set": "sacrumAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Stage 2 sacral pressure injury, 3 x 2 cm: pink, moist, moderate serous exudate, intact edges, no warmth or spreading redness.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ankle\"",
+              "then": [
+                {
+                  "set": "ankleAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Ankle wound with slough, purulent drainage and odor; redness spreading 6 cm up the leg, warm and tender; temperature 38.1. Signs of spreading infection.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "riskAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Malnutrition, anemia, age 72 and reduced sensation from diabetic neuropathy.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the consult",
+      "wait": {
+        "skipLabel": "the end of the consult"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish dressings and the plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "Dressings are matched and the provider is seeing him.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does each wound need?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "The sacral wound is a clean, moist stage 2 pressure injury; the ankle wound shows purulence, odor, spreading cellulitis and fever: infection.",
+          "modelAnswer": "The sacrum is a clean, moist stage 2. The ankle is infected: pus, odor, spreading redness and a fever."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Silicone foam on the sacrum with repositioning built around his risks; no occlusive dressing on the ankle; provider the same day.",
+          "modelAnswer": "Silicone foam on the sacrum and a turning plan based on his risks; don't seal the ankle; call the provider today."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The provider called within 5 minutes of signs of infection (facility policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An infected wound unreported an hour on is harm here.",
+      "source": {
+        "cite": "Britto EJ, et al.. Wound Dressings. StatPearls (updated 2024-01-23), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DRESS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: dressing selection is matched to wound characteristics and moisture balance; a silicone foam dressing suits a moisture-balanced, non-infected pressure injury, with repositioning planned around the person's risk factors (malnutrition, anemia, age, cognition, sensation) instead of a fixed turning schedule (the course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "sepsis": {
+      "label": "Spreading infection",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Under the sealed dressing the infection spreads; two days later he is septic."
+    },
+    "safe": {
+      "label": "Each wound matched",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(foamAt)) and isNull(occludeAt)",
+      "narrative": "{timeAt(leftAt)|clock}: both wounds have the right dressing and the infection is being treated."
+    },
+    "safeGaps": {
+      "label": "Matched, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the plan is right, but late or after occluding the ankle."
+    },
+    "time_up": {
+      "label": "Undecided at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00."
+    }
+  },
+  "endingOrder": [
+    "sepsis",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The provider called within 5 minutes of the ankle findings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "matchC",
+        "label": "Matched the sacral dressing to a moist, clean wound (silicone foam)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(foamAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not matched."
+          }
+        ]
+      },
+      {
+        "id": "noOccC",
+        "label": "Did not seal the infected ankle wound under an occlusive dressing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(occludeAt)",
+            "score": "missed",
+            "why": "Occluded an infected wound."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Not occluded."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Assessed the sacrum and reviewed his risk factors",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(sacrumAt) and not isNull(riskAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(sacrumAt) or not isNull(riskAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Matched each wound to its needs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"match\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"same\"",
+            "score": "missed",
+            "why": "Never seal an infected wound."
+          },
+          {
+            "when": "dxEnum == \"both\"",
+            "score": "missed",
+            "why": "The sacral wound is clean."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: match dressing to moisture and infection; call for infection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Ankle findings to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "13:00 to the sacral dressing",
+        "value": "isNull(foamAt) ? -1 : timeAt(foamAt)",
+        "format": "duration",
+        "expert": "under 10 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "Sacrum: clean, moist stage 2."
+      },
+      {
+        "at": "~13:01",
+        "text": "Ankle: purulent, spreading cellulitis, 38.1."
+      },
+      {
+        "at": "~13:02",
+        "text": "Call the provider; ankle not occluded."
+      },
+      {
+        "at": "~13:04",
+        "text": "Silicone foam on the sacrum; risk-based repositioning; document."
+      }
+    ],
+    "debrief": {
+      "sepsis": {
+        "headline": "Spreading infection",
+        "body": "Match each dressing to the wound: silicone foam suits a clean, moist pressure injury; an infected wound with spreading redness and fever needs the provider, not an occlusive dressing."
+      },
+      "safe": {
+        "headline": "Each wound matched",
+        "body": "You assessed each wound, matched the dressing to moisture and infection status, planned repositioning around his risks and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Matched, with gaps",
+        "body": "Check whether you occluded the infected wound and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 14:00",
+        "body": "Call the same day for infection."
+      }
+    },
+    "modelReasoning": "Select dressings to match wound characteristics and moisture balance. A clean, moist, non-infected stage 2 pressure injury suits a silicone foam dressing, with repositioning planned around the person's risk factors (malnutrition, anemia, age, cognition, sensation) rather than a fixed schedule. A wound with purulence, odor, spreading erythema and fever is infected: do not seal it under an occlusive dressing; get same-day medical assessment."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "turnQ": {
+      "during": "leaveT",
+      "ask": "While you finish: how should repositioning be planned?",
+      "choices": [
+        {
+          "id": "risk",
+          "label": "Around his risk factors, not a fixed clock"
+        },
+        {
+          "id": "two",
+          "label": "Every 2 hours by the clock for everyone"
+        },
+        {
+          "id": "never",
+          "label": "Not needed with foam"
+        }
+      ],
+      "expect": "risk",
+      "explain": "Plan repositioning around the person's risk factors instead of a fixed turning schedule.",
+      "source": {
+        "cite": "Britto EJ, et al.. Wound Dressings. StatPearls (updated 2024-01-23), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DRESS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: dressing selection is matched to wound characteristics and moisture balance; a silicone foam dressing suits a moisture-balanced, non-infected pressure injury, with repositioning planned around the person's risk factors (malnutrition, anemia, age, cognition, sensation) instead of a fixed turning schedule (the course objectives' wording)."
+      }
+    },
+    "matchQ": {
+      "during": "testT",
+      "ask": "While you assess: what dressing suits a clean, moist stage 2 pressure injury?",
+      "choices": [
+        {
+          "id": "foam",
+          "label": "A silicone foam dressing"
+        },
+        {
+          "id": "gauze",
+          "label": "Dry gauze"
+        },
+        {
+          "id": "none",
+          "label": "Leave it open"
+        }
+      ],
+      "expect": "foam",
+      "explain": "Use a silicone foam dressing for a moisture-balanced, non-infected pressure injury.",
+      "source": {
+        "cite": "Britto EJ, et al.. Wound Dressings. StatPearls (updated 2024-01-23), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DRESS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: dressing selection is matched to wound characteristics and moisture balance; a silicone foam dressing suits a moisture-balanced, non-infected pressure injury, with repositioning planned around the person's risk factors (malnutrition, anemia, age, cognition, sensation) instead of a fixed turning schedule (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

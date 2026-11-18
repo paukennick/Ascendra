@@ -1,0 +1,1097 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pydata-region-merge-duplicated-store",
+  "title": "Revenue up 3.1% overnight, and no one sold more",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "monthly_revenue.ipynb and region_lookup.csv, Corner Market Co-op (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Finance lead, Hana Sato",
+          "text": "October revenue by region came out at 3,004,950, but the till system says 2,914,600. The board pack locks at 11:00. Which is right?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "rows",
+          "label": "Row count",
+          "text": "The merged table has 49,722 rows; orders has 48,210.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "merr",
+          "label": "pandas",
+          "text": "MergeError: Merge keys are not unique in right dataset; not a many-to-one merge",
+          "when": "validated and not deduped",
+          "severity": "error"
+        },
+        {
+          "id": "dropped",
+          "label": "Data",
+          "text": "Store 14's 1,512 October orders were dropped from orders.parquet.",
+          "when": "rowsAlteredOutsideFix > 0",
+          "severity": "error"
+        },
+        {
+          "id": "lock",
+          "label": "Finance",
+          "text": "11:00: the board pack locked with the till system's total and no regional breakdown.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [
+        {
+          "id": "lookup",
+          "label": "region_lookup.csv, rows for store 14",
+          "spokenLabel": "the lookup rows for store 14",
+          "columns": [
+            {
+              "id": "store",
+              "label": "store_id",
+              "numeric": true
+            },
+            {
+              "id": "region",
+              "label": "region"
+            },
+            {
+              "id": "from",
+              "label": "effective_from"
+            }
+          ],
+          "rows": [
+            {
+              "id": "l1",
+              "cells": [
+                "14",
+                "North",
+                "2019-03-01"
+              ],
+              "when": "not deduped",
+              "flag": "not deduped"
+            },
+            {
+              "id": "l2",
+              "cells": [
+                "14",
+                "Harbor",
+                "2026-09-15"
+              ]
+            }
+          ],
+          "when": "not isNull(lookAt)",
+          "note": "Store 14 moved from North to Harbor in September; the old row was kept."
+        },
+        {
+          "id": "totals",
+          "label": "Checks",
+          "spokenLabel": "the checks",
+          "columns": [
+            {
+              "id": "what",
+              "label": "What"
+            },
+            {
+              "id": "v",
+              "label": "Value",
+              "numeric": true
+            }
+          ],
+          "rows": [
+            {
+              "id": "n",
+              "cells": [
+                "merged rows (orders: 48,210)",
+                "{fixed ? \"48,210\" : rowsAlteredOutsideFix > 0 ? \"46,698\" : \"49,722\"}"
+              ],
+              "flag": "not fixed"
+            },
+            {
+              "id": "rev",
+              "cells": [
+                "merged revenue (tills: 2,914,600)",
+                "{fixed ? \"2,914,600\" : rowsAlteredOutsideFix > 0 ? \"2,824,250\" : \"3,004,950\"}"
+              ],
+              "flag": "not fixed"
+            }
+          ],
+          "when": "not isNull(lookAt)"
+        }
+      ],
+      "code": [
+        {
+          "id": "code",
+          "label": "monthly_revenue.ipynb, cell 7",
+          "language": "Python",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "lookup = pd.read_csv(\"region_lookup.csv\")"
+            },
+            {
+              "id": "c1",
+              "text": "lookup = lookup.sort_values(\"effective_from\").drop_duplicates(\"store_id\", keep=\"last\")",
+              "when": "deduped",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "m = orders.merge(lookup, on=\"store_id\", how=\"left\")",
+              "when": "not validated and fix != \"dropdup\""
+            },
+            {
+              "id": "c3",
+              "text": "m = orders.merge(lookup, on=\"store_id\", how=\"left\", validate=\"m:1\", indicator=True)",
+              "when": "validated",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c4",
+              "text": "m = orders.merge(lookup, on=\"store_id\", how=\"left\").drop_duplicates()",
+              "when": "fix == \"dropdup\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c5",
+              "text": "by_region = m.groupby(\"region\")[\"amount\"].sum()"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Board pack locks",
+          "value": "11:00"
+        },
+        {
+          "id": "altered",
+          "label": "Rows changed outside the fix",
+          "value": "{rowsAlteredOutsideFix}"
+        }
+      ]
+    }
+  },
+  "objective": "Validate a join's key relationship and row count with validate and indicator",
+  "secondaryObjectives": [
+    "Join tables with merge using inner, left, right, outer and anti joins",
+    "Find and remove duplicate rows, choosing which copy to keep"
+  ],
+  "sources": [
+    {
+      "cite": "Kyle Bradbury and Nick Eubank, Practical Data Science with Python, 'Validating a merge'",
+      "checkedAt": "2026-11-17",
+      "url": "https://practicaldatascience.org/notebooks/class_3/week_4/15.3_validating_a_merge.html",
+      "note": "Read 2026-11-17 through a summarizing fetch: validate 'will accept \"1:1\", \"1:m\", \"m:1\", and \"m:m\"' and 'will then check to make sure your merge matches the type of merge you think it is'; with indicator=True pandas adds a _merge column marking each row as from both, left only or right only; if a key you assumed unique appears twice, 'you'll end up with two observations for each value after the merge'. The page did not name the exception; pandas raises MergeError (to verify against the pandas reference, not opened for this round)."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Corner Market Co-op, its stores, orders, totals and deadline are invented teaching values; notebook output is an authored rendering. 1,512 orders of store 14 counted twice add 90,350 to 2,914,600."
+    }
+  ],
+  "brief": {
+    "situation": "You run the monthly revenue notebook at Corner Market Co-op (fictional). October's regional revenue totals 3,004,950, while the till system says 2,914,600. Store 14 moved from the North region to Harbor in September. The board pack locks at 11:00. It is 10:10.",
+    "handover": [
+      "orders.parquet has one row per order (48,210 in October).",
+      "region_lookup.csv maps each store_id to its region; whoever updated it for store 14 added a row."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: inspect the data, change the merge, run the checks, or send the figures. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Sending is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:10",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The board pack locks at 11:00, 50 minutes after the start; invented."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "validated",
+        "dropdup"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "ranAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "dupkey",
+        "tills",
+        "refunds"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "rows",
+        "looks",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "validated": {
+      "type": "bool",
+      "init": false
+    },
+    "deduped": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "deduped and rowsAlteredOutsideFix == 0 and fix != \"dropdup\""
+    },
+    "correct": {
+      "expr": "fixed"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "inspect",
+        "validate",
+        "dedupe",
+        "dropdup",
+        "dropStore",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "actions": {
+    "inspect": {
+      "label": "Compare row counts before and after the merge, and look up store_id duplicates in region_lookup.csv",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "ranAt",
+          "to": "t"
+        },
+        {
+          "output": ">>> len(orders), len(m)\n(48210, {fixed ? \"48210\" : \"49722\"})\n>>> lookup[\"store_id\"].duplicated().sum()\n{deduped ? \"0\" : \"1\"}"
+        },
+        {
+          "finding": "{fixed ? \"One row per order again.\" : \"Store 14 appears twice in the lookup, so each of its 1,512 orders matches two rows: a many-to-many join where a many-to-one was assumed.\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "validate": {
+      "label": "Add validate=\"m:1\" and indicator=True to the merge",
+      "group": "Change the code",
+      "available": "not busy and not validated",
+      "why": "Already added.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "validated",
+          "to": "true"
+        },
+        {
+          "if": "fix == \"bug\"",
+          "then": [
+            {
+              "set": "fix",
+              "to": "\"validated\""
+            }
+          ]
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "{deduped ? \"merge OK; _merge: both 48,210\" : \"MergeError: Merge keys are not unique in right dataset; not a many-to-one merge\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "dedupe": {
+      "label": "Keep each store's current row in the lookup (latest effective_from)",
+      "group": "Change the code",
+      "available": "not busy and not deduped",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "deduped",
+          "to": "true"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "The lookup now has one row per store, the current one.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "dropdup": {
+      "label": "Call drop_duplicates() on the merged table",
+      "group": "Change the code",
+      "available": "not busy and fix != \"dropdup\"",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "\"dropdup\""
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "output": "rows removed: 0 (the two copies differ in region)"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "dropStore": {
+      "label": "Drop store 14's October orders from orders.parquet so the totals match",
+      "group": "Change the data",
+      "available": "not busy and rowsAlteredOutsideFix == 0",
+      "why": "Already done.",
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "add": "rowsAlteredOutsideFix",
+          "by": "1512"
+        },
+        {
+          "output": "wrote orders.parquet: 46,698 rows"
+        },
+        {
+          "log": "1,512 real orders are gone from the source file.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Check: merged rows equal order rows, revenue equals the till total, no left_only rows",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "if": "fixed and validated",
+          "then": [
+            {
+              "set": "testPassed",
+              "to": "true"
+            },
+            {
+              "output": "rows 48,210 == 48,210\nrevenue 2,914,600 == 2,914,600\n_merge: both 48,210, left_only 0"
+            }
+          ],
+          "else": [
+            {
+              "output": "{fixed ? \"rows 48,210 == 48,210; revenue 2,914,600 == 2,914,600; no merge validation in the code\" : \"rows and revenue do not match the orders and tills\"}"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the regional figures to finance for the board pack",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already shipped.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "output": "Sent: October revenue by region, total {fixed ? \"2,914,600\" : rowsAlteredOutsideFix > 0 ? \"2,824,250\" : \"3,004,950\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why revenue was too high",
+              "options": [
+                {
+                  "value": "dupkey",
+                  "label": "Store 14 had two rows in the lookup, so its orders were counted twice in the merge"
+                },
+                {
+                  "value": "tills",
+                  "label": "The till system under-reports"
+                },
+                {
+                  "value": "refunds",
+                  "label": "Refunds were missing"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the figures are right",
+              "options": [
+                {
+                  "value": "rows",
+                  "label": "validate=\"m:1\" passes, merged rows equal order rows, revenue equals the tills"
+                },
+                {
+                  "value": "looks",
+                  "label": "The total looks normal again"
+                },
+                {
+                  "value": "none",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "11:00: the board pack locked without the regional figures.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For finance: why the merged revenue was 3.1% high, what you changed, and how you know the figures are right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The lookup had two rows for store 14, so a merge assumed many-to-one was many-to-many: each of its 1,512 orders matched twice (49,722 rows, 90,350 extra).",
+          "modelAnswer": "A duplicate key on the right side duplicated store 14's orders."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Keep one current row per store in the lookup and merge with validate=\"m:1\" so a future duplicate raises instead of inflating; drop_duplicates on the result removes nothing because the copies differ; deleting the store's orders destroys real data.",
+          "modelAnswer": "Deduplicated the lookup on the latest effective_from; validate=\"m:1\", indicator=True."
+        },
+        {
+          "label": "How you know",
+          "criteria": "After the last change: merged rows equal order rows (48,210), revenue equals the till total (2,914,600), no left_only rows.",
+          "modelAnswer": "All three checks match."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The board pack locks at 11:00; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Sending nothing sends nothing wrong, but the board pack has no regional figures.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Real orders deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "1,512 genuine orders were removed from the source file to make a total match."
+    },
+    "wrongSent": {
+      "label": "Inflated figures sent",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The board sees North and Harbor both credited with store 14's October."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure went out, but the board pack has no regions."
+    },
+    "right": {
+      "label": "Right, validated, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and validated and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Regional revenue adds up to the tills, and the merge now refuses a duplicate key."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The figures are right, but they went late or unchecked, or the merge still trusts its keys."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "altered",
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Compared row counts and looked for duplicate keys before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Counts and keys first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never compared the counts."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "One current row per store, and a merge validated as many-to-one",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and validated",
+            "score": "met",
+            "why": "Deduplicated and validate=\"m:1\"."
+          },
+          {
+            "when": "fixed",
+            "score": "partial",
+            "why": "Right figures, but nothing stops the next duplicate."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"dropdup\" ? \"drop_duplicates removes nothing: the copies differ in region.\" : rowsAlteredOutsideFix > 0 ? \"Real orders were deleted instead.\" : \"Store 14 is still counted twice.\"}"
+          }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Changed no source data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rowsAlteredOutsideFix == 0",
+            "score": "met",
+            "why": "orders.parquet untouched."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted {rowsAlteredOutsideFix} orders."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Rows and revenue reconciled after the last change",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "48,210 rows; 2,914,600."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it did not match or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never reconciled."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the duplicate key and the reconciliation",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"dupkey\" and checkDoc == \"rows\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"dupkey\" or checkDoc == \"rows\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "extraK",
+        "label": "Revenue counted twice",
+        "value": "fixed ? 0 : 90350",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until sent",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 18"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "48,210 orders, 49,722 merged rows; store 14 twice in the lookup."
+      },
+      {
+        "at": "4-7 min",
+        "text": "validate=\"m:1\": MergeError confirms it."
+      },
+      {
+        "at": "7-11 min",
+        "text": "Keep each store's latest row."
+      },
+      {
+        "at": "11-14 min",
+        "text": "Rows 48,210; revenue 2,914,600; no left_only."
+      },
+      {
+        "at": "14-16 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: the join was asserted, not assumed",
+        "body": "Row counts showed the merge multiplied rows; the lookup had a duplicate key. One row per store plus validate=\"m:1\" fixes it now and refuses it next time, and the totals reconcile with the tills."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The figures are right; they went late or unreconciled, or the merge still has no validate to catch the next duplicate."
+      },
+      "wrongSent": {
+        "headline": "Inflated figures sent",
+        "body": "drop_duplicates removes identical rows; these differ in region. A merge that changes the row count of the many side is a key problem to fix in the lookup."
+      },
+      "altered": {
+        "headline": "Real orders deleted",
+        "body": "The orders were right; the lookup was wrong. Never delete source rows to make a total match."
+      },
+      "notSent": {
+        "headline": "Nothing sent",
+        "body": "Safe, but the board pack needed the regions, and the fix is two lines."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "A left merge onto a lookup should keep one row per order; 49,722 rows from 48,210 orders says some key matched twice. Store 14 has two lookup rows after its move, so its 1,512 orders were counted in both regions (90,350 extra). Keep each store's latest row and merge with validate=\"m:1\" and indicator=True, so a duplicate raises MergeError instead of inflating figures. drop_duplicates on the result removes nothing because the copies differ in region, and deleting the store's orders destroys real data. Reconcile rows and revenue with the tills before sending."
+  }
+}

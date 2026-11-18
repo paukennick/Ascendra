@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "booking-service-lifecycle-activities",
+  "title": "A new clinic booking service: which lifecycle activity each piece of work belongs to, and iterating instead of a straight line",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tIter",
+          "ref": "REQ-8301",
+          "kind": "request",
+          "title": "Booking service plan",
+          "when": "p >= 1",
+          "at": "86400",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{iter == \"iterate\" ? \"Iterative plan from a first slice\" : iter == \"phases\" ? \"Phases with a review\" : iter == \"line\" ? \"Straight line\" : \"Due\"}",
+          "open": "iter == \"none\"",
+          "due": "172800"
+        },
+        {
+          "id": "tAct",
+          "ref": "INC-8302",
+          "kind": "incident",
+          "title": "Reminders at the wrong hour",
+          "when": "p >= 2",
+          "at": "172800",
+          "impact": "2",
+          "urgency": "1",
+          "priority": "2",
+          "status": "{act == \"operate\" ? \"Support now; design next iteration\" : act == \"redesign\" ? \"Pilot stopped for redesign\" : act == \"ignore\" ? \"Left for later\" : \"Due\"}",
+          "open": "act == \"none\"",
+          "due": "259200"
+        },
+        {
+          "id": "tNext",
+          "ref": "CHG-8303",
+          "kind": "change",
+          "title": "Next iteration",
+          "when": "p >= 3",
+          "at": "259200",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{next == \"feedback\" ? \"Next iteration from feedback\" : next == \"original\" ? \"Original list\" : next == \"allClinics\" ? \"Full rollout\" : \"Due\"}",
+          "open": "next == \"none\"",
+          "due": "345600"
+        }
+      ],
+      "services": [
+        {
+          "id": "vIter",
+          "label": "Booking service",
+          "spokenLabel": "Booking service",
+          "status": "{iter == \"iterate\" ? \"Iterative plan from a first slice\" : iter == \"phases\" ? \"Phases with a review\" : iter == \"line\" ? \"Straight line\" : \"Normal service\"}",
+          "tone": "iter == \"iterate\" ? \"ok\" : iter == \"phases\" ? \"degraded\" : iter == \"line\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vAct",
+          "label": "Booking service pilot",
+          "spokenLabel": "Booking service pilot",
+          "status": "{act == \"operate\" ? \"Support now; design next iteration\" : act == \"redesign\" ? \"Pilot stopped for redesign\" : act == \"ignore\" ? \"Left for later\" : \"Normal service\"}",
+          "tone": "act == \"operate\" ? \"ok\" : act == \"redesign\" ? \"degraded\" : act == \"ignore\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vNext",
+          "label": "Booking service",
+          "spokenLabel": "Booking service",
+          "status": "{next == \"feedback\" ? \"Next iteration from feedback\" : next == \"original\" ? \"Original list\" : next == \"allClinics\" ? \"Full rollout\" : \"Normal service\"}",
+          "tone": "next == \"feedback\" ? \"ok\" : next == \"original\" ? \"degraded\" : next == \"allClinics\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Planning how a new digital service moves through the lifecycle activities iteratively",
+  "secondaryObjectives": [
+    "Recognizing which lifecycle activity a piece of work belongs to",
+    "Explaining why lifecycle activities are not a fixed sequence and can repeat or overlap"
+  ],
+  "sources": [
+    {
+      "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+      "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You coordinate a new online booking service for a fictional physiotherapy chain, Thornfield Physio. The plan is a straight line: design everything, build everything, then launch.",
+    "handover": [
+      "Twelve clinics; patients book by phone today.",
+      "The plan's first patient feedback is at launch in nine months."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a day at a time. A decision comes to you at each service review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-12T09:00",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "iter": {
+      "type": "enum",
+      "values": [
+        "none",
+        "iterate",
+        "phases",
+        "line"
+      ],
+      "init": "none"
+    },
+    "iterAt": {
+      "type": "time",
+      "init": null
+    },
+    "act": {
+      "type": "enum",
+      "values": [
+        "none",
+        "operate",
+        "redesign",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "actAt": {
+      "type": "time",
+      "init": null
+    },
+    "next": {
+      "type": "enum",
+      "values": [
+        "none",
+        "feedback",
+        "original",
+        "allClinics"
+      ],
+      "init": "none"
+    },
+    "nextAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "receptionAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(cust, users), team)"
+    },
+    "missCount": {
+      "expr": "((iter == \"line\") ? 1 : 0) + ((act == \"ignore\") ? 1 : 0) + ((next == \"allClinics\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(iter == \"none\" or (iter == \"line\") ? 1 : 0) + (act == \"none\" or (act == \"ignore\") ? 1 : 0) + (next == \"none\" or (next == \"allClinics\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Service planning",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "reception"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "Read the current plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the current plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "One pass: requirements, design, build, test, launch, then support; no feedback until month nine."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "reception": {
+      "label": "Talk to clinic receptionists",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(receptionAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "receptionAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to clinic receptionists.",
+          "kind": "act"
+        },
+        {
+          "finding": "Most calls are rebookings and cancellations, not first bookings."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "An iterative plan from a first slice, the pilot fault handled in support with the cause fed into design, and the next iteration planned from evidence"
+                },
+                {
+                  "value": "summary",
+                  "label": "Plan approved"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "iter == \"line\"",
+              "then": [
+                {
+                  "log": "Day 2 (month nine): launch shows patients mostly need rebooking, which the design handles poorly; a redesign starts.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "act == \"ignore\"",
+              "then": [
+                {
+                  "log": "Day 3: 60 patients miss appointments after reminders at 3 a.m.; clinics lose the slots.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "next == \"allClinics\"",
+              "then": [
+                {
+                  "log": "Day 4: a booking outage across twelve clinics goes unnoticed for two hours without monitoring.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The plan is approved.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_iter",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the plan.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "iterPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_act",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: a pilot incident.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "actPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_next",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: planning the next cycle.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "nextPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "iterPrompt": {
+      "title": "A straight line or iterations?",
+      "context": "Feedback comes only at launch.",
+      "choices": [
+        {
+          "id": "iterate",
+          "label": "Plan short iterations: a rebook-and-cancel slice for two clinics, with design, build, deploy and support activities repeating and overlapping each cycle",
+          "effects": [
+            {
+              "set": "iter",
+              "to": "\"iterate\""
+            },
+            {
+              "set": "iterAt",
+              "to": "t"
+            },
+            {
+              "log": "An iterative plan is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Lifecycle activities repeat and overlap; small iterations bring feedback early."
+        },
+        {
+          "id": "phases",
+          "label": "Keep the phases but add a midpoint review",
+          "effects": [
+            {
+              "set": "iter",
+              "to": "\"phases\""
+            },
+            {
+              "set": "iterAt",
+              "to": "t"
+            },
+            {
+              "log": "A midpoint review is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Some feedback, still one big release."
+        },
+        {
+          "id": "line",
+          "label": "Keep the straight line",
+          "effects": [
+            {
+              "set": "iter",
+              "to": "\"line\""
+            },
+            {
+              "set": "iterAt",
+              "to": "t"
+            },
+            {
+              "log": "Unchanged.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nine months of building before learning anything."
+        }
+      ]
+    },
+    "actPrompt": {
+      "title": "Which activity?",
+      "context": "In the pilot, reminders go out at the wrong hour after a time-zone setting changed.",
+      "choices": [
+        {
+          "id": "operate",
+          "label": "Treat it as support (restore the reminders now) and feed the cause into the next iteration's design and change",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"operate\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "log": "Reminders are restored and the cause queued.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Restoring service is support; fixing the cause flows back into design and change."
+        },
+        {
+          "id": "redesign",
+          "label": "Stop the pilot and redesign reminders first",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"redesign\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "log": "The pilot stops.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Patients miss reminders while you redesign."
+        },
+        {
+          "id": "ignore",
+          "label": "Leave it to the next release",
+          "effects": [
+            {
+              "set": "act",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "actAt",
+              "to": "t"
+            },
+            {
+              "log": "Nothing now.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Patients miss appointments meanwhile."
+        }
+      ]
+    },
+    "nextPrompt": {
+      "title": "What next?",
+      "context": "Pilot clinics want waiting lists; the operations team wants better monitoring.",
+      "choices": [
+        {
+          "id": "feedback",
+          "label": "Plan the next iteration from pilot feedback and support data (waiting lists and monitoring), and add four clinics",
+          "effects": [
+            {
+              "set": "next",
+              "to": "\"feedback\""
+            },
+            {
+              "set": "nextAt",
+              "to": "t"
+            },
+            {
+              "log": "The next iteration is planned from evidence.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Each iteration's plan uses what the last one taught, from users and operations."
+        },
+        {
+          "id": "original",
+          "label": "Follow the original feature list",
+          "effects": [
+            {
+              "set": "next",
+              "to": "\"original\""
+            },
+            {
+              "set": "nextAt",
+              "to": "t"
+            },
+            {
+              "log": "Original list.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Ignores what the pilot taught."
+        },
+        {
+          "id": "allClinics",
+          "label": "Roll out to all twelve clinics now",
+          "effects": [
+            {
+              "set": "next",
+              "to": "\"allClinics\""
+            },
+            {
+              "set": "nextAt",
+              "to": "t"
+            },
+            {
+              "log": "Full rollout.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Monitoring gaps and missing features hit everyone."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the plan record for the service owner.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Shape",
+          "criteria": "Iterations with repeating, overlapping activities; a rebooking slice first.",
+          "modelAnswer": "We start with rebooking and cancellation in two clinics, repeating design, build, deploy and support each cycle."
+        },
+        {
+          "label": "Learning",
+          "criteria": "Support restored the reminders; cause into design; next iteration from feedback.",
+          "modelAnswer": "The reminder fault was restored in support and its cause fixed in the next cycle, which adds waiting lists, monitoring and four clinics."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (iter == \"phases\") and (act == \"redesign\") and (next == \"original\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+        "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "iterHarm": {
+      "label": "Learned too late",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and iter == \"line\"",
+      "narrative": "The launch revealed the main need too late; a redesign began."
+    },
+    "actHarm": {
+      "label": "Missed appointments",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and act == \"ignore\"",
+      "narrative": "Wrong-hour reminders led 60 patients to miss appointments."
+    },
+    "nextHarm": {
+      "label": "An unmonitored outage",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and next == \"allClinics\"",
+      "narrative": "Without monitoring, a twelve-clinic outage went unnoticed for two hours."
+    },
+    "target": {
+      "label": "A service that learns as it grows",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (iter == \"iterate\") and (act == \"operate\") and (next == \"feedback\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "The booking service grows clinic by clinic, shaped by what patients and staff show."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "iterHarm",
+    "actHarm",
+    "nextHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "iterCrit",
+        "label": "Planned the lifecycle activities iteratively",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "iter == \"iterate\"",
+            "score": "met",
+            "why": "Iterative."
+          },
+          {
+            "when": "iter == \"phases\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sequential."
+          }
+        ]
+      },
+      {
+        "id": "actCrit",
+        "label": "Recognized which lifecycle activity the work belongs to",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "act == \"operate\"",
+            "score": "met",
+            "why": "Right activities."
+          },
+          {
+            "when": "act == \"redesign\"",
+            "score": "partial",
+            "why": "Wrong order."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No support."
+          }
+        ]
+      },
+      {
+        "id": "nextCrit",
+        "label": "Planned the next iteration from feedback and operations",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "next == \"feedback\"",
+            "score": "met",
+            "why": "Learning."
+          },
+          {
+            "when": "next == \"original\"",
+            "score": "partial",
+            "why": "Not learning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overreach."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(receptionAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(receptionAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the plan and talk to reception staff first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Plan short iterations starting with rebooking for two clinics."
+      },
+      {
+        "at": "Day 2",
+        "text": "Restore in support and feed the cause into design."
+      },
+      {
+        "at": "Day 3",
+        "text": "Plan the next iteration from feedback and support data."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "iterHarm": {
+        "headline": "Iterate",
+        "body": "Activities repeat and overlap; learn early."
+      },
+      "actHarm": {
+        "headline": "Know the activity",
+        "body": "Restore in support; fix the cause through design and change."
+      },
+      "nextHarm": {
+        "headline": "Iterate on evidence",
+        "body": "Plan each cycle from feedback and operations."
+      },
+      "target": {
+        "headline": "Good: a service that learns as it grows",
+        "body": "Iterative activities, the right activity for each piece of work, and evidence-led planning."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Product and service lifecycle activities are not a fixed sequence: they repeat and overlap in iterations. Recognizing which activity work belongs to (support restores service; design and change fix causes) keeps it flowing, and each iteration is planned from user feedback and operational data."
+  }
+}

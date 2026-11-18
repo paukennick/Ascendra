@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mshi-ehr-downtime-tabletop",
+  "title": "The EHR goes dark at 02:10",
+  "screen": {
+    "type": "tabletop",
+    "level": 1,
+    "tabletop": {
+      "injects": [
+        { "id": "i1", "title": "02:10 The EHR stops", "text": "Every unit reports the EHR frozen at sign-in. The hosting team cannot give a time to restore. Night census: 214 inpatients and 19 patients in the emergency department.", "when": "t >= i1At", "at": "i1At", "open": "isNull(declareAt)" },
+        { "id": "i2", "title": "02:50 A new patient, no chart", "text": "The emergency department receives an unconscious man from a road crash with no identification. Registration cannot open the EHR to create a record, and blood must go to the lab now.", "when": "t >= i2At", "at": "i2At", "open": "ids == \"unset\"" },
+        { "id": "i3", "title": "04:00 A critical result with nowhere to go", "text": "The lab analyzers run, but results cannot reach the EHR. A critical result comes off the analyzer for a patient on 3 West.", "when": "t >= i3At", "at": "i3At", "open": "results == \"unset\"" },
+        { "id": "i4", "title": "06:30 The EHR is back", "text": "The hosting team restores the EHR. Four hours of paper orders, notes, medication records and results sit on every unit, and the trauma patient now has a name.", "when": "t >= i4At", "at": "i4At", "open": "restore == \"unset\"" }
+      ],
+      "roles": [
+        { "id": "you", "label": "Clinical informatics on call (you)", "spokenLabel": "Clinical informatics on call, you", "status": "{isNull(declareAt) ? \"Gathering reports\" : \"Coordinating the downtime\"}", "tone": "\"engaged\"" },
+        { "id": "sup", "label": "Nursing house supervisor", "spokenLabel": "Nursing house supervisor", "status": "{isNull(declareAt) ? \"Fielding calls from the units\" : \"Running downtime procedures on the units\"}", "tone": "isNull(declareAt) ? \"waiting\" : \"engaged\"" },
+        { "id": "ed", "label": "Emergency department charge nurse", "spokenLabel": "Emergency department charge nurse", "status": "{ids == \"temp\" ? \"Registering with downtime record numbers\" : ids == \"doe\" ? \"Registering as 'Doe' names\" : \"Waiting for registration\"}", "tone": "ids == \"unset\" ? \"waiting\" : \"engaged\"" },
+        { "id": "lab", "label": "Lab supervisor", "spokenLabel": "Lab supervisor", "status": "{results == \"phone\" ? \"Phoning critical results with read-back, logged\" : results == \"tray\" ? \"Printing results to the unit trays\" : \"Results queued in the lab system\"}", "tone": "results == \"unset\" ? \"waiting\" : \"engaged\"" },
+        { "id": "it", "label": "EHR and interface team", "spokenLabel": "EHR and interface team", "status": "{restore == \"reconcile\" ? \"Draining interface queues; reconciling\" : restore == \"flip\" ? \"Everything switched back on at once\" : \"Working with the host\"}", "tone": "\"engaged\"" },
+        { "id": "him", "label": "Health information management", "spokenLabel": "Health information management", "status": "{restore == \"reconcile\" ? \"Back-entering paper records and merging downtime numbers\" : \"Not yet involved\"}", "tone": "restore == \"reconcile\" ? \"engaged\" : \"waiting\"" },
+        { "id": "forms", "label": "Paper downtime forms on 3 West", "spokenLabel": "Paper downtime forms on 3 West", "status": "{isNull(gapFormsAt) ? \"Not yet discussed\" : \"About two hours of forms on the unit\"}", "tone": "isNull(gapFormsAt) ? \"waiting\" : \"gap\"" }
+      ],
+      "comms": [
+        { "id": "cStaff", "label": "All staff", "spokenLabel": "Message to all staff", "status": "{staff == \"page\" ? \"Downtime called: overhead page and text to the unit phones\" : staff == \"email\" ? \"Downtime called by email\" : \"\"}", "tone": "staff == \"page\" ? \"sent\" : staff == \"email\" ? \"late\" : (t >= i1At + 3600 ? \"late\" : \"none\")" },
+        { "id": "cExec", "label": "Administrator on call", "spokenLabel": "Briefing to the administrator on call", "status": "{isNull(execAt) ? \"\" : \"Downtime called; patient safety measures; next update at the hour\"}", "tone": "isNull(execAt) ? \"none\" : \"sent\"" },
+        { "id": "cUp", "label": "EHR back up", "spokenLabel": "Message that the EHR is back", "status": "{restore == \"unset\" ? \"\" : restore == \"reconcile\" ? \"Back up: finish paper for orders in progress; back-entry by HIM\" : \"Back up: use the EHR\"}", "tone": "restore == \"unset\" ? \"none\" : \"sent\"" }
+      ],
+      "decisions": {
+        "label": "Decision log",
+        "items": [
+          { "label": "Downtime called: read-only backup and paper forms in use", "when": "not isNull(declareAt)" },
+          { "label": "Keep retrying the EHR; no downtime called yet", "when": "retried and isNull(declareAt)" },
+          { "label": "{ids == \"temp\" ? \"New patients get unique downtime record numbers from the registration packet\" : \"New patients registered as 'Doe' names\"}", "when": "ids != \"unset\"" },
+          { "label": "{results == \"phone\" ? \"Critical results phoned to the responsible nurse with read-back, logged on the paper result log\" : \"Results printed to the unit trays\"}", "when": "results != \"unset\"" },
+          { "label": "{restore == \"reconcile\" ? \"Interfaces restarted after the queues drained; paper back-entered and downtime numbers merged\" : \"Interfaces and users switched back at once; paper filed\"}", "when": "restore != \"unset\"" }
+        ]
+      },
+      "meters": [
+        { "id": "mBackup", "label": "Read-only backup", "value": "{isNull(gapBackupAt) ? \"Available on the downtime workstations\" : \"Available, but last refreshed 26 hours ago\"}" },
+        { "id": "mGaps", "label": "Plan gaps found", "value": "{gapsFound} of 3" }
+      ]
+    }
+  },
+  "objective": "EHR safety practices: reliable patient identification, planning for downtime and closing the loop on test results",
+  "secondaryObjectives": [
+    "Usability and safety as properties of the whole socio-technical system, and unintended consequences such as workarounds",
+    "The socio-technical view: people and organizations as the ultimate users of health information technology"
+  ],
+  "sources": [
+    {
+      "cite": "ONC/ASTP, SAFER Guides, Contingency Planning (SAFER Self Assessment, August 2024; the SAFER Guides page lists the 2025 guides, updated February 27, 2026)",
+      "checkedAt": "2026-11-17",
+      "url": "https://healthit.gov/wp-content/uploads/2025/06/SAFER-Guide-2.-Contingency-Planning-Final.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of the PDF linked from healthit.gov/safer. 1.3: 'Paper forms are available to replace key EHR functions during downtimes', enough in each patient care area for at least 8 hours, with 'a process in place to ensure that the information recorded on paper during the downtime gets entered and reconciled into the EHR'. 1.4: a 'read-only' backup EHR 'updated frequently (optimally at least hourly)'. 1.5: register new patients during downtime with 'unique temporary patient record numbers' and reconcile them when the EHR returns. 2.1: unannounced downtime drills at least once a year. 2.2: notify staff by methods 'other than those that rely on the same computing infrastructure as the EHR', and when it is back. 2.3: a written downtime policy saying 'when a downtime should be called' and 'who will be in charge', with a paper copy on the units. 2.5: 'Ensure that all system interface buffers are empty prior to stopping or restarting the system.' The guide has no standalone results practice; the case's read-back of critical results is the author's reading of closing the loop (the Test Results SAFER guide, not read for this round)."
+    },
+    {
+      "cite": "ONC/ASTP, SAFER Guides (healthit.gov/safer)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.healthit.gov/safer/",
+      "note": "Read 2026-11-17 through a summarizing fetch: eight 2025 guides (High Priority Practices, Organizational Responsibilities, Contingency Planning, System Management, Patient Identification, CPOE with Decision Support, Test Results Reporting and Follow-Up, Clinician Communication); Contingency Planning 'identifies recommended safety practices associated with planned or unplanned EHR unavailability'."
+    },
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. F5 (Human Factors and Socio-technical Systems) examines how human behaviors and information technologies interact, with 'consideration and respect for the role of users in the design and application' of systems."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Riverbend Medical Center (fictional), its census, times and gaps are invented teaching values. The case is an exercise at the level of process: it names no drug, dose, test value or patient, and gives no clinical instruction."
+    }
+  ],
+  "brief": {
+    "situation": "You are the clinical informatics specialist on call at Riverbend Medical Center (fictional), and tonight's tabletop exercise has you coordinate an unplanned EHR downtime. The facilitator reads the scenario in injects from 02:10. The house supervisor, the emergency department, the lab, the EHR team and health information management are at the table.",
+    "handover": [
+      "The downtime policy says the house supervisor and the informatics on call call a downtime together. Each unit has a downtime box with paper forms and registration packets, and two downtime workstations show a read-only backup of the EHR.",
+      "Email and the intranet run on the same infrastructure as the EHR tonight."
+    ],
+    "howItWorks": [
+      "The clock is scenario time: each decision or question to the table takes minutes, and the facilitator's next inject arrives on the same clock.",
+      "The table shows the injects, who is engaged, the communications and the decision log. A role marked 'gap' is something the plan does not cover.",
+      "When you call the end of the exercise you write the after-action report and explain your reasoning."
+    ]
+  },
+  "clock": { "start": "2027-02-09T02:10", "tick": "10min", "maxDuration": "8h", "calendar": "date" },
+  "params": {
+    "i1At": { "value": 0, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "First inject at 02:10." } },
+    "i2At": { "value": 2400, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The unidentified patient at 02:50." } },
+    "i3At": { "value": 6600, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The critical result at 04:00." } },
+    "i4At": { "value": 15600, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The EHR returns at 06:30." } },
+    "exerciseEnd": { "value": 21600, "unit": "s", "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The facilitator ends the scenario at 08:10." } }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "documented": { "type": "bool", "init": false },
+    "declareAt": { "type": "time", "init": null },
+    "retried": { "type": "bool", "init": false },
+    "staff": { "type": "enum", "values": ["none", "page", "email"], "init": "none" },
+    "staffAt": { "type": "time", "init": null },
+    "execAt": { "type": "time", "init": null },
+    "ids": { "type": "enum", "values": ["unset", "temp", "doe"], "init": "unset" },
+    "idsAt": { "type": "time", "init": null },
+    "results": { "type": "enum", "values": ["unset", "phone", "tray"], "init": "unset" },
+    "resultsAt": { "type": "time", "init": null },
+    "restore": { "type": "enum", "values": ["unset", "reconcile", "flip"], "init": "unset" },
+    "restoreAt": { "type": "time", "init": null },
+    "gapFormsAt": { "type": "time", "init": null },
+    "gapBackupAt": { "type": "time", "init": null },
+    "gapLeadAt": { "type": "time", "init": null },
+    "endAt": { "type": "time", "init": null },
+    "aar": { "type": "enum", "values": ["unset", "owned", "listed", "none"], "init": "unset" }
+  },
+  "derived": {
+    "gapsFound": { "expr": "(isNull(gapFormsAt) ? 0 : 1) + (isNull(gapBackupAt) ? 0 : 1) + (isNull(gapLeadAt) ? 0 : 1)" },
+    "unowned": { "expr": "aar == \"owned\" ? 0 : gapsFound" },
+    "onTime": { "expr": "(not isNull(declareAt) and timeAt(declareAt) - i1At <= decisionWindow ? 1 : 0) + (not isNull(idsAt) and timeAt(idsAt) - i2At <= decisionWindow ? 1 : 0) + (not isNull(resultsAt) and timeAt(resultsAt) - i3At <= decisionWindow ? 1 : 0) + (not isNull(restoreAt) and timeAt(restoreAt) - i4At <= decisionWindow ? 1 : 0)" },
+    "rolesIn": { "expr": "not isNull(declareAt) and staff == \"page\" and not isNull(execAt)" },
+    "wrongPatient": { "expr": "ids == \"doe\"" },
+    "lostResult": { "expr": "results == \"tray\"" },
+    "lostRecord": { "expr": "restore == \"flip\"" }
+  },
+  "processes": [],
+  "phases": {
+    "exercise": { "label": "Exercise in progress", "clock": "turns", "actions": ["declare", "retry", "notifyStaff", "briefExec", "register", "criticalResults", "restore", "askForms", "askBackup", "askLead", "watch", "endEx"] },
+    "report": { "label": "Hot wash and after-action", "clock": "stopped", "actions": ["afterAction"] }
+  },
+  "initialPhase": "exercise",
+  "actions": {
+    "declare": {
+      "label": "Call the downtime with the house supervisor: read-only backup and paper forms on every unit",
+      "group": "Decide",
+      "available": "not busy and isNull(declareAt)",
+      "why": "Called, or finish the discussion in progress first.",
+      "effects": [
+        { "set": "declareAt", "to": "t" },
+        { "log": "Downtime called. Units open their downtime boxes; the downtime workstations show the read-only backup.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "20min" }
+      ]
+    },
+    "retry": {
+      "label": "Hold off: have units keep retrying the EHR for another half hour",
+      "group": "Decide",
+      "available": "not busy and isNull(declareAt) and not retried",
+      "why": "Already held off once, or finish the discussion in progress first.",
+      "effects": [
+        { "set": "retried", "to": "true" },
+        { "log": "Units keep retrying. Nurses start writing orders and doses on scrap paper.", "kind": "bad" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "30min" }
+      ]
+    },
+    "notifyStaff": {
+      "label": "Tell all staff the downtime is called",
+      "group": "Communicate",
+      "available": "not busy and staff == \"none\"",
+      "why": "Sent, or finish the discussion in progress first.",
+      "params": [
+        { "id": "m", "kind": "choice", "label": "How", "options": [
+          { "value": "page", "label": "Overhead page and a text to every unit phone" },
+          { "value": "email", "label": "An all-staff email" }
+        ] }
+      ],
+      "effects": [
+        { "set": "staff", "to": "m" },
+        { "set": "staffAt", "to": "t" },
+        { "if": "m == \"email\"", "then": [{ "log": "The email sits in a mail system that runs on the same infrastructure as the EHR. Most units never see it.", "kind": "bad" }], "else": [{ "log": "Every unit hears the page and gets the text.", "kind": "good" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "briefExec": {
+      "label": "Brief the administrator on call",
+      "group": "Communicate",
+      "available": "not busy and isNull(execAt)",
+      "why": "Done, or finish the discussion in progress first.",
+      "effects": [
+        { "set": "execAt", "to": "t" },
+        { "log": "The administrator on call is briefed and asks for an update every hour.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "register": {
+      "label": "Decide how the emergency department registers the new patient",
+      "group": "Decide",
+      "available": "not busy and ids == \"unset\" and t >= i2At",
+      "why": "Decided, not yet asked, or finish the discussion in progress first.",
+      "params": [
+        { "id": "r", "kind": "choice", "label": "Registration", "options": [
+          { "value": "temp", "label": "A unique downtime record number from the registration packet, on the wristband and every label" },
+          { "value": "doe", "label": "Register him as 'John Doe' and sort out the number when the EHR is back" }
+        ] }
+      ],
+      "effects": [
+        { "set": "ids", "to": "r" },
+        { "set": "idsAt", "to": "t" },
+        { "if": "r == \"doe\"", "then": [{ "log": "In the scenario, a second unidentified man arrives at 03:20 and is also registered as 'John Doe'. One set of blood samples is filed under the wrong man.", "kind": "bad" }], "else": [{ "log": "The patient's wristband, samples and paper chart carry the same unique downtime number.", "kind": "good" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "20min" }
+      ]
+    },
+    "criticalResults": {
+      "label": "Decide how critical results reach the clinicians",
+      "group": "Decide",
+      "available": "not busy and results == \"unset\" and t >= i3At",
+      "why": "Decided, not yet asked, or finish the discussion in progress first.",
+      "params": [
+        { "id": "c", "kind": "choice", "label": "Critical results", "options": [
+          { "value": "phone", "label": "The lab phones each critical result to the responsible nurse with read-back, and both log it on the paper result log" },
+          { "value": "tray", "label": "Print all results to each unit's tray for the nurses to pick up" }
+        ] }
+      ],
+      "effects": [
+        { "set": "results", "to": "c" },
+        { "set": "resultsAt", "to": "t" },
+        { "if": "c == \"tray\"", "then": [{ "log": "In the scenario, the critical result sits in the 3 West tray for two hours before anyone reads it.", "kind": "bad" }], "else": [{ "log": "The nurse reads the result back, the physician is called, and both logs show who was told and when.", "kind": "good" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "20min" }
+      ]
+    },
+    "restore": {
+      "label": "Decide how to come back up",
+      "group": "Decide",
+      "available": "not busy and restore == \"unset\" and t >= i4At",
+      "why": "Decided, not yet back, or finish the discussion in progress first.",
+      "params": [
+        { "id": "b", "kind": "choice", "label": "Recovery", "options": [
+          { "value": "reconcile", "label": "Restart the interfaces once their queues have drained, announce it by page and text, back-enter the paper records, and merge the downtime number into the patient's real record" },
+          { "value": "flip", "label": "Switch everything back on at once and file the paper in the charts" }
+        ] }
+      ],
+      "effects": [
+        { "set": "restore", "to": "b" },
+        { "set": "restoreAt", "to": "t" },
+        { "if": "b == \"flip\"", "then": [{ "log": "In the scenario, four hours of orders and results exist only on paper in a folder; the EHR shows a gap, and the trauma patient has two records.", "kind": "bad" }], "else": [{ "log": "Queues drain, interfaces restart, and HIM starts back-entry and the record merge.", "kind": "good" }] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "20min" }
+      ]
+    },
+    "askForms": {
+      "label": "Ask the table: how many hours of paper forms does each unit hold?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapFormsAt)",
+      "why": "Done.",
+      "effects": [
+        { "set": "gapFormsAt", "to": "t" },
+        { "finding": "3 West has about two hours of paper forms; nobody restocks the downtime boxes. Gap found." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "askBackup": {
+      "label": "Ask the table: how current is the read-only backup?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapBackupAt)",
+      "why": "Done.",
+      "effects": [
+        { "set": "gapBackupAt", "to": "t" },
+        { "finding": "The read-only backup last refreshed 26 hours ago; its refresh job has been failing silently. Gap found." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "askLead": {
+      "label": "Ask the table: who is in charge during a downtime, and where is the policy on the unit?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapLeadAt)",
+      "why": "Done.",
+      "effects": [
+        { "set": "gapLeadAt", "to": "t" },
+        { "finding": "Three people say three different things, and the only copy of the downtime policy is on the intranet. Gap found." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "10min" }
+      ]
+    },
+    "watch": {
+      "label": "Move the scenario on (30 minutes)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        { "log": "The facilitator moves the scenario on 30 minutes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "30min" }
+      ]
+    },
+    "endEx": {
+      "label": "Call the end of the exercise and hold the hot wash",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "endAt", "to": "t" },
+        { "log": "You call the end of the exercise and start the hot wash.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "afterAction": {
+      "label": "Write the after-action report",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        { "id": "record", "kind": "form", "label": "Record", "fields": [
+          { "id": "plan", "label": "The gaps the exercise found", "options": [
+            { "value": "owned", "label": "Each gap with an owner and a date in the improvement plan" },
+            { "value": "listed", "label": "Listed; owners to be decided later" },
+            { "value": "none", "label": "No report: the exercise went well" }
+          ] }
+        ] }
+      ],
+      "effects": [
+        { "set": "aar", "to": "plan" },
+        { "set": "documented", "to": "true" },
+        { "log": "After-action: {plan}.", "kind": "act" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Discussion in progress",
+      "wait": { "skipLabel": "Let the discussion finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "How long each discussion takes in scenario minutes is an invented teaching value." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    }
+  },
+  "triggers": [
+    { "id": "inject2", "when": "t >= i2At and phase == \"exercise\"", "mode": "once", "interruptsSkip": true, "effects": [{ "log": "Inject: an unidentified patient arrives and needs a record and lab work now.", "kind": "alarm" }] },
+    { "id": "inject3", "when": "t >= i3At and phase == \"exercise\"", "mode": "once", "interruptsSkip": true, "effects": [{ "log": "Inject: a critical lab result cannot reach the EHR.", "kind": "alarm" }] },
+    { "id": "inject4", "when": "t >= i4At and phase == \"exercise\"", "mode": "once", "interruptsSkip": true, "effects": [{ "log": "Inject: the EHR is back.", "kind": "alarm" }] },
+    {
+      "id": "exEnd",
+      "when": "t >= exerciseEnd and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "endAt", "to": "t" },
+        { "log": "08:10: the facilitator ends the scenario. Hold the hot wash.", "kind": "alarm" },
+        { "phase": "report" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the hot wash: what kept patients safe tonight, what nearly did not, and what changes before the next downtime?",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The safety practices",
+          "criteria": "Downtime called early by the people the policy names; staff told by a channel that does not run on the EHR's infrastructure; unique temporary record numbers for new patients; critical results phoned with read-back and logged (closing the loop); interfaces restarted after the queues drained, with back-entry and reconciliation of records and numbers.",
+          "modelAnswer": "Called at once, paged and texted, downtime numbers, phoned results with read-back, drained queues then back-entry and merge."
+        },
+        {
+          "label": "The workarounds",
+          "criteria": "Names the socio-technical risk: scrap paper, 'Doe' names, results in trays and filed paper are workarounds that move risk rather than remove it.",
+          "modelAnswer": "Every workaround tonight would have broken identification or the result loop."
+        },
+        {
+          "label": "The improvement plan",
+          "criteria": "The gaps found (two hours of forms against at least eight, a backup 26 hours stale against at least hourly, no clear lead and no paper policy on the unit) each get an owner and a date; drills at least yearly.",
+          "modelAnswer": "Forms restock owner and date; backup refresh monitored hourly; policy on paper with the named leads; an unannounced drill this year."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "exercise",
+    "thresholds": {
+      "decisionWindow": { "value": 3600, "source": { "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "Each inject's decision within an hour of scenario time." } },
+      "unownedGaps": { "value": 0, "source": { "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)", "checkedAt": "2026-11-17", "note": "Every gap found has an owner and a date in the improvement plan." } }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declareAt)",
+      "class": "recovered",
+      "rationale": "The exercise ended before a downtime was called; nothing was tested, and no inject's decision put a patient at risk in the scenario.",
+      "source": { "cite": "ONC/ASTP, SAFER Guides, Contingency Planning", "checkedAt": "2026-11-17", "url": "https://healthit.gov/wp-content/uploads/2025/06/SAFER-Guide-2.-Contingency-Planning-Final.pdf", "note": "The downtime policy names when a downtime should be called and who is in charge." }
+    }
+  },
+  "endings": {
+    "wrongPatient": { "label": "A sample filed under the wrong patient", "class": "harm", "terminal": true, "when": "documented and wrongPatient", "narrative": "In the scenario, two 'John Doe' records shared one name, and blood results went to the wrong man." },
+    "lostResult": { "label": "A critical result went unread", "class": "harm", "terminal": true, "when": "documented and lostResult", "narrative": "In the scenario, a critical result lay in a tray for two hours: the loop between the lab and the clinician was open." },
+    "lostRecord": { "label": "Four hours missing from the record", "class": "harm", "terminal": true, "when": "documented and lostRecord", "narrative": "In the scenario, the paper never reached the EHR and the trauma patient has two records." },
+    "noReport": { "label": "No after-action", "class": "harm", "terminal": true, "when": "documented and aar == \"none\"", "narrative": "The exercise found gaps, and none of them will be fixed." },
+    "exercised": { "label": "Downtime run safely and the gaps owned", "class": "target", "terminal": true, "when": "documented and onTime >= 4 and rolesIn and gapsFound >= 3 and unowned <= unownedGaps", "narrative": "Downtime called and heard, patients identified uniquely, results closed with read-back, the record reconciled, and every gap given an owner and a date." },
+    "partly": { "label": "Partly tested", "class": "recovered", "terminal": true, "when": "documented", "narrative": "The exercise ran, but a decision came late, a channel failed, or a gap went unfound or unowned." },
+    "time_up": { "label": "Time up", "class": "harm", "terminal": true, "narrative": "The run reached its time limit with no after-action report." }
+  },
+  "endingOrder": ["wrongPatient", "lostResult", "lostRecord", "noReport", "exercised", "partly"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "declared",
+        "label": "Called the downtime promptly and told staff by a channel that does not depend on the EHR",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "not isNull(declareAt) and timeAt(declareAt) - i1At <= decisionWindow and staff == \"page\"", "score": "met", "why": "Called at {timeAt(declareAt) / 60|0dp} minutes; paged and texted." },
+          { "when": "not isNull(declareAt)", "score": "partial", "why": "{staff == \"page\" ? \"Called late.\" : \"Called, but staff were not reached by a channel that works tonight.\"}" },
+          { "when": "true", "score": "missed", "why": "No downtime called." }
+        ]
+      },
+      {
+        "id": "identified",
+        "label": "New patients got unique temporary record numbers",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "ids == \"temp\"", "score": "met", "why": "Unique downtime number on band, samples and chart." },
+          { "when": "true", "score": "missed", "why": "{ids == \"doe\" ? \"Shared 'Doe' names.\" : \"Not decided.\"}" }
+        ]
+      },
+      {
+        "id": "loop",
+        "label": "Critical results closed the loop: phoned, read back, logged",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "results == \"phone\"", "score": "met", "why": "Read-back and a log on both ends." },
+          { "when": "true", "score": "missed", "why": "{results == \"tray\" ? \"A tray is not a handoff.\" : \"Not decided.\"}" }
+        ]
+      },
+      {
+        "id": "reconciled",
+        "label": "Came back up safely: queues drained, paper back-entered, numbers merged",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "restore == \"reconcile\"", "score": "met", "why": "Reconciled." },
+          { "when": "true", "score": "missed", "why": "{restore == \"flip\" ? \"Switched back with the paper left out of the record.\" : \"Not decided.\"}" }
+        ]
+      },
+      {
+        "id": "gaps",
+        "label": "Found the plan's gaps and gave each an owner",
+        "weight": 1,
+        "rows": [
+          { "when": "gapsFound >= 3 and unowned <= unownedGaps", "score": "met", "why": "Three gaps, each owned." },
+          { "when": "gapsFound >= 1", "score": "partial", "why": "{gapsFound} of 3 found{aar == \"owned\" ? \"\" : \", not owned\"}." },
+          { "when": "true", "score": "missed", "why": "No gap found." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "declareMin", "label": "Minutes to call the downtime", "value": "isNull(declareAt) ? 0 : timeAt(declareAt) / 60", "format": "number", "expert": "0" },
+      { "id": "onTimeK", "label": "Injects decided within the hour", "value": "onTime", "format": "number", "expert": "4" },
+      { "id": "gapsK", "label": "Plan gaps found", "value": "gapsFound", "format": "number", "expert": "3" }
+    ],
+    "expertPath": [
+      { "at": "02:10", "text": "Call the downtime with the house supervisor; overhead page and text to every unit; brief the administrator on call." },
+      { "at": "02:50-03:30", "text": "Unique downtime record number for the unidentified patient; ask how current the backup is and how many hours of forms the units hold." },
+      { "at": "04:00", "text": "Critical results phoned with read-back and logged on both ends; ask who is in charge and where the paper policy is." },
+      { "at": "06:30", "text": "Restart interfaces once their queues drain; announce it; back-entry and the record merge by HIM." },
+      { "at": "Hot wash", "text": "Each gap with an owner and a date." }
+    ],
+    "debrief": {
+      "exercised": { "headline": "Good: safe through the dark", "body": "The downtime was called at once and heard on every unit, the new patient was uniquely identified, results closed the loop by read-back, and the record came back whole. The exercise found three gaps and gave each an owner." },
+      "partly": { "headline": "Partly tested", "body": "Patients were kept safe in the scenario, but a call came late, the staff message went by a channel that was down, or a gap was missed or left without an owner." },
+      "wrongPatient": { "headline": "Identification failed", "body": "Shared placeholder names are how samples reach the wrong patient. Downtime registration packets exist to give every new patient a unique number from the first minute." },
+      "lostResult": { "headline": "The result loop was open", "body": "A result is closed when the responsible clinician has acknowledged it, not when it is printed. Phone critical results with read-back and log both ends." },
+      "lostRecord": { "headline": "The record was left with a hole", "body": "Coming back up is part of the downtime: drain the interface queues before restarting, back-enter the paper and merge temporary numbers into the real record." },
+      "noReport": { "headline": "No after-action", "body": "An exercise is for finding gaps. Without an owner and a date, none of them closes." },
+      "time_up": { "headline": "Time up", "body": "No after-action report was written before the case's limit." }
+    },
+    "modelReasoning": "An EHR downtime is a socio-technical event: the system fails, and the safety of patients depends on what people do instead. Call it at once, through the people the policy names, and tell staff by a channel that does not share the EHR's infrastructure. Give every new patient a unique temporary record number so identification never rests on a placeholder name. Close the loop on critical results with a phone call, read-back and a log at both ends. When the EHR returns, drain interface queues before restarting, then back-enter paper records and merge temporary numbers. The exercise's job is to find gaps: forms for two hours against the guide's eight, a backup a day stale against hourly, and no clear lead or paper policy; each needs an owner and a date."
+  }
+}

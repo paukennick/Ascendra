@@ -1,0 +1,1063 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "laptop-hotel-wifi-phones-encryption",
+  "title": "Encryption for a small firm: a lost laptop, hotel Wi-Fi, and phones with client data",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tRest",
+          "ref": "INC-6201",
+          "kind": "incident",
+          "title": "Lost laptop with client files",
+          "when": "p >= 1",
+          "at": "86400",
+          "impact": "1",
+          "urgency": "1",
+          "priority": "1",
+          "status": "{rest == \"fde\" ? \"Full-disk encryption with key escrow\" : rest == \"strongPw\" ? \"Stronger passwords only\" : rest == \"ignoreLoss\" ? \"Loss treated as hardware only\" : \"Due\"}",
+          "open": "rest == \"none\"",
+          "due": "172800"
+        },
+        {
+          "id": "tTransit",
+          "ref": "PRB-6202",
+          "kind": "problem",
+          "title": "Portal uploads over HTTP",
+          "when": "p >= 2",
+          "at": "172800",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{transit == \"https\" ? \"HTTPS plus VPN on untrusted networks\" : transit == \"vpnOptional\" ? \"Optional VPN, HTTP portal\" : transit == \"avoidWifi\" ? \"Advice only\" : \"Due\"}",
+          "open": "transit == \"none\"",
+          "due": "259200"
+        },
+        {
+          "id": "tMobile",
+          "ref": "CHG-6203",
+          "kind": "change",
+          "title": "Phones with client email",
+          "when": "p >= 3",
+          "at": "259200",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{mobile == \"mdm\" ? \"Encrypted, locked and wipeable\" : mobile == \"lockOnly\" ? \"Screen lock only\" : mobile == \"allowAny\" ? \"Unmanaged phones\" : \"Due\"}",
+          "open": "mobile == \"none\"",
+          "due": "345600"
+        }
+      ],
+      "services": [
+        {
+          "id": "vRest",
+          "label": "Laptops",
+          "spokenLabel": "Laptops",
+          "status": "{rest == \"fde\" ? \"Full-disk encryption with key escrow\" : rest == \"strongPw\" ? \"Stronger passwords only\" : rest == \"ignoreLoss\" ? \"Loss treated as hardware only\" : \"Normal service\"}",
+          "tone": "rest == \"fde\" ? \"ok\" : rest == \"strongPw\" ? \"degraded\" : rest == \"ignoreLoss\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vTransit",
+          "label": "Client portal",
+          "spokenLabel": "Client portal",
+          "status": "{transit == \"https\" ? \"HTTPS plus VPN on untrusted networks\" : transit == \"vpnOptional\" ? \"Optional VPN, HTTP portal\" : transit == \"avoidWifi\" ? \"Advice only\" : \"Normal service\"}",
+          "tone": "transit == \"https\" ? \"ok\" : transit == \"vpnOptional\" ? \"degraded\" : transit == \"avoidWifi\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vMobile",
+          "label": "Staff phones",
+          "spokenLabel": "Staff phones",
+          "status": "{mobile == \"mdm\" ? \"Encrypted, locked and wipeable\" : mobile == \"lockOnly\" ? \"Screen lock only\" : mobile == \"allowAny\" ? \"Unmanaged phones\" : \"Normal service\"}",
+          "tone": "mobile == \"mdm\" ? \"ok\" : mobile == \"lockOnly\" ? \"degraded\" : mobile == \"allowAny\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Encryption: data at rest, data in transit, HTTPS, VPNs, and mobile devices",
+  "secondaryObjectives": [
+    "Device security: anti-malware, firewalls, patching, physical security, and safe browsing"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Tech+ FC0-U71 (V6) Exam Objectives, document version 4.0: IT Concepts and Terminology 13%, Infrastructure 24%, Applications and Software 18%, Software Development 13%, Data and Databases 13%, Security 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/1e77e02ebef111efbcf946d2fe8fe33a",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Identify basic networking concepts' (IP address, MAC address, router); 'Explain methods to secure devices and security best practices' (anti-malware, patching); 'Explain the troubleshooting methodology' ('Identify the problem'; 'Establish a theory of probable cause (question the obvious)'; 'Verify full system functionality and, if applicable, implement preventive measures'). The objective wording here is the course seed's. Reused for REQ-336 from this course's rogue-dhcp-soho-office-techplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the IT technician at Delmar Tax Advisors, a fictional accounting firm of 30 people who travel to clients in tax season.",
+    "handover": [
+      "Laptops have Windows sign-in passwords but no disk encryption.",
+      "The firm's client portal still answers on plain HTTP."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a day at a time. A decision comes to you at each service review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "mgr": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "itteam": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "rest": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fde",
+        "strongPw",
+        "ignoreLoss"
+      ],
+      "init": "none"
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    },
+    "transit": {
+      "type": "enum",
+      "values": [
+        "none",
+        "https",
+        "vpnOptional",
+        "avoidWifi"
+      ],
+      "init": "none"
+    },
+    "transitAt": {
+      "type": "time",
+      "init": null
+    },
+    "mobile": {
+      "type": "enum",
+      "values": [
+        "none",
+        "mdm",
+        "lockOnly",
+        "allowAny"
+      ],
+      "init": "none"
+    },
+    "mobileAt": {
+      "type": "time",
+      "init": null
+    },
+    "inventoryAt": {
+      "type": "time",
+      "init": null
+    },
+    "lostAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(users, mgr), itteam)"
+    },
+    "missCount": {
+      "expr": "((rest == \"ignoreLoss\") ? 1 : 0) + ((transit == \"avoidWifi\") ? 1 : 0) + ((mobile == \"allowAny\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rest == \"none\" or (rest == \"ignoreLoss\") ? 1 : 0) + (transit == \"none\" or (transit == \"avoidWifi\") ? 1 : 0) + (mobile == \"none\" or (mobile == \"allowAny\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Support days",
+      "clock": "turns",
+      "actions": [
+        "inventory",
+        "lost"
+      ]
+    },
+    "close": {
+      "label": "Support record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "inventory": {
+      "label": "Read the device inventory",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(inventoryAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "inventoryAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the device inventory.",
+          "kind": "act"
+        },
+        {
+          "finding": "30 laptops, none with full-disk encryption; 22 staff phones with client email, 9 with no screen lock."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "lost": {
+      "label": "Read the lost-laptop report",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(lostAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "lostAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the lost-laptop report.",
+          "kind": "act"
+        },
+        {
+          "finding": "A laptop with three clients' tax files was left in a taxi on Monday; it has a sign-in password only."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Full-disk encryption with escrowed keys, HTTPS and a required VPN, and phones encrypted, locked and wipeable"
+                },
+                {
+                  "value": "summary",
+                  "label": "Tickets closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rest == \"ignoreLoss\"",
+              "then": [
+                {
+                  "log": "Day 2: the taxi company's finder copies the tax files; a client's identity is used for a fraudulent return.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "transit == \"avoidWifi\"",
+              "then": [
+                {
+                  "log": "Day 3: a client's return is intercepted on a hotel network and altered before it reaches the portal.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "mobile == \"allowAny\"",
+              "then": [
+                {
+                  "log": "Day 4: an unlocked phone left at a cafe gives a stranger access to a client's email thread with bank details.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The week's tickets close.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_rest",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the lost laptop.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "restPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_transit",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: hotel Wi-Fi.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "transitPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_mobile",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: phones.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "mobilePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "restPrompt": {
+      "title": "A lost laptop without encryption",
+      "context": "A sign-in password does not protect the disk.",
+      "choices": [
+        {
+          "id": "fde",
+          "label": "Turn on full-disk encryption on every laptop, escrow the recovery keys centrally, and report the lost laptop as a possible breach",
+          "effects": [
+            {
+              "set": "rest",
+              "to": "\"fde\""
+            },
+            {
+              "set": "restAt",
+              "to": "t"
+            },
+            {
+              "log": "All laptops are encrypting; the loss is reported.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Encryption at rest protects data on a lost device; a sign-in password alone does not, because the disk can be read elsewhere."
+        },
+        {
+          "id": "strongPw",
+          "label": "Require longer sign-in passwords",
+          "effects": [
+            {
+              "set": "rest",
+              "to": "\"strongPw\""
+            },
+            {
+              "set": "restAt",
+              "to": "t"
+            },
+            {
+              "log": "Password rules tighten.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The disk can still be removed and read."
+        },
+        {
+          "id": "ignoreLoss",
+          "label": "Treat the lost laptop as hardware loss and order a new one",
+          "effects": [
+            {
+              "set": "rest",
+              "to": "\"ignoreLoss\""
+            },
+            {
+              "set": "restAt",
+              "to": "t"
+            },
+            {
+              "log": "A replacement is ordered.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Three clients' files are readable by whoever has the laptop."
+        }
+      ]
+    },
+    "transitPrompt": {
+      "title": "Client files over hotel Wi-Fi",
+      "context": "Staff upload files to the portal over plain HTTP from hotels.",
+      "choices": [
+        {
+          "id": "https",
+          "label": "Serve the portal only over HTTPS with a valid certificate, redirect HTTP, and require the company VPN on untrusted networks",
+          "effects": [
+            {
+              "set": "transit",
+              "to": "\"https\""
+            },
+            {
+              "set": "transitAt",
+              "to": "t"
+            },
+            {
+              "log": "Portal traffic is encrypted; the VPN is required away from the office.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "HTTPS encrypts web traffic in transit, and a VPN protects everything else on untrusted networks."
+        },
+        {
+          "id": "vpnOptional",
+          "label": "Offer the VPN but leave the portal on HTTP",
+          "effects": [
+            {
+              "set": "transit",
+              "to": "\"vpnOptional\""
+            },
+            {
+              "set": "transitAt",
+              "to": "t"
+            },
+            {
+              "log": "A VPN is offered.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Anyone who skips the VPN still sends files in plain text."
+        },
+        {
+          "id": "avoidWifi",
+          "label": "Email staff to avoid hotel Wi-Fi",
+          "effects": [
+            {
+              "set": "transit",
+              "to": "\"avoidWifi\""
+            },
+            {
+              "set": "transitAt",
+              "to": "t"
+            },
+            {
+              "log": "A reminder goes out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Staff still have to work; files still cross in plain text."
+        }
+      ]
+    },
+    "mobilePrompt": {
+      "title": "Phones with client email",
+      "context": "Nine phones have no screen lock.",
+      "choices": [
+        {
+          "id": "mdm",
+          "label": "Require device encryption and a screen lock, and enroll phones that hold client email in mobile device management with remote wipe",
+          "effects": [
+            {
+              "set": "mobile",
+              "to": "\"mdm\""
+            },
+            {
+              "set": "mobileAt",
+              "to": "t"
+            },
+            {
+              "log": "Phones are enrolled and locked.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Mobile devices hold the same data as laptops; encryption, a lock and remote wipe protect it when a phone is lost."
+        },
+        {
+          "id": "lockOnly",
+          "label": "Require a screen lock only",
+          "effects": [
+            {
+              "set": "mobile",
+              "to": "\"lockOnly\""
+            },
+            {
+              "set": "mobileAt",
+              "to": "t"
+            },
+            {
+              "log": "Locks are required.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but a lost phone cannot be wiped."
+        },
+        {
+          "id": "allowAny",
+          "label": "Allow any phone with no requirements",
+          "effects": [
+            {
+              "set": "mobile",
+              "to": "\"allowAny\""
+            },
+            {
+              "set": "mobileAt",
+              "to": "t"
+            },
+            {
+              "log": "No change.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A lost unlocked phone opens client email to anyone."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the support record for the managing partner.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "At rest",
+          "criteria": "Full-disk encryption on all laptops; the loss reported.",
+          "modelAnswer": "Every laptop now encrypts its disk with recovery keys held centrally; the lost laptop was reported as a possible breach."
+        },
+        {
+          "label": "In transit and mobile",
+          "criteria": "HTTPS portal, VPN on untrusted networks, managed phones.",
+          "modelAnswer": "The portal is HTTPS-only, the VPN is required away from the office, and phones are encrypted, locked and can be wiped."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rest == \"strongPw\") and (transit == \"vpnOptional\") and (mobile == \"lockOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA Tech+ FC0-U71 (V6) Exam Objectives, document version 4.0: IT Concepts and Terminology 13%, Infrastructure 24%, Applications and Software 18%, Software Development 13%, Data and Databases 13%, Security 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1e77e02ebef111efbcf946d2fe8fe33a",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Identify basic networking concepts' (IP address, MAC address, router); 'Explain methods to secure devices and security best practices' (anti-malware, patching); 'Explain the troubleshooting methodology' ('Identify the problem'; 'Establish a theory of probable cause (question the obvious)'; 'Verify full system functionality and, if applicable, implement preventive measures'). The objective wording here is the course seed's. Reused for REQ-336 from this course's rogue-dhcp-soho-office-techplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "restHarm": {
+      "label": "Client data misused",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rest == \"ignoreLoss\"",
+      "narrative": "An unencrypted lost laptop exposed client tax files."
+    },
+    "transitHarm": {
+      "label": "Files intercepted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and transit == \"avoidWifi\"",
+      "narrative": "Plain HTTP let a client file be intercepted on hotel Wi-Fi."
+    },
+    "mobileHarm": {
+      "label": "Client email exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and mobile == \"allowAny\"",
+      "narrative": "An unlocked phone exposed client email."
+    },
+    "target": {
+      "label": "Client data encrypted everywhere",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rest == \"fde\") and (transit == \"https\") and (mobile == \"mdm\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "A lost device or a hotel network no longer exposes client files."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "restHarm",
+    "transitHarm",
+    "mobileHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "restCrit",
+        "label": "Encrypted laptops' disks with recoverable keys",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rest == \"fde\"",
+            "score": "met",
+            "why": "Protected at rest."
+          },
+          {
+            "when": "rest == \"strongPw\"",
+            "score": "partial",
+            "why": "Unencrypted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unprotected."
+          }
+        ]
+      },
+      {
+        "id": "transitCrit",
+        "label": "Protected data in transit with HTTPS and a VPN",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "transit == \"https\"",
+            "score": "met",
+            "why": "Protected in transit."
+          },
+          {
+            "when": "transit == \"vpnOptional\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unchanged."
+          }
+        ]
+      },
+      {
+        "id": "mobileCrit",
+        "label": "Secured phones with encryption, a lock and remote wipe",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "mobile == \"mdm\"",
+            "score": "met",
+            "why": "Protected."
+          },
+          {
+            "when": "mobile == \"lockOnly\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Open."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(inventoryAt) and not isNull(lostAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(inventoryAt) or not isNull(lostAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the inventory and the incident before deciding."
+      },
+      {
+        "at": "Day 1",
+        "text": "Encrypt every disk and escrow the keys."
+      },
+      {
+        "at": "Day 2",
+        "text": "Require HTTPS on the portal and a VPN away from the office."
+      },
+      {
+        "at": "Day 3",
+        "text": "Require encryption, a lock and remote wipe."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "restHarm": {
+        "headline": "Encrypt data at rest",
+        "body": "Full-disk encryption on every laptop."
+      },
+      "transitHarm": {
+        "headline": "Encrypt in transit",
+        "body": "HTTPS and a VPN."
+      },
+      "mobileHarm": {
+        "headline": "Secure mobile devices",
+        "body": "Encryption, lock and remote wipe."
+      },
+      "target": {
+        "headline": "Good: client data encrypted everywhere",
+        "body": "At rest, in transit and on phones."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Encryption at rest (full-disk encryption) protects data on lost devices; encryption in transit (HTTPS, VPNs) protects data crossing untrusted networks; mobile devices need encryption, a lock and remote wipe. Passwords and advice alone do not protect the data."
+  }
+}

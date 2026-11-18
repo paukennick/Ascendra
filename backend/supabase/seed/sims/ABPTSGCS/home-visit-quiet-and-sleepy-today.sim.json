@@ -1,0 +1,1066 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "home-visit-quiet-and-sleepy-today",
+  "title": "Quiet and sleepy today",
+  "objective": "Recognizing conditions requiring medical referral: sepsis, dehydration, electrolyte imbalance and acute cardiac events",
+  "secondaryObjectives": [
+    "Recognize delirium as an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed",
+    "Cognitive, mental-health and delirium screening within the physical therapy examination"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: geriatrics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/geriatrics/specialist-certification-examination-outline-geriatrics",
+      "note": "Relayed from the geriatrics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Evaluation, diagnosis and prognosis (15%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra geriatrics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSGCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ramirez Echeverria ML, et al.. Delirium. StatPearls (updated 2026-01-10), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-DEL; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: delirium is an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra geriatrics specialty course catalog: 'Recognizing conditions requiring medical referral: sepsis, dehydration, electrolyte imbalance and acute cardiac events'",
+      "checkedAt": "2026-11-17",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, sources read 2026-11-04): the referral conditions are the course's own objective. The case's vital-sign pattern (fever or low temperature, fast heart rate, fast breathing, low pressure, new confusion) is the general sepsis screen used across the app's nursing cases."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 at Mrs. Albright's home. You are the home health physical therapist. She is 86, three weeks after a hip fracture repair. Her daughter says she has been 'sleepy and off' since yesterday and 'just tired from the therapy'.",
+    "handover": [
+      "She has a urinary catheter that was removed 5 days ago and has been going to the toilet often since.",
+      "Agency policy: hold therapy and call 911 for signs of sepsis or acute illness; notify the provider."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.016,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Sepsis progresses toward shock without treatment. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated once she is in emergency care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of septic shock. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 within 5 minutes of the vital signs (agency policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for EMS."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "camAt": {
+      "type": "time",
+      "init": null
+    },
+    "urineAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "vitals",
+        "cam",
+        "urine"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "tomorrow"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sepsis",
+        "tired",
+        "dementia"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "exAt": {
+      "type": "time",
+      "init": null
+    },
+    "napAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(112 + 20 * max(0, prog - 0.5))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(98 - 26 * max(0, prog - 0.5))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(93 - 4 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ems\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Albright, 86, home health physical therapy after a hip fracture",
+        "presentation": "Week 3 of home rehabilitation; usually chatty and walking with a walker. {not isNull(exAt) ? \"Doing the exercise session.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              93,
+              90
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone by ambulance.\" : (not isNull(exAt) ? \"Struggling through exercises, drowsy.\" : \"Dozing in her recliner.\")}",
+      "measures": [
+        {
+          "id": "vitalsResult",
+          "label": "Vitals",
+          "result": "T 38.6, HR 112, RR 24, BP 98/56 (usually 140s), SpO2 93%.",
+          "when": "not isNull(vitalsAt)",
+          "flag": "true"
+        },
+        {
+          "id": "camResult",
+          "label": "Delirium screen",
+          "result": "Inattentive (cannot do months backward), drowsy, rambling: positive.",
+          "when": "not isNull(camAt)"
+        },
+        {
+          "id": "urineResult",
+          "label": "Intake and urine",
+          "result": "Burning, frequent, cloudy urine; drinking little.",
+          "when": "not isNull(urineAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Exercise held",
+            "when": "isNull(exAt)"
+          },
+          {
+            "label": "911 called",
+            "when": "route == \"ems\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleRef",
+          "label": "Signs of sepsis with new confusion",
+          "text": "Hold the session; emergency referral.",
+          "met": "not isNull(vitalsAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "vitals": {
+      "label": "Full vital signs including temperature and respiratory rate",
+      "group": "Examine",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "cam": {
+      "label": "Delirium screen: attention, disorganized thinking, level of consciousness",
+      "group": "Examine",
+      "available": "not testPending and isNull(camAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"cam\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "urine": {
+      "label": "Ask about urination, pain, drinking and eating",
+      "group": "Examine",
+      "available": "not testPending and isNull(urineAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"urine\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ex": {
+      "label": "Do the exercise session anyway to keep her progressing",
+      "group": "Treat",
+      "available": "isNull(exAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "exAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "She struggles, nearly faints at the sit-to-stand.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "nap": {
+      "label": "Let her sleep and come back tomorrow",
+      "group": "Treat",
+      "available": "isNull(napAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "napAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "She is left to sleep.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is she sleepy and off?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "sepsis",
+              "label": "Probable sepsis (likely urinary) with hypoactive delirium: fever, fast heart rate and breathing, low pressure, new inattention"
+            },
+            {
+              "value": "tired",
+              "label": "Tired from therapy"
+            },
+            {
+              "value": "dementia",
+              "label": "Dementia progressing"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"sepsis\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sepsis\""
+                },
+                {
+                  "log": "Probable sepsis with hypoactive delirium.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tired\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tired\""
+                },
+                {
+                  "log": "Read as tiredness.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dementia\""
+                },
+                {
+                  "log": "Read as dementia.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911 and her provider: 86, T 38.6, HR 112, RR 24, BP 98/56, new hypoactive delirium, urinary symptoms after catheter removal"
+            },
+            {
+              "value": "tomorrow",
+              "label": "Tell her daughter to call the provider if she's no better tomorrow"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "EMS takes her to the emergency department; her provider and the agency are told.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"tomorrow\""
+                },
+                {
+                  "log": "Left for tomorrow.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her daughter and document findings and the call",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her daughter understands this is illness, not tiredness; findings documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Home visit",
+      "clock": "running",
+      "actions": [
+        "vitals",
+        "cam",
+        "urine",
+        "ex",
+        "nap",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"vitals\"",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Temperature 38.6, heart rate 112, respiratory rate 24, blood pressure 98/56 (her usual is in the 140s), SpO2 93%.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"cam\"",
+              "then": [
+                {
+                  "set": "camAt",
+                  "to": "t"
+                },
+                {
+                  "log": "She cannot name the months backward, drifts off mid-sentence and rambles: a positive delirium screen, the quiet hypoactive kind.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "urineAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Burning and frequency, cloudy urine, drinking very little since yesterday.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "EMS",
+      "wait": {
+        "skipLabel": "EMS"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min for EMS."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves by ambulance.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Mrs. Albright sleepy and off today, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "New drowsiness and inattention are hypoactive delirium, the form most often missed; with fever, tachycardia, tachypnea, a low pressure and urinary symptoms, sepsis (likely urinary) needs emergency care.",
+          "modelAnswer": "This isn't tiredness. She's got hypoactive delirium, the quiet kind people miss, plus a fever, fast heart rate and breathing, low pressure and urinary symptoms. That's sepsis."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Holds therapy, calls 911 and her provider, explains to her daughter and documents.",
+          "modelAnswer": "No therapy today, call 911 and her provider, explain to her daughter and document."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "911 within 5 minutes of the vital signs (agency policy: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Probable sepsis unescalated an hour on is harm here.",
+      "source": {
+        "cite": "Ascendra geriatrics specialty course catalog: 'Recognizing conditions requiring medical referral: sepsis, dehydration, electrolyte imbalance and acute cardiac events'",
+        "checkedAt": "2026-11-17",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, sources read 2026-11-04): the referral conditions are the course's own objective. The case's vital-sign pattern (fever or low temperature, fast heart rate, fast breathing, low pressure, new confusion) is the general sepsis screen used across the app's nursing cases."
+      }
+    }
+  },
+  "endings": {
+    "shock": {
+      "label": "Septic shock",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her pressure falls to 76/40 and she becomes unrousable; EMS is called late."
+    },
+    "safe": {
+      "label": "Sepsis recognized and referred",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(vitalsAt)) and isNull(exAt) and isNull(napAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she is on her way to the emergency department."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches care, but late or after exercising."
+    },
+    "time_up": {
+      "label": "Unescalated at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00 and no one called."
+    }
+  },
+  "endingOrder": [
+    "shock",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "911 within 5 minutes of the vital signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ems\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "vitC",
+        "label": "Took full vital signs including temperature",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not taken."
+          }
+        ]
+      },
+      {
+        "id": "holdC",
+        "label": "Held the session and did not leave her to sleep it off",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(exAt) or not isNull(napAt)",
+            "score": "missed",
+            "why": "Exercised or left."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Held."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Screened for delirium and asked about urine and intake",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(camAt) and not isNull(urineAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(camAt) or not isNull(urineAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized sepsis with hypoactive delirium",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"sepsis\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"tired\"",
+            "score": "missed",
+            "why": "Fever, tachycardia and low pressure are illness."
+          },
+          {
+            "when": "dxEnum == \"dementia\"",
+            "score": "missed",
+            "why": "Acute and fluctuating is delirium."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: hypoactive delirium plus abnormal vital signs means sepsis; hold and refer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Vital signs to 911",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to the vital signs",
+        "value": "isNull(vitalsAt) ? -1 : timeAt(vitalsAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "Full vital signs: fever, tachycardia, low pressure."
+      },
+      {
+        "at": "~11:01",
+        "text": "Hold therapy; call 911 and her provider."
+      },
+      {
+        "at": "~11:03",
+        "text": "Delirium screen; urine and intake."
+      },
+      {
+        "at": "~11:05",
+        "text": "Explain to her daughter; document."
+      }
+    ],
+    "debrief": {
+      "shock": {
+        "headline": "Septic shock",
+        "body": "A quiet, sleepy older adult with fever, a fast heart rate and low pressure has sepsis with hypoactive delirium until proven otherwise: hold therapy and refer now."
+      },
+      "safe": {
+        "headline": "Sepsis recognized and referred",
+        "body": "You took full vital signs, recognized hypoactive delirium and sepsis, held therapy and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check whether you exercised her, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Unescalated at 12:00",
+        "body": "Refer sepsis at once."
+      }
+    },
+    "modelReasoning": "Physical therapists must recognize conditions needing medical referral, including sepsis, dehydration, electrolyte imbalance and acute cardiac events. Delirium is an acute, fluctuating disturbance of attention and awareness; the quiet hypoactive form is the one most often missed and is often the first sign of infection in an older adult. Mrs. Albright's fever, tachycardia, tachypnea, low pressure and urinary symptoms point to urinary sepsis: hold therapy and call 911."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "refQ": {
+      "during": "leaveT",
+      "ask": "While EMS takes her: which conditions need medical referral from a PT visit?",
+      "choices": [
+        {
+          "id": "ref",
+          "label": "Sepsis, dehydration, electrolyte imbalance, acute cardiac events"
+        },
+        {
+          "id": "none",
+          "label": "None; the PT treats all"
+        },
+        {
+          "id": "only",
+          "label": "Only falls"
+        }
+      ],
+      "expect": "ref",
+      "explain": "Recognize conditions requiring medical referral: sepsis, dehydration, electrolyte imbalance and acute cardiac events.",
+      "source": {
+        "cite": "Ascendra geriatrics specialty course catalog: 'Recognizing conditions requiring medical referral: sepsis, dehydration, electrolyte imbalance and acute cardiac events'",
+        "checkedAt": "2026-11-17",
+        "note": "Relayed from the course seed (backend/supabase/seed/tracks/pt-abpts.ts, sources read 2026-11-04): the referral conditions are the course's own objective. The case's vital-sign pattern (fever or low temperature, fast heart rate, fast breathing, low pressure, new confusion) is the general sepsis screen used across the app's nursing cases."
+      }
+    },
+    "hypoQ": {
+      "during": "testT",
+      "ask": "While you screen: which form of delirium is most often missed?",
+      "choices": [
+        {
+          "id": "hypo",
+          "label": "Hypoactive: quiet, drowsy, withdrawn"
+        },
+        {
+          "id": "hyper",
+          "label": "Hyperactive: agitated"
+        },
+        {
+          "id": "none",
+          "label": "None; all are obvious"
+        }
+      ],
+      "expect": "hypo",
+      "explain": "Delirium may be hyperactive, hypoactive or mixed; the quiet hypoactive form is the one most often missed.",
+      "source": {
+        "cite": "Ramirez Echeverria ML, et al.. Delirium. StatPearls (updated 2026-01-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-DEL; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: delirium is an acute, fluctuating disturbance of attention, awareness and cognition, in hyperactive, hypoactive or mixed forms; the quiet hypoactive form is the one most often missed (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

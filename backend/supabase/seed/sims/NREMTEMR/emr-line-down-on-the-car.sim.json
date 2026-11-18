@@ -1,0 +1,1214 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emr-line-down-on-the-car",
+  "title": "A power line across the hood",
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse, last measured",
+          "value": "vHr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure, last measured",
+          "value": [
+            "vSbp",
+            "vDbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art",
+          "hiddenUntil": "vAt > 0"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate, last measured",
+          "value": "vRr",
+          "unit": "/min",
+          "announce": {
+            "bands": [
+              24,
+              30
+            ]
+          },
+          "colour": "neutral",
+          "hiddenUntil": "vAt > 0"
+        }
+      ],
+      "infusions": "Line: {isNull(offAt) ? \"assume live\" : \"de-energized by the utility\"}. Perimeter: {isNull(zoneAt) ? \"none\" : \"35 feet, taped\"}. Driver: {isNull(exitAt) ? \"in the car\" : \"out, beyond the perimeter\"}.",
+      "banner": [
+        {
+          "when": "isNull(exitAt) and isNull(offAt)",
+          "text": "A sedan against a snapped pole; a line lies across its hood. The driver is inside, holding his head."
+        },
+        {
+          "when": "not isNull(smokeAt) and isNull(exitAt)",
+          "text": "Smoke is curling out from under the hood."
+        },
+        {
+          "when": "not isNull(ambAt)",
+          "text": "The ambulance crew is here."
+        }
+      ]
+    }
+  },
+  "objective": "Recognize an electrical or hazardous-materials hazard and keep yourself and bystanders out of danger until trained responders arrive",
+  "secondaryObjectives": [
+    "Protect the patient and bystanders at a traffic incident",
+    "Decide which resources to request early -- a transporting ambulance, ALS, fire, law enforcement, hazmat -- and say why",
+    "Hand over care to the transporting crew with a concise report"
+  ],
+  "sources": [
+    {
+      "cite": "National Registry of EMTs. EMR examination test plan",
+      "checkedAt": "2026-11-09",
+      "url": "https://nremt.org/getmedia/4657d30a-a955-43af-aa8f-a92388f0d9f4/EMR-Test-Plan_Public",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/ems.ts and labs/ems-sources.ts, read in NREMT's own documents 2026-11-09); not re-read for this case. Scene Size-up and Safety is 19-23% of items: recognize hazards and keep yourself and others safe; request resources."
+    },
+    {
+      "cite": "Electrical Safety Foundation International (ESFI). Downed Power Line Safety: Always Assume Downed Lines are Live (published 2019-03-27, modified 2025-02-20)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.esfi.org/downed-power-line-electrical-safety-downed-and-dangerous/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Downed power lines can energize the ground up to 35 feet away'; 'Warn others to stay at least 35 feet away'; 'ALWAYS assume a downed power line is live and avoid going near it or anything in contact with it'; in a vehicle: 'Stay in place or inside your vehicle unless you see fire or smoke'; if you must leave, 'Do not touch the ground and vehicle at the same time', 'Jump from the vehicle with your feet together', 'Shuffle away'."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Electrical Injuries",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. 'Verify scene is secure. The electrical source must be disabled prior to assessment'; shut off electrical power; continuous cardiac monitoring and a 12-lead as soon as feasible; a burn center whenever possible. The section does not cover downed lines (see the ESFI source)."
+    },
+    {
+      "cite": "NHTSA. National EMS Scope of Practice Model 2019: Including Change Notices 1.0 and 2.0 (DOT HS 813 151, 2021-08-01)",
+      "checkedAt": "2026-11-17",
+      "url": "https://rosap.ntl.bts.gov/view/dot/56917",
+      "note": "Read 2026-11-17: the record page (title, report number, date; the change notices add intramuscular injection, vaccination in a public health emergency and nasal swab collection at EMT and above) and the PDF's skill tables through a summarizing fetch whose table columns were partly unclear, so placement was checked against the course's own reading (backend/supabase/seed/labs/ems-sources.ts, 2026-11-09) and REQ-241's reading (2026-11-11). EMR: oxygen, BVM, naloxone (intranasal or auto-injector), unit-dose hazmat antidote auto-injectors, tourniquet, wound packing, emergency moves, manual stabilization; no pulse oximetry, glucose monitoring or transport. EMT adds pulse oximetry, glucose monitoring, oral glucose, aspirin, the patient's own nitroglycerin, an inhaled bronchodilator, CPAP, the epinephrine auto-injector. AEMT adds IV and IO access, non-medicated IV fluids, supraglottic airways, waveform capnography, sublingual nitroglycerin and a limited list of IV and IM drugs (dextrose, naloxone). Paramedic adds 12-lead interpretation, manual defibrillation, synchronized cardioversion, transcutaneous pacing, needle chest decompression, intubation and medicated infusions. No newer model was found on 2026-11-17."
+    },
+    {
+      "cite": "Ascendra NREMT EMR course catalog (backend/supabase/seed/tracks/ems.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "21:10. You are an emergency medical responder in a fire department quick-response vehicle, first on scene: a car has hit a utility pole on a dark two-lane road. A downed line lies across the hood. The driver, a man in his 30s, is in his seat with a bleeding forehead. A few people from nearby houses are gathering.",
+    "handover": [
+      "Your dispatcher can reach the power company, the engine company and law enforcement. An ambulance is already on the way, about 15 minutes out.",
+      "Within EMR scope: scene safety, bleeding control, basic assessment and handover. You cannot make a line safe; only the utility can."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated seconds per real second. Pause any time.",
+      "Every assessment and treatment takes the time it would on a real call. Scene time and the drive run on the clock.",
+      "Partway through you are asked to explain your decisions in writing. The case ends when care is handed over, then a debrief scores what you did."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice; follow your local protocols and medical direction.",
+  "clock": {
+    "start": "21:10",
+    "tick": "1s",
+    "maxDuration": "40min",
+    "calendar": "clock"
+  },
+  "params": {
+    "walkerAt": {
+      "value": 75,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A bystander starts toward the car about 75 seconds after you arrive. Authored for the case; real times vary."
+      }
+    },
+    "walkerGrace": {
+      "value": 30,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "He reaches the car door 30 seconds after he starts toward it unless someone stops him. Authored for the case; real times vary."
+      }
+    },
+    "smokeTime": {
+      "value": 420,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Smoke from under the hood at about 7 minutes. Authored for the case; real times vary."
+      }
+    },
+    "smokeGrace": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Without instructions he opens the door and steps out about a minute after the smoke appears. Authored for the case; real times vary."
+      }
+    },
+    "utilEta": {
+      "value": 780,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The power company's crew de-energizes the line about 13 minutes after it is requested. Authored for the case; real times vary."
+      }
+    },
+    "ambEta": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The ambulance arrives 15 minutes after you do. Authored for the case; real times vary."
+      }
+    },
+    "vitalsTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A set of vital signs by hand: about 1 minute. Authored for the case; real times vary."
+      }
+    },
+    "early": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Perimeter and power-company request within 2 minutes of arrival; ESFI gives no time, only that the line must be assumed live and others kept 35 feet away. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    }
+  },
+  "state": {
+    "zoneAt": {
+      "type": "time",
+      "init": null
+    },
+    "utilAt": {
+      "type": "time",
+      "init": null
+    },
+    "fireAt": {
+      "type": "time",
+      "init": null
+    },
+    "stayAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkStartAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedWalkerAt": {
+      "type": "time",
+      "init": null
+    },
+    "smokeAt": {
+      "type": "time",
+      "init": null
+    },
+    "coachAt": {
+      "type": "time",
+      "init": null
+    },
+    "exitAt": {
+      "type": "time",
+      "init": null
+    },
+    "offAt": {
+      "type": "time",
+      "init": null
+    },
+    "approachAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressureAt": {
+      "type": "time",
+      "init": null
+    },
+    "firstVAt": {
+      "type": "time",
+      "init": null
+    },
+    "ambAt": {
+      "type": "time",
+      "init": null
+    },
+    "handAt": {
+      "type": "time",
+      "init": null
+    },
+    "reportAt": {
+      "type": "time",
+      "init": null
+    },
+    "walkerShocked": {
+      "type": "bool",
+      "init": false
+    },
+    "driverShocked": {
+      "type": "bool",
+      "init": false
+    },
+    "rescuerShocked": {
+      "type": "bool",
+      "init": false
+    },
+    "badExit": {
+      "type": "bool",
+      "init": false
+    },
+    "pulledOut": {
+      "type": "bool",
+      "init": false
+    },
+    "vPending": {
+      "type": "bool",
+      "init": false
+    },
+    "vAt": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 100000,
+      "unit": "s"
+    },
+    "vHr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 220,
+      "unit": "/min"
+    },
+    "vSbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 250,
+      "unit": "mmHg"
+    },
+    "vDbp": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 200,
+      "unit": "mmHg"
+    },
+    "vRr": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 60,
+      "unit": "/min"
+    }
+  },
+  "derived": {
+    "reachable": {
+      "expr": "not isNull(exitAt) or not isNull(offAt)"
+    },
+    "hr": {
+      "expr": "isNull(pressureAt) ? 108 : 96",
+      "unit": "/min",
+      "precision": 0
+    }
+  },
+  "processes": [],
+  "phases": {
+    "call": {
+      "label": "On scene",
+      "clock": "running",
+      "actions": [
+        "zone",
+        "utility",
+        "fire",
+        "stay",
+        "stopWalker",
+        "coachExit",
+        "stepOut",
+        "approach",
+        "pullOut",
+        "pressure",
+        "vitals",
+        "report"
+      ]
+    }
+  },
+  "initialPhase": "call",
+  "actions": {
+    "zone": {
+      "label": "Stage and tape a perimeter at least 35 feet from the line and anything it touches; move the onlookers back",
+      "group": "Scene",
+      "available": "isNull(zoneAt)",
+      "why": "Already set.",
+      "effects": [
+        {
+          "if": "isNull(zoneAt)",
+          "then": [
+            {
+              "set": "zoneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You park out of the line's reach, run tape 35 feet out and move everyone behind it.",
+          "kind": "good"
+        }
+      ]
+    },
+    "utility": {
+      "label": "Have dispatch send the power company to de-energize the line, and tell them a vehicle is in contact",
+      "group": "Call",
+      "available": "isNull(utilAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(utilAt)",
+          "then": [
+            {
+              "set": "utilAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "schedule": "utilT",
+          "after": "utilEta"
+        },
+        {
+          "log": "Dispatch: power company notified, crew en route.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "fire": {
+      "label": "Request the engine company and law enforcement for traffic and the scene",
+      "group": "Call",
+      "available": "isNull(fireAt)",
+      "why": "Already requested.",
+      "effects": [
+        {
+          "if": "isNull(fireAt)",
+          "then": [
+            {
+              "set": "fireAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Engine 4 and a deputy are on the way.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "stay": {
+      "label": "Call to the driver from outside the perimeter: stay in the car, don't touch the frame, help is coming",
+      "group": "Scene",
+      "available": "isNull(stayAt) and isNull(exitAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(stayAt)",
+          "then": [
+            {
+              "set": "stayAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He nods through the window and stays put.",
+          "kind": "good"
+        }
+      ]
+    },
+    "stopWalker": {
+      "label": "Stop the man walking toward the car and send him back behind the tape",
+      "group": "Scene",
+      "available": "not isNull(walkStartAt) and isNull(stoppedWalkerAt) and not walkerShocked",
+      "why": "No one is walking in.",
+      "effects": [
+        {
+          "if": "isNull(stoppedWalkerAt)",
+          "then": [
+            {
+              "set": "stoppedWalkerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You shout and he stops two car lengths short, then backs away.",
+          "kind": "good"
+        }
+      ]
+    },
+    "coachExit": {
+      "label": "Smoke: tell him to open the door, jump clear without touching car and ground together, land feet together and shuffle away",
+      "group": "Scene",
+      "available": "not isNull(smokeAt) and isNull(exitAt)",
+      "why": "Only if he must leave the car.",
+      "effects": [
+        {
+          "if": "isNull(coachAt)",
+          "then": [
+            {
+              "set": "coachAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(exitAt)",
+          "then": [
+            {
+              "set": "exitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He jumps clear, lands with feet together and shuffles to the tape.",
+          "kind": "good"
+        }
+      ]
+    },
+    "stepOut": {
+      "label": "Tell him to get out of the car and walk to you",
+      "group": "Scene",
+      "available": "isNull(exitAt) and isNull(offAt)",
+      "why": "He is already out, or the line is dead.",
+      "effects": [
+        {
+          "if": "isNull(exitAt)",
+          "then": [
+            {
+              "set": "exitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "badExit",
+          "to": "true"
+        },
+        {
+          "set": "driverShocked",
+          "to": "true"
+        },
+        {
+          "log": "He steps out with a hand on the door frame and a foot on the ground; he is thrown down and lies still.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "approach": {
+      "label": "Go to the driver's door to assess him",
+      "group": "Assess",
+      "available": "isNull(approachAt) and isNull(exitAt)",
+      "why": "He is out of the car.",
+      "effects": [
+        {
+          "if": "isNull(approachAt)",
+          "then": [
+            {
+              "set": "approachAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(offAt)",
+          "then": [
+            {
+              "set": "rescuerShocked",
+              "to": "true"
+            },
+            {
+              "log": "Three steps from the car your legs jolt and you fall; the ground around the car is energized.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "The utility crew has confirmed the line dead; you reach the driver."
+            }
+          ]
+        }
+      ]
+    },
+    "pullOut": {
+      "label": "Pull him out of the car before the fire spreads",
+      "group": "Assess",
+      "available": "isNull(exitAt) and not isNull(smokeAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "isNull(exitAt)",
+          "then": [
+            {
+              "set": "exitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "pulledOut",
+          "to": "true"
+        },
+        {
+          "if": "isNull(offAt)",
+          "then": [
+            {
+              "set": "rescuerShocked",
+              "to": "true"
+            },
+            {
+              "log": "You reach for him and are thrown back: the car is still energized.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "You help him out."
+            }
+          ]
+        }
+      ]
+    },
+    "pressure": {
+      "label": "Direct pressure on the forehead wound with a dressing",
+      "group": "Treat",
+      "available": "reachable and isNull(pressureAt) and not rescuerShocked",
+      "why": "You can only reach him once he is out or the line is dead.",
+      "effects": [
+        {
+          "if": "isNull(pressureAt)",
+          "then": [
+            {
+              "set": "pressureAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Pressure dressing on the scalp wound; the bleeding stops."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Pulse, blood pressure and breathing by hand",
+      "group": "Assess",
+      "available": "reachable and not vPending and not rescuerShocked",
+      "why": "Not reachable yet, or already measuring.",
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "true"
+        },
+        {
+          "schedule": "vitalsT",
+          "after": "vitalsTime"
+        },
+        {
+          "log": "Pulse, cuff, counting breaths."
+        }
+      ]
+    },
+    "report": {
+      "label": "Hand over to the ambulance crew: mechanism, the line, his injuries, findings and care",
+      "group": "Handover",
+      "available": "not isNull(ambAt) and isNull(handAt)",
+      "why": "When the ambulance is here.",
+      "effects": [
+        {
+          "if": "isNull(handAt)",
+          "then": [
+            {
+              "set": "handAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Report given: car into pole, line on the hood, out by jumping clear, forehead laceration controlled, vital signs.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "utilT": {
+      "label": "the power company",
+      "wait": {
+        "skipLabel": "the power company (about 13 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 13 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(offAt)",
+          "then": [
+            {
+              "set": "offAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Power company: the line is de-energized and grounded. Scene safe to approach.",
+          "kind": "good"
+        }
+      ]
+    },
+    "ambT": {
+      "label": "the ambulance",
+      "wait": {
+        "skipLabel": "the ambulance"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 minutes. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "if": "isNull(ambAt)",
+          "then": [
+            {
+              "set": "ambAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The ambulance crew arrives.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "vitalsT": {
+      "label": "vital signs",
+      "wait": {
+        "skipLabel": "the vital signs (about 1 min)"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "EMS field practice (REQ-338, authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 1 minute. Authored for the case; real times vary."
+      },
+      "effects": [
+        {
+          "set": "vPending",
+          "to": "false"
+        },
+        {
+          "set": "vAt",
+          "to": "t"
+        },
+        {
+          "if": "isNull(firstVAt)",
+          "then": [
+            {
+              "set": "firstVAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "vHr",
+          "to": "hr"
+        },
+        {
+          "set": "vSbp",
+          "to": "134"
+        },
+        {
+          "set": "vDbp",
+          "to": "84"
+        },
+        {
+          "set": "vRr",
+          "to": "18"
+        },
+        {
+          "log": "Pulse {hr}, BP 134/84, breathing 18 and easy; alert, oriented, a 4 cm forehead cut.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "amb",
+      "when": "t >= 1",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "ambT",
+          "after": "ambEta"
+        }
+      ]
+    },
+    {
+      "id": "walker",
+      "when": "t >= walkerAt and isNull(walkStartAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(walkStartAt)",
+          "then": [
+            {
+              "set": "walkStartAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "A man from the crowd strides toward the car: 'I'll get the door for him.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "walkerHit",
+      "when": "not isNull(walkStartAt) and isNull(stoppedWalkerAt) and t >= timeAt(walkStartAt) + walkerGrace and isNull(offAt) and not walkerShocked",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "walkerShocked",
+          "to": "true"
+        },
+        {
+          "log": "He grabs the door handle and is thrown to the road.",
+          "kind": "bad"
+        }
+      ]
+    },
+    {
+      "id": "smoke",
+      "when": "t >= smokeTime and isNull(smokeAt) and isNull(exitAt) and isNull(offAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(smokeAt)",
+          "then": [
+            {
+              "set": "smokeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Smoke curls out from under the hood. The driver reaches for the door handle.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "selfExit",
+      "when": "not isNull(smokeAt) and isNull(exitAt) and t >= timeAt(smokeAt) + smokeGrace and isNull(offAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(exitAt)",
+          "then": [
+            {
+              "set": "exitAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "badExit",
+          "to": "true"
+        },
+        {
+          "set": "driverShocked",
+          "to": "true"
+        },
+        {
+          "log": "With no one telling him how, he steps out holding the door; he is thrown down and lies still.",
+          "kind": "bad"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "why": {
+      "trigger": "t >= 540 and isNull(handAt)",
+      "question": "Why did you not go to the driver straight away, and what keeps everyone safe until the utility arrives?",
+      "parts": [
+        {
+          "label": "The hazard",
+          "criteria": "Assume the line is live; the car and the ground around it can be energized up to 35 feet; only the utility can make it safe.",
+          "modelAnswer": "A downed line is live until the utility says otherwise, and it can energize the car and the ground for 35 feet. I can't help him if I become a second patient."
+        },
+        {
+          "label": "What keeps people safe",
+          "criteria": "A 35-foot perimeter, onlookers back, the power company requested early, the driver told to stay in the car; if he must leave (smoke or fire), jump clear with feet together and shuffle away, never touching car and ground together.",
+          "modelAnswer": "Perimeter at 35 feet, everyone back, the power company called at once, and the driver told to stay put. If the car smokes, he jumps clear, lands feet together and shuffles out."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "not isNull(handAt) and walkerShocked",
+      "class": "harm",
+      "rationale": "A bystander was injured at a scene you were running.",
+      "source": {
+        "cite": "Electrical Safety Foundation International (ESFI). Downed Power Line Safety: Always Assume Downed Lines are Live (published 2019-03-27, modified 2025-02-20)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.esfi.org/downed-power-line-electrical-safety-downed-and-dangerous/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Downed power lines can energize the ground up to 35 feet away'; 'Warn others to stay at least 35 feet away'; 'ALWAYS assume a downed power line is live and avoid going near it or anything in contact with it'; in a vehicle: 'Stay in place or inside your vehicle unless you see fire or smoke'; if you must leave, 'Do not touch the ground and vehicle at the same time', 'Jump from the vehicle with your feet together', 'Shuffle away'."
+      }
+    }
+  },
+  "endings": {
+    "rescuer": {
+      "label": "You became a patient",
+      "class": "harm",
+      "when": "rescuerShocked",
+      "terminal": true,
+      "narrative": "{t|clock}: you are on the ground near the car. Nobody can reach you or the driver until the power is off."
+    },
+    "struck": {
+      "label": "Someone touched the energized car",
+      "class": "harm",
+      "when": "not isNull(handAt) and (walkerShocked or driverShocked)",
+      "terminal": true,
+      "narrative": "{timeAt(handAt)|clock}: the crew takes over a scene with {walkerShocked and driverShocked ? \"two people\" : walkerShocked ? \"a bystander\" : \"the driver\"} hurt by the energized car."
+    },
+    "safe": {
+      "label": "Everyone out of danger",
+      "class": "target",
+      "terminal": true,
+      "when": "not isNull(handAt) and not walkerShocked and not driverShocked and not isNull(zoneAt) and timeAt(zoneAt) <= early and not isNull(utilAt) and timeAt(utilAt) <= early and not isNull(stayAt) and not isNull(pressureAt)",
+      "narrative": "{timeAt(handAt)|clock}: nobody touched the car, the driver jumped clear when it smoked, and the crew takes over a stable patient with the bleeding controlled."
+    },
+    "handed": {
+      "label": "Handed over, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not isNull(handAt)",
+      "narrative": "{timeAt(handAt)|clock}: no one was hurt, but {isNull(zoneAt) or timeAt(zoneAt) > early ? \"the perimeter came late\" : isNull(utilAt) or timeAt(utilAt) > early ? \"the power company was called late\" : isNull(pressureAt) ? \"his bleeding was never controlled\" : \"the driver was never told to stay put\"}."
+    },
+    "time_up": {
+      "label": "40 minutes",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Forty minutes and no handover."
+    }
+  },
+  "endingOrder": [
+    "rescuer",
+    "struck",
+    "safe",
+    "handed"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "zone",
+        "label": "Perimeter at 35 feet within 2 minutes, and the onlooker stopped",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "walkerShocked",
+            "score": "missed",
+            "why": "A bystander touched the car."
+          },
+          {
+            "when": "not isNull(zoneAt) and timeAt(zoneAt) <= early and not isNull(stoppedWalkerAt)",
+            "score": "met",
+            "why": "Perimeter at {timeAt(zoneAt)|clock}; the onlooker stopped."
+          },
+          {
+            "when": "not isNull(zoneAt) or not isNull(stoppedWalkerAt)",
+            "score": "partial",
+            "why": "Perimeter late, or only the onlooker stopped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No perimeter."
+          }
+        ]
+      },
+      {
+        "id": "self",
+        "label": "Never approached the car while the line was live",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rescuerShocked",
+            "score": "missed",
+            "why": "You were shocked."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "You stayed out until it was safe."
+          }
+        ]
+      },
+      {
+        "id": "exit",
+        "label": "When the car smoked, he jumped clear on your instructions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(smokeAt)",
+            "score": "na",
+            "why": "The car did not smoke while he was in it."
+          },
+          {
+            "when": "not isNull(coachAt)",
+            "score": "met",
+            "why": "Jumped clear, feet together, shuffled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "He stepped out holding the car, or was pulled."
+          }
+        ]
+      },
+      {
+        "id": "utility",
+        "label": "Power company requested within 2 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(utilAt) and timeAt(utilAt) <= early",
+            "score": "met",
+            "why": "At {timeAt(utilAt)|clock}."
+          },
+          {
+            "when": "not isNull(utilAt)",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never requested."
+          }
+        ]
+      },
+      {
+        "id": "stay",
+        "label": "Told the driver to stay in the car",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(stayAt)",
+            "score": "met",
+            "why": "Told."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not told."
+          }
+        ]
+      },
+      {
+        "id": "care",
+        "label": "Bleeding controlled and vital signs once he was reachable",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pressureAt) and not isNull(firstVAt)",
+            "score": "met",
+            "why": "Pressure and vital signs."
+          },
+          {
+            "when": "not isNull(pressureAt) or not isNull(firstVAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "hand",
+        "label": "Handover report",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(handAt)",
+            "score": "met",
+            "why": "Report given."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No handover."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the hazard and how people were kept safe",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toZone",
+        "label": "Arrival to perimeter",
+        "value": "isNull(zoneAt) ? -1 : timeAt(zoneAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      },
+      {
+        "id": "toUtil",
+        "label": "Arrival to power company request",
+        "value": "isNull(utilAt) ? -1 : timeAt(utilAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "21:10",
+        "text": "Park out of reach; assume the line is live. Dispatch: power company, engine company, law enforcement. Tape at 35 feet, onlookers back."
+      },
+      {
+        "at": "21:11",
+        "text": "From the tape: tell the driver to stay in the car and not touch the frame. Stop the man who walks toward it."
+      },
+      {
+        "at": "~21:17",
+        "text": "Smoke: talk him through jumping clear, feet together, and shuffling out. Pressure on his forehead, vital signs."
+      },
+      {
+        "at": "~21:25",
+        "text": "Hand over to the ambulance crew with the mechanism, the line and your care."
+      }
+    ],
+    "debrief": {
+      "safe": {
+        "headline": "Everyone out of danger",
+        "body": "The line was live until the utility said otherwise. Perimeter, the utility early, the driver kept inside and coached out when the car smoked, then care. That is the expert path."
+      },
+      "handed": {
+        "headline": "No one hurt, with gaps",
+        "body": "Look at the order: perimeter and utility in the first two minutes, the driver told to stay put, and care once he was reachable."
+      },
+      "struck": {
+        "headline": "The car was energized",
+        "body": "Anything touching a downed line can be live, and so can the ground for 35 feet. Stop people early, and if he must leave the car, he jumps clear and shuffles."
+      },
+      "rescuer": {
+        "headline": "Don't become a second patient",
+        "body": "Approaching or reaching into an energized car puts you on the ground beside him. Only the utility makes a line safe."
+      },
+      "time_up": {
+        "headline": "No handover",
+        "body": "Forty minutes passed."
+      }
+    },
+    "modelReasoning": "Assume a downed line is live: it can energize the car and the ground up to 35 feet. Stage out of reach, request the power company and fire early, tape a 35-foot perimeter and move onlookers back, and stop anyone heading for the car. Tell the driver to stay in the car without touching the frame. If the car smokes, coach him to jump clear without touching car and ground together, land feet together and shuffle away. Only after he is clear, or the utility confirms the line is dead, control his bleeding, take vital signs and hand over to the ambulance crew."
+  },
+  "chapters": [
+    {
+      "id": "clear",
+      "label": "Driver clear of the car",
+      "when": "not isNull(exitAt)"
+    }
+  ],
+  "teaching": {
+    "dist": {
+      "during": "utilT",
+      "ask": "While you wait for the power company: how far back should people stay from a downed line and anything it touches?",
+      "choices": [
+        {
+          "id": "ten",
+          "label": "About 10 feet"
+        },
+        {
+          "id": "thirtyfive",
+          "label": "At least 35 feet"
+        },
+        {
+          "id": "touch",
+          "label": "Just don't touch the wire itself"
+        }
+      ],
+      "expect": "thirtyfive",
+      "explain": "ESFI: downed lines can energize the ground up to 35 feet away; warn others to stay at least 35 feet back, and assume every downed line is live.",
+      "source": {
+        "cite": "Electrical Safety Foundation International (ESFI). Downed Power Line Safety: Always Assume Downed Lines are Live (published 2019-03-27, modified 2025-02-20)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.esfi.org/downed-power-line-electrical-safety-downed-and-dangerous/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: 'Downed power lines can energize the ground up to 35 feet away'; 'Warn others to stay at least 35 feet away'; 'ALWAYS assume a downed power line is live and avoid going near it or anything in contact with it'; in a vehicle: 'Stay in place or inside your vehicle unless you see fire or smoke'; if you must leave, 'Do not touch the ground and vehicle at the same time', 'Jump from the vehicle with your feet together', 'Shuffle away'."
+      }
+    }
+  }
+}

@@ -1,0 +1,1092 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "school-build-stakeholders-culture",
+  "title": "Stakeholders on a hospital extension: identifying who matters, a cross-cultural site team and messages that land",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rId",
+          "label": "Key stakeholders missing",
+          "spokenLabel": "Key stakeholders missing",
+          "owner": "\"Project manager\"",
+          "rating": "id == \"assess\" ? \"low\" : id == \"listOnly\" ? \"medium\" : id == \"later\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "id == \"assess\" ? \"within\" : id == \"listOnly\" ? \"within\" : id == \"later\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{id == \"assess\" ? \"Key stakeholders identified and engaged\" : id == \"listOnly\" ? \"Contract parties only\" : id == \"later\" ? \"Deferred\" : \"Open\"}"
+        },
+        {
+          "id": "rCult",
+          "label": "Hidden schedule risk",
+          "spokenLabel": "Hidden schedule risk",
+          "owner": "\"Project manager\"",
+          "rating": "cult == \"adapt\" ? \"low\" : cult == \"interpreter\" ? \"medium\" : cult == \"push\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "cult == \"adapt\" ? \"within\" : cult == \"interpreter\" ? \"within\" : cult == \"push\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{cult == \"adapt\" ? \"Communication adapted to the culture\" : cult == \"interpreter\" ? \"Interpreter added\" : cult == \"push\" ? \"Held to an impossible yes\" : \"Open\"}"
+        },
+        {
+          "id": "rMsg",
+          "label": "Neighbor complaints",
+          "spokenLabel": "Neighbor complaints",
+          "owner": "\"Project manager\"",
+          "rating": "msg == \"tailored\" ? \"low\" : msg == \"oneLetter\" ? \"medium\" : msg == \"nothing\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "msg == \"tailored\" ? \"within\" : msg == \"oneLetter\" ? \"within\" : msg == \"nothing\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{msg == \"tailored\" ? \"Audience-tailored messages in advance\" : msg == \"oneLetter\" ? \"One generic letter\" : msg == \"nothing\" ? \"No advance notice\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOwner",
+          "label": "Contract owner's representative",
+          "spokenLabel": "the owner's representative's support",
+          "value": "owner",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Site team",
+          "spokenLabel": "the site team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dId",
+          "kind": "Stakeholder identification",
+          "label": "Week 1: stakeholder map",
+          "status": "{id == \"assess\" ? \"Key stakeholders identified and engaged\" : id == \"listOnly\" ? \"Contract parties only\" : id == \"later\" ? \"Deferred\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and id == \"none\""
+        },
+        {
+          "id": "dCult",
+          "kind": "Communication",
+          "label": "Week 2: crew commitments",
+          "status": "{cult == \"adapt\" ? \"Communication adapted to the culture\" : cult == \"interpreter\" ? \"Interpreter added\" : cult == \"push\" ? \"Held to an impossible yes\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and cult == \"none\""
+        },
+        {
+          "id": "dMsg",
+          "kind": "Messaging",
+          "label": "Week 3: night deliveries",
+          "status": "{msg == \"tailored\" ? \"Audience-tailored messages in advance\" : msg == \"oneLetter\" ? \"One generic letter\" : msg == \"nothing\" ? \"No advance notice\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and msg == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Managing stakeholders effectively: identifying and assessing stakeholders, and recognizing cultural factors that affect communication",
+  "secondaryObjectives": [
+    "Preventing communication issues: building stakeholder buy-in at project outset and crafting audience-tailored messaging"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You manage a hospital extension for a fictional health authority. The site team includes subcontractors from three countries; the hospital stays open next door.",
+    "handover": [
+      "Neighbors complained about noise last month.",
+      "Clinical staff were not consulted on the construction phasing."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owner": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "id": {
+      "type": "enum",
+      "values": [
+        "none",
+        "assess",
+        "listOnly",
+        "later"
+      ],
+      "init": "none"
+    },
+    "idAt": {
+      "type": "time",
+      "init": null
+    },
+    "cult": {
+      "type": "enum",
+      "values": [
+        "none",
+        "adapt",
+        "interpreter",
+        "push"
+      ],
+      "init": "none"
+    },
+    "cultAt": {
+      "type": "time",
+      "init": null
+    },
+    "msg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "tailored",
+        "oneLetter",
+        "nothing"
+      ],
+      "init": "none"
+    },
+    "msgAt": {
+      "type": "time",
+      "init": null
+    },
+    "mapAt": {
+      "type": "time",
+      "init": null
+    },
+    "crewsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, owner), team)"
+    },
+    "missCount": {
+      "expr": "((id == \"later\") ? 1 : 0) + ((cult == \"push\") ? 1 : 0) + ((msg == \"nothing\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(id == \"none\" or (id == \"later\") ? 1 : 0) + (cult == \"none\" or (cult == \"push\") ? 1 : 0) + (msg == \"none\" or (msg == \"nothing\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Stakeholder engagement",
+      "clock": "turns",
+      "actions": [
+        "map",
+        "crews"
+      ]
+    },
+    "close": {
+      "label": "Engagement record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "map": {
+      "label": "Map stakeholders by interest and influence",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(mapAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "mapAt",
+          "to": "t"
+        },
+        {
+          "log": "Map stakeholders by interest and influence.",
+          "kind": "act"
+        },
+        {
+          "finding": "High influence: the infection control lead (can stop work), clinical directors, the council. High interest: neighbors, patients."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "crews": {
+      "label": "Talk to the subcontractor crews",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(crewsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "crewsAt",
+          "to": "t"
+        },
+        {
+          "log": "Talk to the subcontractor crews.",
+          "kind": "act"
+        },
+        {
+          "finding": "One crew's culture avoids saying no to a superior; they agreed to a schedule they knew was impossible."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Key stakeholders identified and engaged, communication adapted to the crews' culture, and tailored advance messages"
+                },
+                {
+                  "value": "summary",
+                  "label": "Stakeholders engaged"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "id == \"later\"",
+              "then": [
+                {
+                  "log": "Week 2: dust reaches an oncology ward; infection control stops the work for two weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "cult == \"push\"",
+              "then": [
+                {
+                  "log": "Week 3: the crew misses the milestone it never believed in; the follow-on trades stand idle.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "msg == \"nothing\"",
+              "then": [
+                {
+                  "log": "Week 4: night deliveries begin unannounced; the council receives 40 complaints and restricts working hours.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The engagement review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_id",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the map.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "idPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cult",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the crews.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "cultPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_msg",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the neighbors.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "msgPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "idPrompt": {
+      "title": "Who matters most?",
+      "context": "The infection control lead wasn't on the list.",
+      "choices": [
+        {
+          "id": "assess",
+          "label": "Add the infection control lead and clinical directors as key stakeholders, assess their needs (dust control near wards), and engage them on phasing",
+          "effects": [
+            {
+              "set": "id",
+              "to": "\"assess\""
+            },
+            {
+              "set": "idAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "1"
+            },
+            {
+              "log": "Key stakeholders are engaged.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Identifying and assessing stakeholders finds the ones who can stop the work."
+        },
+        {
+          "id": "listOnly",
+          "label": "Keep the contract parties only",
+          "effects": [
+            {
+              "set": "id",
+              "to": "\"listOnly\""
+            },
+            {
+              "set": "idAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-1"
+            },
+            {
+              "log": "Contract parties only.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The people who can stop the work are missing."
+        },
+        {
+          "id": "later",
+          "label": "Engage them if problems arise",
+          "effects": [
+            {
+              "set": "id",
+              "to": "\"later\""
+            },
+            {
+              "set": "idAt",
+              "to": "t"
+            },
+            {
+              "add": "owner",
+              "by": "-2"
+            },
+            {
+              "log": "Engagement deferred.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "By then the problem has happened."
+        }
+      ]
+    },
+    "cultPrompt": {
+      "title": "A 'yes' that means 'no'",
+      "context": "A crew agreed to an impossible schedule rather than refuse.",
+      "choices": [
+        {
+          "id": "adapt",
+          "label": "Change how commitments are asked: one-to-one planning with the crew lead, asking what the crew needs rather than whether they agree, and written confirmations",
+          "effects": [
+            {
+              "set": "cult",
+              "to": "\"adapt\""
+            },
+            {
+              "set": "cultAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Real constraints surface.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Cultural factors shape how people communicate; adapt so real constraints surface."
+        },
+        {
+          "id": "interpreter",
+          "label": "Add an interpreter at meetings",
+          "effects": [
+            {
+              "set": "cult",
+              "to": "\"interpreter\""
+            },
+            {
+              "set": "cultAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "An interpreter attends.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Language helps; the cultural reluctance to refuse remains."
+        },
+        {
+          "id": "push",
+          "label": "Hold them to their 'yes'",
+          "effects": [
+            {
+              "set": "cult",
+              "to": "\"push\""
+            },
+            {
+              "set": "cultAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "They're held to it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The schedule fails and blame follows."
+        }
+      ]
+    },
+    "msgPrompt": {
+      "title": "Noise complaints",
+      "context": "Night deliveries start next month.",
+      "choices": [
+        {
+          "id": "tailored",
+          "label": "Tell neighbors in advance with dates, times and a contact, brief clinical staff on ward impacts, and update patients through the hospital",
+          "effects": [
+            {
+              "set": "msg",
+              "to": "\"tailored\""
+            },
+            {
+              "set": "msgAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "Each audience gets its own message.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Tailored messages before the work build buy-in and prevent complaints."
+        },
+        {
+          "id": "oneLetter",
+          "label": "Send one letter to everyone",
+          "effects": [
+            {
+              "set": "msg",
+              "to": "\"oneLetter\""
+            },
+            {
+              "set": "msgAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "One letter.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It answers nobody's question well."
+        },
+        {
+          "id": "nothing",
+          "label": "Say nothing until complaints come",
+          "effects": [
+            {
+              "set": "msg",
+              "to": "\"nothing\""
+            },
+            {
+              "set": "msgAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing sent.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Neighbors learn at 2 a.m."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the stakeholder engagement record.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Stakeholders and culture",
+          "criteria": "Infection control and clinical directors engaged; constraints asked one to one.",
+          "modelAnswer": "We engaged the infection control lead and clinical directors on phasing; crews give constraints one to one with written confirmation."
+        },
+        {
+          "label": "Messages",
+          "criteria": "Neighbors, staff and patients informed in advance.",
+          "modelAnswer": "Neighbors get dates and a contact before night deliveries; clinical staff and patients are briefed through the hospital."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (id == \"listOnly\") and (cult == \"interpreter\") and (msg == \"oneLetter\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Construction Professional (PMI-CP) Examination Content Outline (February 2024): Contracts Management 50%, Stakeholder Engagement 30%, Strategy and Scope Management 15%, Project Governance 5%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.scribd.com/document/712650910/PMICP-Exam-Content-Outline",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy hosted on Scribd: the domain weights only; the task text was not shown. The objective wording is the course seed's, built from PMI's outline read on 2026-09-27 (backend/supabase/seed/tracks/pm.ts); the claims task text is to verify against PMI's PDF. Reused for REQ-336 from this course's clinic-fitout-claim-pmicp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "idHarm": {
+      "label": "Work stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and id == \"later\"",
+      "narrative": "Dust reached a ward and infection control stopped the work."
+    },
+    "cultHarm": {
+      "label": "A missed milestone",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cult == \"push\"",
+      "narrative": "The crew missed a milestone it never thought possible; other trades stood idle."
+    },
+    "msgHarm": {
+      "label": "Working hours restricted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and msg == \"nothing\"",
+      "narrative": "Unannounced night deliveries led the council to restrict working hours."
+    },
+    "target": {
+      "label": "Stakeholders with the project",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (id == \"assess\") and (cult == \"adapt\") and (msg == \"tailored\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The work proceeds without stoppages, crews' real constraints surface, and neighbors are informed."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "idHarm",
+    "cultHarm",
+    "msgHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "idCrit",
+        "label": "Identified and assessed stakeholders, including those who can stop the work",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "id == \"assess\"",
+            "score": "met",
+            "why": "Assessed."
+          },
+          {
+            "when": "id == \"listOnly\"",
+            "score": "partial",
+            "why": "Incomplete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Reactive."
+          }
+        ]
+      },
+      {
+        "id": "cultCrit",
+        "label": "Recognized cultural factors and adapted communication",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cult == \"adapt\"",
+            "score": "met",
+            "why": "Adapted."
+          },
+          {
+            "when": "cult == \"interpreter\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored culture."
+          }
+        ]
+      },
+      {
+        "id": "msgCrit",
+        "label": "Tailored messages to each audience before the work",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "msg == \"tailored\"",
+            "score": "met",
+            "why": "Prevented."
+          },
+          {
+            "when": "msg == \"oneLetter\"",
+            "score": "partial",
+            "why": "Generic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Reactive."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(mapAt) and not isNull(crewsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(mapAt) or not isNull(crewsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Map stakeholders and talk to the site crews first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Identify and engage the infection control lead and clinical directors."
+      },
+      {
+        "at": "Week 2",
+        "text": "Ask for constraints one to one, not public agreement."
+      },
+      {
+        "at": "Week 3",
+        "text": "Tailor advance messages for neighbors, staff and patients."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "idHarm": {
+        "headline": "Identify those who can stop you",
+        "body": "Assess and engage key stakeholders early."
+      },
+      "cultHarm": {
+        "headline": "Recognize cultural factors",
+        "body": "Adapt communication so constraints surface."
+      },
+      "msgHarm": {
+        "headline": "Tailor and pre-empt",
+        "body": "Advance messages for each audience."
+      },
+      "target": {
+        "headline": "Good: stakeholders with the project",
+        "body": "Identified, culturally aware and tailored engagement."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Managing stakeholders starts with identifying and assessing them by interest and influence, including those who can stop the work. Cultural factors shape communication, so ask for constraints in ways that let them surface. Audience-tailored messages before the work builds buy-in and prevents issues."
+  }
+}

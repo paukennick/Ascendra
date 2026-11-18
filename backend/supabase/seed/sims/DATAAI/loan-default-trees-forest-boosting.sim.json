@@ -1,0 +1,1073 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "loan-default-trees-forest-boosting",
+  "title": "A loan-default model built on trees: an overfit tree, boosting that keeps going, and an importance chart that misleads",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "loan_default_model",
+      "flags": [
+        {
+          "id": "fVariance",
+          "label": "Overfit decision tree",
+          "text": "{variance == \"forest\" ? \"Random forest, cross-validated\" : variance == \"prune\" ? \"Pruned single tree\" : variance == \"tuneTest\" ? \"Tuned on the test set\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fBoost",
+          "label": "Boosting rounds",
+          "text": "{boost == \"earlyStop\" ? \"Early stopping on validation loss\" : boost == \"fixed300\" ? \"Fixed from one plot\" : boost == \"allTrees\" ? \"Trained to the training loss\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "info"
+        },
+        {
+          "id": "fImportance",
+          "label": "Feature importance",
+          "text": "{importance == \"permutation\" ? \"Permutation importance on held-out data\" : importance == \"dropIds\" ? \"Impurity importance kept\" : importance == \"reportId\" ? \"An ID reported as a driver\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iTree",
+          "label": "Read the single decision tree's results",
+          "text": "Unlimited depth: 99% training accuracy, 71% validation accuracy.",
+          "when": "not isNull(treeAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iFeats",
+          "label": "Read the feature list and importances",
+          "text": "Impurity-based importance ranks customer_id first and branch_id second.",
+          "when": "not isNull(featsAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "Checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rVariance",
+              "cells": [
+                "Model choice",
+                "{variance == \"forest\" ? \"Random forest, cross-validated\" : variance == \"prune\" ? \"Pruned single tree\" : variance == \"tuneTest\" ? \"Tuned on the test set\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "variance == \"tuneTest\""
+            },
+            {
+              "id": "rBoost",
+              "cells": [
+                "Training control",
+                "{boost == \"earlyStop\" ? \"Early stopping on validation loss\" : boost == \"fixed300\" ? \"Fixed from one plot\" : boost == \"allTrees\" ? \"Trained to the training loss\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "boost == \"allTrees\""
+            },
+            {
+              "id": "rImportance",
+              "cells": [
+                "Explanation",
+                "{importance == \"permutation\" ? \"Permutation importance on held-out data\" : importance == \"dropIds\" ? \"Impurity importance kept\" : importance == \"reportId\" ? \"An ID reported as a driver\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "importance == \"reportId\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Tree-based supervised machine-learning concepts: decision trees, random forest, boosting (XGBoost), and bootstrap aggregation",
+  "secondaryObjectives": [
+    "Foundational machine-learning concepts: loss functions, the bias-variance tradeoff, class-imbalance mitigations (SMOTE, oversampling), regularization, cross-validation, ensemble models, and model drift"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "scikit-learn 1.7 user guide, 1.11 Ensembles",
+      "checkedAt": "2026-11-17",
+      "url": "https://scikit-learn.org/1.7/modules/ensemble.html",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: single decision trees have high variance and tend to overfit, and random forests reduce variance by averaging diverse trees; bootstrap samples allow out-of-bag estimates (oob_score); gradient boosting can stop early on validation loss (early_stopping, validation_fraction, n_iter_no_change); impurity-based feature importances come from training data and favor high-cardinality features, and permutation importance does not have these flaws."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data scientist building a loan-default model for Fairmont Credit Union, a fictional lender. The business owner wants a model and the top three drivers by Friday.",
+    "handover": [
+      "120,000 past loans with 40 features, including customer_id and branch_id.",
+      "A held-out test set is reserved for the final check."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-14T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "lead": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "biz": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "variance": {
+      "type": "enum",
+      "values": [
+        "none",
+        "forest",
+        "prune",
+        "tuneTest"
+      ],
+      "init": "none"
+    },
+    "varianceAt": {
+      "type": "time",
+      "init": null
+    },
+    "boost": {
+      "type": "enum",
+      "values": [
+        "none",
+        "earlyStop",
+        "fixed300",
+        "allTrees"
+      ],
+      "init": "none"
+    },
+    "boostAt": {
+      "type": "time",
+      "init": null
+    },
+    "importance": {
+      "type": "enum",
+      "values": [
+        "none",
+        "permutation",
+        "dropIds",
+        "reportId"
+      ],
+      "init": "none"
+    },
+    "importanceAt": {
+      "type": "time",
+      "init": null
+    },
+    "treeAt": {
+      "type": "time",
+      "init": null
+    },
+    "featsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(lead, biz), team)"
+    },
+    "missCount": {
+      "expr": "((variance == \"tuneTest\") ? 1 : 0) + ((boost == \"allTrees\") ? 1 : 0) + ((importance == \"reportId\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(variance == \"none\" or (variance == \"tuneTest\") ? 1 : 0) + (boost == \"none\" or (boost == \"allTrees\") ? 1 : 0) + (importance == \"none\" or (importance == \"reportId\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Model steps",
+      "clock": "turns",
+      "actions": [
+        "tree",
+        "feats"
+      ]
+    },
+    "close": {
+      "label": "Model record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "tree": {
+      "label": "Read the single decision tree's results",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(treeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "treeAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the single decision tree's results.",
+          "kind": "act"
+        },
+        {
+          "finding": "Unlimited depth: 99% training accuracy, 71% validation accuracy."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "feats": {
+      "label": "Read the feature list and importances",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(featsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "featsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the feature list and importances.",
+          "kind": "act"
+        },
+        {
+          "finding": "Impurity-based importance ranks customer_id first and branch_id second."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A cross-validated random forest, boosting stopped early on validation loss, and drivers from held-out permutation importance"
+                },
+                {
+                  "value": "summary",
+                  "label": "Model reviewed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "variance == \"tuneTest\"",
+              "then": [
+                {
+                  "log": "Step 2: in production the model scores 74%; the 86% was tuned to the test set.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "boost == \"allTrees\"",
+              "then": [
+                {
+                  "log": "Step 3: the 5,000-tree model approves risky loans it memorized as safe; validation default rate rises.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "importance == \"reportId\"",
+              "then": [
+                {
+                  "log": "Step 4: the business owner asks branches to 'watch certain customer numbers'; the regulator questions the model.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The model review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_variance",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: the tree.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "variancePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_boost",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: gradient boosting.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "boostPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_importance",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: the top three drivers.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "importancePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "variancePrompt": {
+      "title": "99% training, 71% validation",
+      "context": "The tree memorizes the training data.",
+      "choices": [
+        {
+          "id": "forest",
+          "label": "Train a random forest (bagged trees) and compare it by cross-validation, using out-of-bag estimates as a quick check; keep the test set untouched",
+          "effects": [
+            {
+              "set": "variance",
+              "to": "\"forest\""
+            },
+            {
+              "set": "varianceAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "1"
+            },
+            {
+              "log": "Cross-validated accuracy rises to 84%.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Deep trees have high variance; averaging many bootstrapped trees reduces it, and cross-validation measures it fairly."
+        },
+        {
+          "id": "prune",
+          "label": "Limit the tree's depth, tuned on the validation set",
+          "effects": [
+            {
+              "set": "variance",
+              "to": "\"prune\""
+            },
+            {
+              "set": "varianceAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "-1"
+            },
+            {
+              "log": "Validation accuracy reaches 78%.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Less overfit, but a single tree stays high-variance."
+        },
+        {
+          "id": "tuneTest",
+          "label": "Tune the depth until the test set score is best, and report that score",
+          "effects": [
+            {
+              "set": "variance",
+              "to": "\"tuneTest\""
+            },
+            {
+              "set": "varianceAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "-2"
+            },
+            {
+              "log": "The test score is reported as 86%.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The test set stops being a fair check; 86% is optimistic."
+        }
+      ]
+    },
+    "boostPrompt": {
+      "title": "Validation loss rises after 300 trees",
+      "context": "Training loss keeps falling to 5,000 trees.",
+      "choices": [
+        {
+          "id": "earlyStop",
+          "label": "Turn on early stopping on a validation fraction so boosting stops when validation loss stops improving",
+          "effects": [
+            {
+              "set": "boost",
+              "to": "\"earlyStop\""
+            },
+            {
+              "set": "boostAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Boosting stops at about 300 trees.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Boosting keeps fitting the training data; early stopping on validation loss stops before it overfits."
+        },
+        {
+          "id": "fixed300",
+          "label": "Set 300 trees by hand from today's plot",
+          "effects": [
+            {
+              "set": "boost",
+              "to": "\"fixed300\""
+            },
+            {
+              "set": "boostAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "300 trees are set.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right today; wrong when the data changes."
+        },
+        {
+          "id": "allTrees",
+          "label": "Use 5,000 trees because training loss is lowest",
+          "effects": [
+            {
+              "set": "boost",
+              "to": "\"allTrees\""
+            },
+            {
+              "set": "boostAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "5,000 trees are used.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Lowest training loss is overfitting; validation loss is already rising."
+        }
+      ]
+    },
+    "importancePrompt": {
+      "title": "customer_id as the top driver",
+      "context": "Impurity importance puts customer_id first.",
+      "choices": [
+        {
+          "id": "permutation",
+          "label": "Drop customer_id and branch_id as identifiers, and report drivers by permutation importance on held-out data",
+          "effects": [
+            {
+              "set": "importance",
+              "to": "\"permutation\""
+            },
+            {
+              "set": "importanceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "1"
+            },
+            {
+              "log": "Debt-to-income, missed payments and loan term lead.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Impurity importance comes from training data and favors high-cardinality features such as IDs; permutation importance on held-out data does not."
+        },
+        {
+          "id": "dropIds",
+          "label": "Drop the identifiers but keep impurity importance",
+          "effects": [
+            {
+              "set": "importance",
+              "to": "\"dropIds\""
+            },
+            {
+              "set": "importanceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-1"
+            },
+            {
+              "log": "Identifiers are dropped.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better, but still training-based and biased toward many-valued features."
+        },
+        {
+          "id": "reportId",
+          "label": "Report customer_id as the top driver of default",
+          "effects": [
+            {
+              "set": "importance",
+              "to": "\"reportId\""
+            },
+            {
+              "set": "importanceAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-2"
+            },
+            {
+              "log": "The chart goes to the business owner.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An identifier is not a cause; the business acts on noise."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the model record for the business owner and the model risk team.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Model",
+          "criteria": "Random forest, cross-validated; boosting with early stopping.",
+          "modelAnswer": "A single tree overfit (99% versus 71%). A random forest cross-validates at 84%; the boosted model stops at about 300 trees on validation loss."
+        },
+        {
+          "label": "Drivers",
+          "criteria": "Identifiers removed; held-out permutation importance.",
+          "modelAnswer": "customer_id ranked first only because impurity importance favors many-valued fields; on held-out data, debt-to-income, missed payments and loan term drive defaults."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (variance == \"prune\") and (boost == \"fixed300\") and (importance == \"dropIds\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "varianceHarm": {
+      "label": "An inflated score",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and variance == \"tuneTest\"",
+      "narrative": "Tuning on the test set promised 86% and delivered 74%."
+    },
+    "boostHarm": {
+      "label": "An overfit model",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and boost == \"allTrees\"",
+      "narrative": "Training loss chose 5,000 trees and the model overfit."
+    },
+    "importanceHarm": {
+      "label": "A meaningless driver acted on",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and importance == \"reportId\"",
+      "narrative": "Reporting an ID as a driver led to a regulatory question."
+    },
+    "target": {
+      "label": "A model that generalizes and explains honestly",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (variance == \"forest\") and (boost == \"earlyStop\") and (importance == \"permutation\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The model holds up on new loans, and the drivers are real."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "varianceHarm",
+    "boostHarm",
+    "importanceHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "varianceCrit",
+        "label": "Reduced variance with a bagged ensemble checked by cross-validation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "variance == \"forest\"",
+            "score": "met",
+            "why": "Variance reduced."
+          },
+          {
+            "when": "variance == \"prune\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Leaked."
+          }
+        ]
+      },
+      {
+        "id": "boostCrit",
+        "label": "Stopped boosting early on validation loss",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "boost == \"earlyStop\"",
+            "score": "met",
+            "why": "Stopped in time."
+          },
+          {
+            "when": "boost == \"fixed300\"",
+            "score": "partial",
+            "why": "Brittle."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overfit."
+          }
+        ]
+      },
+      {
+        "id": "importanceCrit",
+        "label": "Used held-out permutation importance and removed identifiers",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "importance == \"permutation\"",
+            "score": "met",
+            "why": "Real drivers."
+          },
+          {
+            "when": "importance == \"dropIds\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Misleading."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(treeAt) and not isNull(featsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(treeAt) or not isNull(featsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the model results and the feature list first."
+      },
+      {
+        "at": "Step 1",
+        "text": "Use a random forest and cross-validate."
+      },
+      {
+        "at": "Step 2",
+        "text": "Stop early on validation loss."
+      },
+      {
+        "at": "Step 3",
+        "text": "Drop IDs and use held-out permutation importance."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "varianceHarm": {
+        "headline": "Keep the test set clean",
+        "body": "Tune by cross-validation."
+      },
+      "boostHarm": {
+        "headline": "Watch validation loss",
+        "body": "Stop boosting early."
+      },
+      "importanceHarm": {
+        "headline": "Explain with held-out importance",
+        "body": "Drop IDs; use permutation importance."
+      },
+      "target": {
+        "headline": "Good: a model that generalizes and explains honestly",
+        "body": "Ensembles, early stopping and honest importance."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Decision trees overfit; bagging into a random forest reduces variance, measured by cross-validation with the test set kept clean. Boosting keeps fitting the training data, so stop early on validation loss. Impurity importance favors high-cardinality fields such as IDs; drop identifiers and use permutation importance on held-out data."
+  }
+}

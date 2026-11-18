@@ -1,0 +1,1017 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "platform-deploys-failing-webhook-quota",
+  "title": "Every tenant's deploys failing: an admission webhook down, nodes that won't scale, and proving the fix",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "oncall@ravensworth:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "alertmanager: ArgoAppSyncFailing (20 apps); PodsPendingHigh (143 Pods)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineAdm",
+          "text": "{adm == \"fixValues\" ? \"Values fixed; admission healthy\" : adm == \"manualEdit\" ? \"Fixed live; Git still wrong\" : adm == \"deleteWebhook\" ? \"Webhook deleted; no policy enforced\" : \"\"}",
+          "when": "adm != \"none\"",
+          "at": "timeAt(admAt)",
+          "error": "adm == \"deleteWebhook\""
+        },
+        {
+          "id": "lineCap",
+          "text": "{cap == \"quotaPriority\" ? \"Quota requested; critical work prioritized\" : cap == \"waitQuota\" ? \"Waiting for the quota\" : cap == \"deleteTenants\" ? \"Other tenants' workloads deleted\" : \"\"}",
+          "when": "cap != \"none\"",
+          "at": "timeAt(capAt)",
+          "error": "cap == \"deleteTenants\""
+        },
+        {
+          "id": "lineVerify",
+          "text": "{verify == \"evidence\" ? \"Verified on SLOs; alerts added\" : verify == \"closeOnSync\" ? \"Closed on one sync\" : verify == \"claimDone\" ? \"Closed without checking\" : \"\"}",
+          "when": "verify != \"none\"",
+          "at": "timeAt(verifyAt)",
+          "error": "verify == \"claimDone\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nAdm",
+          "label": "Kyverno admission controller",
+          "spokenLabel": "Kyverno admission controller",
+          "kind": "admission",
+          "status": "{adm == \"fixValues\" ? \"Values fixed; admission healthy\" : adm == \"manualEdit\" ? \"Fixed live; Git still wrong\" : adm == \"deleteWebhook\" ? \"Webhook deleted; no policy enforced\" : \"Waiting\"}",
+          "tone": "adm == \"fixValues\" ? \"up\" : adm == \"manualEdit\" ? \"degraded\" : adm == \"deleteWebhook\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nCap",
+          "label": "cluster autoscaler node group",
+          "spokenLabel": "cluster autoscaler node group",
+          "kind": "node group",
+          "status": "{cap == \"quotaPriority\" ? \"Quota requested; critical work prioritized\" : cap == \"waitQuota\" ? \"Waiting for the quota\" : cap == \"deleteTenants\" ? \"Other tenants' workloads deleted\" : \"Waiting\"}",
+          "tone": "cap == \"quotaPriority\" ? \"up\" : cap == \"waitQuota\" ? \"degraded\" : cap == \"deleteTenants\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nVerify",
+          "label": "platform SLO dashboard",
+          "spokenLabel": "platform SLO dashboard",
+          "kind": "evidence",
+          "status": "{verify == \"evidence\" ? \"Verified on SLOs; alerts added\" : verify == \"closeOnSync\" ? \"Closed on one sync\" : verify == \"claimDone\" ? \"Closed without checking\" : \"Waiting\"}",
+          "tone": "verify == \"evidence\" ? \"up\" : verify == \"closeOnSync\" ? \"degraded\" : verify == \"claimDone\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nAdm",
+          "to": "nCap",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nCap",
+          "to": "nVerify",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Diagnose and remediate platform issues and incident scenarios: from alert to cause across cluster, delivery and tenant layers, and the fix with verification",
+  "secondaryObjectives": [
+    "Implement monitoring, alerting, logging and tracing solutions: Prometheus and Alertmanager rules, Grafana dashboards, log collection, and OpenTelemetry with Jaeger",
+    "Measure and improve platform efficiency using deployment metrics and performance indicators: DORA metrics from pipeline and GitOps data, SLOs and cost"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF, Certified Cloud Native Platform Engineer (CNPE) certification page",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.cncf.io/training/certification/cnpe/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%. The objective wording is the course seed's."
+    },
+    {
+      "cite": "Kyverno documentation, Troubleshooting (release 1.15)",
+      "checkedAt": "2026-11-17",
+      "url": "https://release-1-15-0.kyverno.io/docs/troubleshooting/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: when Kyverno Pods are not running, fail-closed policies on Pods make the API server time out on webhook calls; the documented recovery is to delete the webhook configurations and restart Kyverno, and the prevention is three admission replicas with system namespaces excluded (this case fixes the cause through Git instead of deleting the webhook)."
+    },
+    {
+      "cite": "Kubernetes documentation, Pod Priority and Preemption",
+      "checkedAt": "2026-11-17",
+      "url": "https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: if a Pod cannot be scheduled, the scheduler tries to preempt lower-priority Pods so the higher-priority Pod can run."
+    },
+    {
+      "cite": "Google SRE Book, chapter 15: Postmortem Culture: Learning from Failure",
+      "checkedAt": "2026-11-17",
+      "url": "https://sre.google/sre-book/postmortem-culture/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a blameless postmortem identifies contributing causes without indicting any individual or team."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the platform, the tenants and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the platform engineer on call at Ravensworth Health, a fictional health network. Since 08:40, Argo CD shows every tenant application failing to sync, and new Pods across the cluster are stuck Pending. Twenty teams are blocked from deploying a regulatory fix due today.",
+    "handover": [
+      "Platform stack: Argo CD, Kyverno as the admission policy engine, a cluster autoscaler on a cloud node group.",
+      "Last night the security team changed Kyverno's Helm values."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-12T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "adm": {
+      "type": "enum",
+      "values": [
+        "none",
+        "fixValues",
+        "manualEdit",
+        "deleteWebhook"
+      ],
+      "init": "none"
+    },
+    "admAt": {
+      "type": "time",
+      "init": null
+    },
+    "cap": {
+      "type": "enum",
+      "values": [
+        "none",
+        "quotaPriority",
+        "waitQuota",
+        "deleteTenants"
+      ],
+      "init": "none"
+    },
+    "capAt": {
+      "type": "time",
+      "init": null
+    },
+    "verify": {
+      "type": "enum",
+      "values": [
+        "none",
+        "evidence",
+        "closeOnSync",
+        "claimDone"
+      ],
+      "init": "none"
+    },
+    "verifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "syncAt": {
+      "type": "time",
+      "init": null
+    },
+    "nodesAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((adm == \"deleteWebhook\") ? 1 : 0) + ((cap == \"deleteTenants\") ? 1 : 0) + ((verify == \"claimDone\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(adm == \"none\" or (adm == \"deleteWebhook\") ? 1 : 0) + (cap == \"none\" or (cap == \"deleteTenants\") ? 1 : 0) + (verify == \"none\" or (verify == \"claimDone\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The incident",
+      "clock": "turns",
+      "actions": [
+        "sync",
+        "nodes"
+      ]
+    },
+    "close": {
+      "label": "Incident record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "sync": {
+      "label": "argocd app get claims-api | tail -3; kubectl get events -A | grep -i webhook | tail -2",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(syncAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "syncAt",
+          "to": "t"
+        },
+        {
+          "output": "SyncError: admission webhook \"validate.kyverno.svc\" denied the request: context deadline exceeded\nkyverno-admission-controller: 0/1 ready (CrashLoopBackOff: invalid flag --webhookTimeout)"
+        },
+        {
+          "log": "You trace the sync failure.",
+          "kind": "act"
+        },
+        {
+          "finding": "The delivery layer is fine: every sync fails at admission because Kyverno's admission controller crash-loops on a flag typo from last night's values change."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "nodes": {
+      "label": "kubectl -n kube-system logs deploy/cluster-autoscaler | grep -i failed | tail -2",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(nodesAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "nodesAt",
+          "to": "t"
+        },
+        {
+          "output": "Failed to increase node group size: quota exceeded for instance family in region (limit 64, in use 64)"
+        },
+        {
+          "log": "You read the autoscaler's log.",
+          "kind": "act"
+        },
+        {
+          "finding": "The Pending Pods are a second, separate cause: the autoscaler wants more nodes but the cloud account's instance quota is used up."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the incident record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Two causes across layers (an admission flag typo, a cloud quota), each fix in Git or with priority classes, and verification on the SLO dashboard with new alerts"
+                },
+                {
+                  "value": "summary",
+                  "label": "Platform restored"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "adm == \"deleteWebhook\"",
+              "then": [
+                {
+                  "log": "Check-in 2: with no admission policy, a tenant's privileged debug Pod and an image from an unapproved registry are admitted.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "cap == \"deleteTenants\"",
+              "then": [
+                {
+                  "log": "Check-in 3: three tenant services are down; their teams find out from their customers.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "verify == \"claimDone\"",
+              "then": [
+                {
+                  "log": "Check-in 4: two teams deploy the regulatory fix into Pending; it misses the regulator's deadline.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The incident window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_adm",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: every deploy is blocked.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "admPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cap",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: 143 Pods still Pending.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "capPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_verify",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: syncs pass and Pods schedule.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "verifyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "admPrompt": {
+      "title": "Admission is down",
+      "context": "The admission controller crash-loops on the flag typo in last night's Helm values.",
+      "choices": [
+        {
+          "id": "fixValues",
+          "label": "Revert the flag typo in the Helm values through Git, let the admission controller roll out, and confirm the webhook answers and a test sync passes",
+          "effects": [
+            {
+              "set": "adm",
+              "to": "\"fixValues\""
+            },
+            {
+              "set": "admAt",
+              "to": "t"
+            },
+            {
+              "log": "Kyverno is healthy; syncs pass admission.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The cause is a configuration change; reverting it in desired state restores admission with policy still enforced."
+        },
+        {
+          "id": "manualEdit",
+          "label": "Edit the live Deployment's args to remove the flag",
+          "effects": [
+            {
+              "set": "adm",
+              "to": "\"manualEdit\""
+            },
+            {
+              "set": "admAt",
+              "to": "t"
+            },
+            {
+              "log": "The live Deployment is edited.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Admission recovers, but the next sync of the platform repository puts the typo back."
+        },
+        {
+          "id": "deleteWebhook",
+          "label": "Delete Kyverno's ValidatingWebhookConfiguration so deploys go through",
+          "effects": [
+            {
+              "set": "adm",
+              "to": "\"deleteWebhook\""
+            },
+            {
+              "set": "admAt",
+              "to": "t"
+            },
+            {
+              "log": "The webhook configuration is deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Deploys flow with no policy at all: every tenant's next Pod is admitted unchecked."
+        }
+      ]
+    },
+    "capPrompt": {
+      "title": "The cloud quota is used up",
+      "context": "The autoscaler can't add nodes; the regulatory fix's Pods are among the Pending ones.",
+      "choices": [
+        {
+          "id": "quotaPriority",
+          "label": "Request a quota increase from the cloud provider, and meanwhile give the regulatory fix's workloads a higher priority class so they preempt batch Pods",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"quotaPriority\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "log": "The fix schedules now; capacity follows when the quota rises.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Fix the capacity cause, and use priority classes to decide who runs while capacity is short."
+        },
+        {
+          "id": "waitQuota",
+          "label": "Request the quota increase and wait",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"waitQuota\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "log": "The quota request is filed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Capacity will come, but the regulatory fix waits behind batch jobs until it does."
+        },
+        {
+          "id": "deleteTenants",
+          "label": "Delete other tenants' Deployments to free nodes",
+          "effects": [
+            {
+              "set": "cap",
+              "to": "\"deleteTenants\""
+            },
+            {
+              "set": "capAt",
+              "to": "t"
+            },
+            {
+              "log": "Other tenants' Deployments are deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Deleting tenants' workloads breaks their services and their trust, outside your authority."
+        }
+      ]
+    },
+    "verifyPrompt": {
+      "title": "Is it fixed?",
+      "context": "The SLO dashboard tracks sync success and deploy lead time; the 20 teams want to know.",
+      "choices": [
+        {
+          "id": "evidence",
+          "label": "Confirm sync success and Pending Pods back to normal on the SLO dashboard, all 20 apps synced, add alerts on admission controller readiness and node-group quota headroom, then close",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"evidence\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "Verified and alerted; the incident is closed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Close an incident on evidence from the platform's indicators, and alert on the causes found."
+        },
+        {
+          "id": "closeOnSync",
+          "label": "Close when the first app syncs",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"closeOnSync\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The incident is closed early.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "One sync is not all twenty, and nothing will warn you next time."
+        },
+        {
+          "id": "claimDone",
+          "label": "Tell the teams it's fixed without checking the Pending Pods",
+          "effects": [
+            {
+              "set": "verify",
+              "to": "\"claimDone\""
+            },
+            {
+              "set": "verifyAt",
+              "to": "t"
+            },
+            {
+              "log": "The teams are told it is fixed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Pods are still Pending until the quota increase lands; teams deploy into a cluster that can't run them."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the incident record: the two causes, how you traced them across layers, and how you verified the fix.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Causes",
+          "criteria": "Syncs failed at admission (Kyverno crash-looping on a values typo); Pods Pending on an exhausted cloud quota.",
+          "modelAnswer": "Argo CD syncs failed at admission because Kyverno crash-looped on last night's flag typo; separately the autoscaler hit the instance quota."
+        },
+        {
+          "label": "Fix and proof",
+          "criteria": "Values reverted in Git; quota requested and priorities set; SLO dashboard checked and alerts added.",
+          "modelAnswer": "We reverted the typo in Git, requested the quota and prioritized the regulatory fix, then checked sync success and Pending Pods on the SLO dashboard before closing."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (adm == \"manualEdit\") and (cap == \"waitQuota\") and (verify == \"closeOnSync\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF, Certified Cloud Native Platform Engineer (CNPE) certification page",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.cncf.io/training/certification/cnpe/",
+        "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the certification body's page, found by WebSearch. Confirms the exam domains and weights: Platform Architecture and Infrastructure 15%, GitOps and Continuous Delivery 25%, Platform APIs and Self-Service Capabilities 25%, Observability and Operations 20%, Security and Policy Enforcement 15%. The objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "admHarm": {
+      "label": "Policy enforcement removed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and adm == \"deleteWebhook\"",
+      "narrative": "Deleting the webhook configuration admitted a privileged debug Pod and an unapproved image."
+    },
+    "capHarm": {
+      "label": "Tenants' services deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cap == \"deleteTenants\"",
+      "narrative": "Deleting other tenants' Deployments took three services down; their teams heard from customers."
+    },
+    "verifyHarm": {
+      "label": "A deadline missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and verify == \"claimDone\"",
+      "narrative": "Teams deployed into a cluster that still couldn't schedule them; the regulatory fix missed its deadline."
+    },
+    "target": {
+      "label": "Diagnosed across layers, fixed and verified",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (adm == \"fixValues\") and (cap == \"quotaPriority\") and (verify == \"evidence\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Deploys and scheduling recovered, the regulatory fix shipped on time, and both causes now alert."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "admHarm",
+    "capHarm",
+    "verifyHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "admCrit",
+        "label": "Fixed the admission controller's configuration and kept policy enforced",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "adm == \"fixValues\"",
+            "score": "met",
+            "why": "Fixed at the cause."
+          },
+          {
+            "when": "adm == \"manualEdit\"",
+            "score": "partial",
+            "why": "Fixed live only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed enforcement."
+          }
+        ]
+      },
+      {
+        "id": "capCrit",
+        "label": "Restored capacity and protected the critical workloads meanwhile",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cap == \"quotaPriority\"",
+            "score": "met",
+            "why": "Cause and priority handled."
+          },
+          {
+            "when": "cap == \"waitQuota\"",
+            "score": "partial",
+            "why": "Slow for the critical work."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Took others' capacity by force."
+          }
+        ]
+      },
+      {
+        "id": "verifyCrit",
+        "label": "Verified the fix against the platform's indicators before closing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "verify == \"evidence\"",
+            "score": "met",
+            "why": "Verified and prevented."
+          },
+          {
+            "when": "verify == \"closeOnSync\"",
+            "score": "partial",
+            "why": "Closed early."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Closed on a claim."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(syncAt) and not isNull(nodesAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(syncAt) or not isNull(nodesAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Trace the failure from the delivery layer down to admission and the nodes before changing anything."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Revert the bad Helm value through Git and verify admission and a test sync."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Request the quota increase and prioritize the critical workloads meanwhile."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Verify on the SLO dashboard, add alerts for both causes, then close."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "admHarm": {
+        "headline": "Fix the policy engine, don't bypass it",
+        "body": "Restore admission by fixing its configuration in Git; never remove the webhook."
+      },
+      "capHarm": {
+        "headline": "Priorities, not deletions",
+        "body": "Priority classes decide who runs when capacity is short; tenants' workloads are not yours to delete."
+      },
+      "verifyHarm": {
+        "headline": "Verify before closing",
+        "body": "Check the platform's indicators end to end before saying it is fixed."
+      },
+      "target": {
+        "headline": "Good: diagnosed across layers, fixed and verified",
+        "body": "Traced from delivery to admission and capacity, fixed in desired state, verified on SLOs."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A platform incident is traced layer by layer: the delivery tool's error points to admission; the admission controller's events point to a configuration change; Pending Pods point to capacity and the autoscaler's log to a cloud quota. Fix each cause where it lives (the Helm values in Git, the quota with the provider) and use priority classes while capacity is short. Never bypass admission or delete tenants' workloads. Close on evidence from the platform's indicators, and alert on what you found."
+  }
+}

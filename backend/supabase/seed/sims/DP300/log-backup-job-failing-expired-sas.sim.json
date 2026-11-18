@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "log-backup-job-failing-expired-sas",
+  "title": "Disk alert: the transaction log is filling because the log backup job has failed for two days",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@sqlvm01:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:30 disk alert sqlvm01 L: 94% (billing_log.ldf 470 GB); growing about 1% per 8 minutes",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:15: log full, billing writes fail",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:15: log drive 41%",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "db",
+          "label": "billing (FULL recovery)",
+          "spokenLabel": "the billing database",
+          "kind": "log on L:",
+          "status": "{harmed ? \"SIMPLE recovery, log chain broken\" : fixed ? \"log reusable\" : \"log_reuse_wait LOG_BACKUP\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "job",
+          "label": "Agent job billing-log-backup",
+          "spokenLabel": "the log backup job",
+          "kind": "every 15 min",
+          "status": "{fixed and not harmed ? \"succeeding\" : \"failing since Saturday 02:15\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "blob",
+          "label": "Container backups (sqlbkp)",
+          "spokenLabel": "the backup container",
+          "kind": "SAS credential",
+          "status": "{fixed and not harmed ? \"new SAS\" : \"SAS expired Saturday\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "job",
+          "to": "blob",
+          "label": "BACKUP LOG TO URL",
+          "status": "{fixed and not harmed ? \"writing\" : \"error 3201\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting SQL Server Agent jobs",
+  "secondaryObjectives": [
+    "Configuring job alerts and notifications",
+    "Backing up to and restoring from cloud storage"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, SQL Server back up to URL for Microsoft Azure Blob Storage: best practices and troubleshooting",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/da-dk/sql/relational-databases/backup-restore/sql-server-backup-to-url-best-practices-and-troubleshooting?view=sql-server-2017",
+      "note": "Read through a summarizing fetch on 2026-11-17 (English text). Relevant text: SQL Server 2016 and later match a SAS credential named after the container URL (IDENTITY = 'SHARED ACCESS SIGNATURE'); error 3201 'Cannot open backup device ... Operating system error 50(The request is not supported.)', one cause 'The policy assigned to the SAS token expired'; fix: create a new SAS token (from a new policy) and re-create or alter the credential; remove a leading '?'. The SQL Server page 'View or change the recovery model of a database' (read 2026-11-18): after switching to simple, 'Discontinue any scheduled jobs for backing up the transaction log'; after switching back to full, 'take a full or differential database backup to start the log chain' because the switch 'takes effect only after the first data backup'. The SQL Agent alert and operator commands in the case are authored renderings."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator at Haldane Freight. SQL Server 2022 on an Azure VM (sqlvm01) hosts the billing database in FULL recovery. An Agent job backs up its log to Azure Blob Storage every 15 minutes. Today a disk alert fired: the log drive L: is 94% full and growing about 1% every 8 minutes. If the log fills, billing stops accepting writes.",
+    "handover": [
+      "The storage team rotated SAS policies on the backup container on Saturday.",
+      "The job has no operator notification; nobody was told it failed."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the billing database's log, the Agent job that backs it up and the storage container it writes to.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:30",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "At the current growth the log drive fills in about 45 minutes."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "reuseAt": {
+      "type": "time",
+      "init": null
+    },
+    "histAt": {
+      "type": "time",
+      "init": null
+    },
+    "credAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sas",
+        "disk",
+        "agent"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "reuse",
+        "hist",
+        "cred",
+        "notify",
+        "newsas",
+        "alert",
+        "simple",
+        "agent",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "reuse": {
+      "label": "SELECT name, recovery_model_desc, log_reuse_wait_desc FROM sys.databases WHERE name = 'billing'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(reuseAt)",
+          "then": [
+            {
+              "set": "reuseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"SELECT name, recovery_model_desc, log_reuse_wait_desc FROM sys.databases WHERE name='billing'\"\n{harmed ? \"billing  SIMPLE  NOTHING\" : fixed ? \"billing  FULL  NOTHING\" : \"billing  FULL  LOG_BACKUP\"}"
+        },
+        {
+          "finding": "The log cannot be reused because it is waiting for a log backup."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "hist": {
+      "label": "Agent job history: billing-log-backup (last 3 runs)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(histAt)",
+          "then": [
+            {
+              "set": "histAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"EXEC msdb.dbo.sp_help_jobhistory @job_name='billing-log-backup', @mode='FULL'\" | head -4\n{fixed and not harmed ? \"2026-11-17 13:4x  Succeeded\" : \"2026-11-17 13:15  Failed  Msg 3201: Cannot open backup device 'https://sqlbkp.blob.core.windows.net/backups/billing_20261117_1315.trn'. Operating system error 50(The request is not supported.)\n2026-11-17 13:00  Failed  (same)\n... failing since 2026-11-15 02:15\"}"
+        },
+        {
+          "finding": "Every run since Saturday 02:15 fails to open the backup URL."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cred": {
+      "label": "sys.credentials and the container's SAS policies",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(credAt)",
+          "then": [
+            {
+              "set": "credAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"SELECT name, modify_date FROM sys.credentials\"\nhttps://sqlbkp.blob.core.windows.net/backups  2026-08-01\ndba@sqlvm01:~$ az storage container policy list --account-name sqlbkp -c backups -o table\nsql-backup-2026q4  rwl  expiry 2027-02-15   (created Saturday)\n(policy sql-backup-2026q3 removed Saturday)"
+        },
+        {
+          "finding": "The credential still holds a SAS from a policy the storage team removed on Saturday."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "notify": {
+      "label": "msdb: does the job notify anyone?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(notifyAt)",
+          "then": [
+            {
+              "set": "notifyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"SELECT notify_level_email, notify_email_operator_id FROM msdb.dbo.sysjobs WHERE name='billing-log-backup'\"\n0  0"
+        },
+        {
+          "finding": "The job notifies nobody on failure: two days passed unseen."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "newsas": {
+      "label": "Re-create the URL credential with a SAS from the new policy, then run the log backup job now",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"ALTER CREDENTIAL [https://sqlbkp.blob.core.windows.net/backups] WITH IDENTITY = 'SHARED ACCESS SIGNATURE', SECRET = '<new SAS from sql-backup-2026q4, no leading ?>'\"\ndba@sqlvm01:~$ sqlcmd -Q \"EXEC msdb.dbo.sp_start_job 'billing-log-backup'\"\nJob 'billing-log-backup' started successfully."
+        },
+        {
+          "log": "The job can write again; the first backup carries two days of log, after which the log is reused and stops growing. The chain is unbroken, so point-in-time restore still covers the whole period.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "alert": {
+      "label": "Add an operator notification on failure for every backup job, and a SQL Agent alert on error 3201",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"EXEC msdb.dbo.sp_update_job @job_name='billing-log-backup', @notify_level_email=2, @notify_email_operator_name='DBA-oncall'\" (and the other 6 backup jobs)\ndba@sqlvm01:~$ sqlcmd -Q \"EXEC msdb.dbo.sp_add_alert @name='Backup device error 3201', @message_id=3201, @severity=0\"; sp_add_notification ... 'DBA-oncall'"
+        },
+        {
+          "log": "A failed backup now pages the on-call DBA the first time, not when a disk fills days later; the storage team is asked to announce SAS rotations to the DBAs.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "simple": {
+      "label": "ALTER DATABASE billing SET RECOVERY SIMPLE, then shrink the log",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dba@sqlvm01:~$ sqlcmd -Q \"ALTER DATABASE billing SET RECOVERY SIMPLE; DBCC SHRINKFILE (billing_log, 10240)\"\nDBCC execution completed."
+        },
+        {
+          "log": "The drive empties, and the log backup chain is broken: there is no point-in-time restore for billing until a new full backup, and the last two days are covered only by Saturday's full.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "agent": {
+      "label": "Restart the SQL Server Agent service",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dba@sqlvm01:~$ sudo systemctl restart mssql-server-agent  (Windows: Restart-Service SQLSERVERAGENT)\n(restarted)"
+        },
+        {
+          "log": "The next run fails the same way: the credential still holds the expired SAS.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check the job, the log reuse wait and the drive",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@sqlvm01:~$ sp_help_jobhistory (last run); sys.databases log_reuse_wait_desc; Get-PSDrive L\n{harmed ? \"(job not run: recovery model SIMPLE)\nlog_reuse_wait: NOTHING\nL: 12% used; last log backup Saturday 02:00\" : fixed ? \"Succeeded (backed up 2 days of log, 31 min)\nlog_reuse_wait: NOTHING\nL: 41% used\" : \"Failed: Msg 3201\nlog_reuse_wait: LOG_BACKUP\nL: 97% used\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "sas",
+                  "label": "The backup credential's SAS expired with Saturday's policy rotation, so log backups failed"
+                },
+                {
+                  "value": "disk",
+                  "label": "The log drive is too small"
+                },
+                {
+                  "value": "agent",
+                  "label": "SQL Server Agent was stopped"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "14:15: the log has been backed up and reused; the drive is at 41%.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "14:15: the log drive is full; billing stops accepting writes.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the log grew, how you fixed it without losing recoverability, and how the next failure gets noticed.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the full log to the failing job.",
+          "modelAnswer": "log_reuse_wait_desc was LOG_BACKUP: the log waited for a backup. The Agent job had failed every run since Saturday 02:15 with error 3201, because its URL credential held a SAS from a policy removed in Saturday's rotation."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Keeps the chain.",
+          "modelAnswer": "Altered the credential with a SAS from the new policy and ran the job; the log was backed up and reused. Switching to SIMPLE would have broken the log chain and point-in-time restore."
+        },
+        {
+          "label": "Noticed",
+          "criteria": "Makes failures loud.",
+          "modelAnswer": "Every backup job now emails the on-call operator on failure and an Agent alert fires on error 3201; the storage team will announce SAS rotations."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "At the current growth the log drive fills in about 45 minutes."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: Switching to SIMPLE broke the log backup chain."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the job still failing lets the log fill and stop billing.",
+      "source": {
+        "cite": "Microsoft Learn, SQL Server back up to URL for Microsoft Azure Blob Storage: best practices and troubleshooting",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/da-dk/sql/relational-databases/backup-restore/sql-server-backup-to-url-best-practices-and-troubleshooting?view=sql-server-2017",
+        "note": "Read through a summarizing fetch on 2026-11-17 (English text). Relevant text: SQL Server 2016 and later match a SAS credential named after the container URL (IDENTITY = 'SHARED ACCESS SIGNATURE'); error 3201 'Cannot open backup device ... Operating system error 50(The request is not supported.)', one cause 'The policy assigned to the SAS token expired'; fix: create a new SAS token (from a new policy) and re-create or alter the credential; remove a leading '?'. The SQL Server page 'View or change the recovery model of a database' (read 2026-11-18): after switching to simple, 'Discontinue any scheduled jobs for backing up the transaction log'; after switching back to full, 'take a full or differential database backup to start the log chain' because the switch 'takes effect only after the first data backup'. The SQL Agent alert and operator commands in the case are authored renderings."
+      }
+    }
+  },
+  "endings": {
+    "chainBroken": {
+      "label": "Log chain broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "SIMPLE recovery and a shrink freed the drive and ended point-in-time recovery for billing."
+    },
+    "logFull": {
+      "label": "Log full, billing stopped",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 14:15 the log drive filled and billing stopped accepting writes."
+    },
+    "chainKept": {
+      "label": "Backups running, chain kept, alerts on",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(reuseAt) and not isNull(histAt) and not isNull(verifiedAt) and causeDoc == \"sas\"",
+      "narrative": "The log backup ran, the log is reused, the chain is intact, and backup failures now page the DBA."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The log drive recovered, but the notifications, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "chainBroken",
+    "logFull",
+    "chainKept",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the log reuse wait and the job's failure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(reuseAt) and not isNull(histAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(reuseAt) or not isNull(histAt) or not isNull(credAt) or not isNull(notifyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Log reused before the drive filled, chain intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"Switching to SIMPLE broke the log backup chain.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Job notifications and an error alert added; drive checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"sas\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:30-13:34",
+        "text": "LOG_BACKUP; job failing since Saturday with 3201; credential from a removed policy; no notification."
+      },
+      {
+        "at": "13:34-13:42",
+        "text": "Alter the credential with the new SAS; run the job; notifications and a 3201 alert."
+      },
+      {
+        "at": "13:42-13:44",
+        "text": "Job succeeded; reuse wait NOTHING; L: 41%."
+      }
+    ],
+    "debrief": {
+      "chainBroken": {
+        "headline": "Free space bought with recoverability",
+        "body": "The log was full because it was waiting for a backup. Fix the backup (here, the expired SAS) and the log is reused; switching to SIMPLE throws away the ability to restore to a point in time."
+      },
+      "logFull": {
+        "headline": "LOG_BACKUP means a backup is missing",
+        "body": "log_reuse_wait_desc told you what the log waits for. The job's history told you why it was not happening: the backup URL's credential."
+      },
+      "chainKept": {
+        "headline": "Good: fixed the job, not the symptom",
+        "body": "You read why the log could not be reused and why the job failed, replaced the expired SAS, ran the job, checked the drive, and made failures visible the first time."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The log waits for a log backup, and the backup job has failed since Saturday with error 3201 because its credential holds a SAS from a policy the storage team removed. Re-create the credential with a SAS from the new policy and run the job now: the log is backed up, reused, and the chain stays intact. SIMPLE recovery frees space by destroying point-in-time recovery; restarting Agent changes nothing. Then make backup failures notify someone."
+  }
+}

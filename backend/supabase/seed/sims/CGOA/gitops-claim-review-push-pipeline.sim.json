@@ -1,0 +1,1100 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "gitops-claim-review-push-pipeline",
+  "title": "A delivery flow called GitOps: reviewing a push pipeline, hand edits and an unversioned config store against the four principles",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rPush",
+          "label": "CI pushes to production with a cluster-admin token",
+          "spokenLabel": "CI pushes to production with a cluster-admin token",
+          "owner": "\"Platform lead\"",
+          "rating": "push == \"pull\" ? \"low\" : push == \"scope\" ? \"medium\" : push == \"approve\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "push == \"pull\" ? \"within\" : push == \"scope\" ? \"within\" : push == \"approve\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{push == \"pull\" ? \"Condition: in-cluster agents pull; CI token retired\" : push == \"scope\" ? \"Push kept with a scoped token\" : push == \"approve\" ? \"Push model approved as GitOps\" : \"Open\"}"
+        },
+        {
+          "id": "rEdits",
+          "label": "Live resources hand-edited and drifting from Git",
+          "spokenLabel": "Live resources hand-edited and drifting from Git",
+          "owner": "\"Payments on-call lead\"",
+          "rating": "edits == \"reconcile\" ? \"low\" : edits == \"ticket\" ? \"medium\" : edits == \"noReconcile\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "edits == \"reconcile\" ? \"within\" : edits == \"ticket\" ? \"within\" : edits == \"noReconcile\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{edits == \"reconcile\" ? \"Condition: fixes via Git; drift reconciled\" : edits == \"ticket\" ? \"Edits with a ticket and backport\" : edits == \"noReconcile\" ? \"Production not reconciled\" : \"Open\"}"
+        },
+        {
+          "id": "rStore",
+          "label": "Settings in an unversioned key-value store",
+          "spokenLabel": "Settings in an unversioned key-value store",
+          "owner": "\"Payments product owner\"",
+          "rating": "store == \"git\" ? \"low\" : store == \"snapshot\" ? \"medium\" : store == \"keep\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "store == \"git\" ? \"within\" : store == \"snapshot\" ? \"within\" : store == \"keep\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{store == \"git\" ? \"Condition: settings versioned in Git\" : store == \"snapshot\" ? \"Nightly snapshot to Git\" : store == \"keep\" ? \"Store unchanged, no history\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sPlatform",
+          "label": "Platform lead",
+          "spokenLabel": "the platform lead's support",
+          "value": "platform",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSecurity",
+          "label": "Security lead",
+          "spokenLabel": "the security lead's support",
+          "value": "security",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeams",
+          "label": "Application teams",
+          "spokenLabel": "the application teams' support",
+          "value": "teams",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dPush",
+          "kind": "Principle: pulled automatically",
+          "label": "Week 1: the CI push model",
+          "status": "{push == \"pull\" ? \"Condition: in-cluster agents pull; CI token retired\" : push == \"scope\" ? \"Push kept with a scoped token\" : push == \"approve\" ? \"Push model approved as GitOps\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and push == \"none\""
+        },
+        {
+          "id": "dEdits",
+          "kind": "Principle: continuously reconciled",
+          "label": "Week 2: kubectl edit hot-fixes",
+          "status": "{edits == \"reconcile\" ? \"Condition: fixes via Git; drift reconciled\" : edits == \"ticket\" ? \"Edits with a ticket and backport\" : edits == \"noReconcile\" ? \"Production not reconciled\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and edits == \"none\""
+        },
+        {
+          "id": "dStore",
+          "kind": "Principle: versioned and immutable",
+          "label": "Week 3: the feature-settings store",
+          "status": "{store == \"git\" ? \"Condition: settings versioned in Git\" : store == \"snapshot\" ? \"Nightly snapshot to Git\" : store == \"keep\" ? \"Store unchanged, no history\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and store == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluate a design against the four principles and identify which are violated by common shortcuts (CI pushing to the cluster, hand-edited live resources, unversioned config stores)",
+  "secondaryObjectives": [
+    "Pulled automatically: software agents pull the desired state from the source rather than having changes pushed to them, and why pull matters for security and reliability",
+    "Versioned and immutable: desired state stored in a way that enforces immutability and versioning with full history, and what that enables (audit, rollback, review)",
+    "Continuously reconciled: agents continuously observe actual state and attempt to apply the desired state, and the implications for manual changes and drift"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://kube-dojo.github.io/k8s/cgoa",
+      "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenGitOps, GitOps Principles v1.0.0 (opengitops.dev)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opengitops.dev/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the four principles as worded in v1.0.0: Declarative (desired state expressed declaratively); Versioned and Immutable (stored in a way that enforces immutability, versioning and a complete version history); Pulled Automatically (software agents pull the desired state declarations from the source); Continuously Reconciled (agents continuously observe actual state and attempt to apply the desired state)."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the teams and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You chair the architecture review at Saltmarsh Bank, a fictional regional bank. The payments team calls its delivery flow GitOps and wants it approved as the bank's standard. You review it over three weekly design reviews.",
+    "handover": [
+      "The flow: manifests in Git; CI runs kubectl apply with a cluster-admin token; on-call engineers hot-fix with kubectl edit; feature settings live in a key-value store edited in its web UI.",
+      "The bank's review board can approve a standard, approve it with conditions, or send it back."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each design review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-01-11T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "platform": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "security": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "teams": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "push": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pull",
+        "scope",
+        "approve"
+      ],
+      "init": "none"
+    },
+    "pushAt": {
+      "type": "time",
+      "init": null
+    },
+    "edits": {
+      "type": "enum",
+      "values": [
+        "none",
+        "reconcile",
+        "ticket",
+        "noReconcile"
+      ],
+      "init": "none"
+    },
+    "editsAt": {
+      "type": "time",
+      "init": null
+    },
+    "store": {
+      "type": "enum",
+      "values": [
+        "none",
+        "git",
+        "snapshot",
+        "keep"
+      ],
+      "init": "none"
+    },
+    "storeAt": {
+      "type": "time",
+      "init": null
+    },
+    "pipelineAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(platform, security), teams)"
+    },
+    "missCount": {
+      "expr": "((push == \"approve\") ? 1 : 0) + ((edits == \"noReconcile\") ? 1 : 0) + ((store == \"keep\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(push == \"none\" or (push == \"approve\") ? 1 : 0) + (edits == \"none\" or (edits == \"noReconcile\") ? 1 : 0) + (store == \"none\" or (store == \"keep\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The design reviews",
+      "clock": "turns",
+      "actions": [
+        "pipeline",
+        "history"
+      ]
+    },
+    "close": {
+      "label": "Review decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pipeline": {
+      "label": "Read the CI pipeline and its credentials",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pipelineAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pipelineAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the pipeline definition.",
+          "kind": "act"
+        },
+        {
+          "finding": "CI holds a cluster-admin token for all three production clusters and pushes with kubectl apply; nothing in the clusters pulls or watches Git."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "history": {
+      "label": "Compare live state with Git and read the config store's history",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(historyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "historyAt",
+          "to": "t"
+        },
+        {
+          "log": "You compare live state with Git.",
+          "kind": "act"
+        },
+        {
+          "finding": "62 live resources differ from Git after kubectl edit hot-fixes; the key-value store keeps no history, so nobody can say who changed a fee setting last month."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the review decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Not GitOps as built: approved only with the three conditions (pull, reconciliation, versioned settings), each tied to the principle it fixes"
+                },
+                {
+                  "value": "summary",
+                  "label": "Approved as GitOps"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next design review",
+      "wait": {
+        "skipLabel": "Go to the next design review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "push == \"approve\"",
+              "then": [
+                {
+                  "log": "Week 2: a CI log leaks the cluster-admin token; for six hours it gives full control of every production cluster until it is revoked.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "edits == \"noReconcile\"",
+              "then": [
+                {
+                  "log": "Week 3: a full deploy re-applies Git; three unrecorded hot-fixes are overwritten and the payments API fails for 50 minutes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "store == \"keep\"",
+              "then": [
+                {
+                  "log": "Week 4: someone sets a transfer limit to 0 in the UI; with no history, nobody can find the old value, and transfers fail for half a day.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_push",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the review starts with delivery.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "pushPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_edits",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: on-call practice.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "editsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_store",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: configuration.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "storePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "pushPrompt": {
+      "title": "CI pushes with cluster-admin",
+      "context": "CI applies manifests with a cluster-admin token for every production cluster. No agent in the clusters pulls desired state.",
+      "choices": [
+        {
+          "id": "pull",
+          "label": "Require an in-cluster reconciler that pulls from Git; CI only builds, tests and updates Git; retire the cluster-admin token",
+          "effects": [
+            {
+              "set": "push",
+              "to": "\"pull\""
+            },
+            {
+              "set": "pushAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "1"
+            },
+            {
+              "log": "The condition is recorded: pull-based agents, no CI cluster credentials.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Pulled automatically: agents in the cluster pull desired state, so no external system needs cluster credentials."
+        },
+        {
+          "id": "scope",
+          "label": "Keep the push but scope CI's token to the payments namespaces",
+          "effects": [
+            {
+              "set": "push",
+              "to": "\"scope\""
+            },
+            {
+              "set": "pushAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "-1"
+            },
+            {
+              "log": "CI's token is scoped down.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Less blast radius, but it is still push: not GitOps, and nothing corrects drift."
+        },
+        {
+          "id": "approve",
+          "label": "Approve the push model as GitOps: the manifests are in Git",
+          "effects": [
+            {
+              "set": "push",
+              "to": "\"approve\""
+            },
+            {
+              "set": "pushAt",
+              "to": "t"
+            },
+            {
+              "add": "security",
+              "by": "-2"
+            },
+            {
+              "log": "The push model is approved as the standard.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Manifests in Git are not enough; a pushing CI with cluster-admin is the opposite of 'pulled automatically'."
+        }
+      ]
+    },
+    "editsPrompt": {
+      "title": "62 resources drifted by hand edits",
+      "context": "On-call engineers hot-fix with kubectl edit; 62 resources now differ from Git, and nothing reconciles them.",
+      "choices": [
+        {
+          "id": "reconcile",
+          "label": "Hot-fixes go through Git (a fast-track pull request or a revert) and the reconciler corrects drift continuously; the 62 drifts are reviewed and either committed or reverted",
+          "effects": [
+            {
+              "set": "edits",
+              "to": "\"reconcile\""
+            },
+            {
+              "set": "editsAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "1"
+            },
+            {
+              "log": "The condition is recorded: fixes via Git, drift corrected.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Continuously reconciled: a manual change is drift, corrected back to the desired state; fixes are changes to that state."
+        },
+        {
+          "id": "ticket",
+          "label": "Allow kubectl edit with a ticket and backport to Git within a day",
+          "effects": [
+            {
+              "set": "edits",
+              "to": "\"ticket\""
+            },
+            {
+              "set": "editsAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-1"
+            },
+            {
+              "log": "Edits are allowed with a ticket and a backport.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than nothing, but desired state lags reality, and a missed backport is undone at the next deploy."
+        },
+        {
+          "id": "noReconcile",
+          "label": "Turn reconciliation off in production so on-call hot-fixes stick",
+          "effects": [
+            {
+              "set": "edits",
+              "to": "\"noReconcile\""
+            },
+            {
+              "set": "editsAt",
+              "to": "t"
+            },
+            {
+              "add": "teams",
+              "by": "-2"
+            },
+            {
+              "log": "Production is no longer reconciled.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without reconciliation the drift grows; the next full deploy overwrites the unrecorded fixes."
+        }
+      ]
+    },
+    "storePrompt": {
+      "title": "Settings with no history",
+      "context": "Fee and limit settings live in a key-value store edited in its web UI. It keeps no history and no review.",
+      "choices": [
+        {
+          "id": "git",
+          "label": "Move the settings into Git as declarative config, reviewed by pull request and pulled by the reconciler, with the full history kept",
+          "effects": [
+            {
+              "set": "store",
+              "to": "\"git\""
+            },
+            {
+              "set": "storeAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "1"
+            },
+            {
+              "log": "The condition is recorded: settings in Git, reviewed and versioned.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Versioned and immutable: every change has a history, a reviewer and a way back."
+        },
+        {
+          "id": "snapshot",
+          "label": "Export a nightly snapshot of the store to Git",
+          "effects": [
+            {
+              "set": "store",
+              "to": "\"snapshot\""
+            },
+            {
+              "set": "storeAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "-1"
+            },
+            {
+              "log": "A nightly export is scheduled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "You get a daily record, but not who changed what, no review, and changes between snapshots are lost."
+        },
+        {
+          "id": "keep",
+          "label": "Keep the store: business users need the web UI",
+          "effects": [
+            {
+              "set": "store",
+              "to": "\"keep\""
+            },
+            {
+              "set": "storeAt",
+              "to": "t"
+            },
+            {
+              "add": "platform",
+              "by": "-2"
+            },
+            {
+              "log": "The store stays as it is.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An unreviewed, unversioned change cannot be traced or rolled back."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the review decision: which principles the payments flow violated, and what the conditions require.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Violations",
+          "criteria": "Push from CI (pulled automatically), hand edits with no reconciliation (continuously reconciled), and an unversioned store (versioned and immutable).",
+          "modelAnswer": "CI pushes with cluster-admin, which breaks 'pulled automatically'; hand edits drift with nothing reconciling; settings live in a store with no history."
+        },
+        {
+          "label": "Conditions",
+          "criteria": "In-cluster agents pulling from Git, fixes through Git under continuous reconciliation, settings versioned in Git.",
+          "modelAnswer": "Agents pull from Git and CI loses its token; hot-fixes go through Git and drift is corrected; settings move to Git with review and history."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (push == \"scope\") and (edits == \"ticket\") and (store == \"snapshot\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF Certified GitOps Associate (CGOA) curriculum: GitOps Terminology 20%, GitOps Principles 30%, Related Practices 16%, GitOps Patterns 20%, Tooling 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://kube-dojo.github.io/k8s/cgoa",
+        "note": "On 2026-11-17 the weights were confirmed through a third-party study page (kube-dojo.github.io/k8s/cgoa, summarizing fetch): 'Continuously Reconciled: Agents continuously observe and reconcile actual state', with drift detection and correction under terminology. The official curriculum (cncf/curriculum) was not re-read; the objective wording is the course seed's (backend/supabase/seed/tracks/cncf-ecosystem.ts). Reused for REQ-336 from this course's service-selector-no-endpoints-cgoa (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "pushHarm": {
+      "label": "A cluster-admin token leaked",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and push == \"approve\"",
+      "narrative": "The approved push pipeline's cluster-admin token leaked from a CI log and controlled every production cluster for six hours."
+    },
+    "editsHarm": {
+      "label": "Hot-fixes overwritten",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and edits == \"noReconcile\"",
+      "narrative": "With reconciliation off, unrecorded hot-fixes were overwritten by a full deploy; payments failed for 50 minutes."
+    },
+    "storeHarm": {
+      "label": "A change that couldn't be undone",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and store == \"keep\"",
+      "narrative": "A limit set to 0 in the unversioned store had no history to roll back to; transfers failed for half a day."
+    },
+    "target": {
+      "label": "A design that meets the four principles",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (push == \"pull\") and (edits == \"reconcile\") and (store == \"git\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The payments flow becomes the bank's standard only once it pulls, reconciles and versions its desired state."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "pushHarm",
+    "editsHarm",
+    "storeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "pushCrit",
+        "label": "Named the push model as a violation and required pull-based reconciliation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "push == \"pull\"",
+            "score": "met",
+            "why": "Pull required; credentials removed."
+          },
+          {
+            "when": "push == \"scope\"",
+            "score": "partial",
+            "why": "Safer push, still not GitOps."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Approved a principle violation."
+          }
+        ]
+      },
+      {
+        "id": "editsCrit",
+        "label": "Made hot-fixes changes to desired state under continuous reconciliation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "edits == \"reconcile\"",
+            "score": "met",
+            "why": "Fixes via desired state."
+          },
+          {
+            "when": "edits == \"ticket\"",
+            "score": "partial",
+            "why": "Drift tolerated with paperwork."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Turned reconciliation off."
+          }
+        ]
+      },
+      {
+        "id": "storeCrit",
+        "label": "Required settings in a versioned, immutable store",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "store == \"git\"",
+            "score": "met",
+            "why": "Versioned with review."
+          },
+          {
+            "when": "store == \"snapshot\"",
+            "score": "partial",
+            "why": "A record, not versioning."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left settings unversioned."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(pipelineAt) and not isNull(historyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(pipelineAt) or not isNull(historyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the pipeline and the change history of the clusters and the config store."
+      },
+      {
+        "at": "Week 1",
+        "text": "Require pull-based reconcilers and retire CI's cluster credentials."
+      },
+      {
+        "at": "Week 2",
+        "text": "Require hot-fixes through Git with continuous reconciliation, and review the existing drift."
+      },
+      {
+        "at": "Week 3",
+        "text": "Move the settings into Git, reviewed and reconciled, with history."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "pushHarm": {
+        "headline": "Pull, don't push",
+        "body": "GitOps agents pull from the source; no external system should hold cluster-admin to push changes."
+      },
+      "editsHarm": {
+        "headline": "Drift is a defect",
+        "body": "Continuously reconcile, and make fixes changes to desired state."
+      },
+      "storeHarm": {
+        "headline": "Version the desired state",
+        "body": "A versioned, immutable store gives history, review and rollback."
+      },
+      "target": {
+        "headline": "Good: a design that meets the four principles",
+        "body": "Each shortcut was named against its principle, and the conditions fix each one."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "GitOps has four principles: the desired state is declarative, versioned and immutable, pulled automatically by agents, and continuously reconciled. A CI job pushing with cluster credentials violates 'pulled automatically' and widens the attack surface; hand edits with no reconciler violate 'continuously reconciled'; a store without history violates 'versioned and immutable'. Storing manifests in Git does not by itself make a flow GitOps."
+  }
+}

@@ -1,0 +1,1101 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cpt-twenty-four-weeks-leaking-fluid",
+  "title": "Twenty-four weeks and leaking fluid",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Jess Moreno, 31, 24 weeks pregnant",
+        "presentation": "{not isNull(callAt) ? \"On the phone with labor and delivery triage, her partner on the way.\" : not isNull(leakAt) ? \"Pale, a hand low on her belly: 'I think I'm leaking fluid, and it's cramping.'\" : not isNull(dizzyAt) and isNull(sideAt) ? \"Lightheaded on the bench, sweating.\" : exercising ? \"Working, chatting between sets.\" : \"Cleared by her midwife; she ran three times a week before pregnancy.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Trust",
+          "spokenLabel": "Her trust in the trainer",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "trusting"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "talk",
+          "label": "Talk test",
+          "spokenLabel": "Can she talk while exercising",
+          "value": "{plan == \"old\" ? \"a few words only\" : \"talks, cannot sing\"}",
+          "when": "not isNull(talkAt)",
+          "flag": "plan == \"old\""
+        },
+        {
+          "id": "sym",
+          "label": "Symptoms",
+          "spokenLabel": "Symptoms now",
+          "value": "{not isNull(worseAt) ? \"regular painful cramps, fluid leaking\" : not isNull(leakAt) ? \"fluid leaking, cramping\" : not isNull(dizzyAt) and isNull(sideAt) ? \"lightheaded lying flat\" : \"none\"}",
+          "when": "not isNull(startAt)",
+          "flag": "not isNull(leakAt) or (not isNull(dizzyAt) and isNull(sideAt))"
+        }
+      ],
+      "intake": {
+        "label": "Clearance and history",
+        "items": [
+          {
+            "id": "c1",
+            "question": "Obstetric clearance",
+            "answer": "Uncomplicated singleton pregnancy, 24 weeks; cleared for moderate exercise by her midwife.",
+            "when": "not isNull(noteAt)"
+          },
+          {
+            "id": "c2",
+            "question": "Before pregnancy",
+            "answer": "Ran 25 km a week; strength classes twice a week with barbell bench press and power cleans.",
+            "when": "true"
+          },
+          {
+            "id": "c3",
+            "question": "Her midwife's number",
+            "answer": "Labor and delivery triage line on her phone.",
+            "when": "not isNull(noteAt)"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "leak",
+          "label": "Twenty minutes in",
+          "result": "She feels a trickle of fluid and low cramping.",
+          "when": "not isNull(leakAt)",
+          "flag": "true"
+        }
+      ],
+      "program": {
+        "label": "Session plan",
+        "items": [
+          {
+            "label": "Modified: moderate effort by the talk test, incline (not flat) bench, goblet squats, no Olympic lifts or fall-risk moves, a cool room, water",
+            "when": "plan == \"modified\""
+          },
+          {
+            "label": "Her pre-pregnancy program: intervals, flat bench press, power cleans",
+            "when": "plan == \"old\""
+          },
+          {
+            "label": "No exercise until after the birth",
+            "when": "plan == \"none_ex\""
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jLeak",
+          "text": "Fluid leakage and cramping during exercise.",
+          "when": "not isNull(leakAt)",
+          "at": "timeAt(leakAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "Labor and delivery triage called.",
+          "when": "not isNull(callAt)",
+          "at": "timeAt(callAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rStopP",
+          "label": "Warning signs in pregnancy",
+          "text": "Bleeding, fluid leakage, regular painful contractions, chest pain, persistent breathlessness, dizziness: stop now and call her obstetric team.",
+          "met": "not isNull(leakAt) and isNull(callAt)"
+        },
+        {
+          "id": "rFlat",
+          "label": "Lying flat",
+          "text": "Lightheaded lying flat: sit her up or roll her to her left side; use an incline.",
+          "met": "not isNull(dizzyAt) and isNull(sideAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Program design considerations for special populations: youth, older adults, prenatal, clinical and obese clients",
+  "secondaryObjectives": [
+    "Scope of practice and when to refer to other health professionals",
+    "Legal and risk-management basics: liability, documentation, emergency response"
+  ],
+  "sources": [
+    {
+      "cite": "NASM Candidate Handbook (updated 9/2025), Appendix A, CPT 7 exam blueprint: Basic and Applied Sciences 15%, Client Relations and Behavioral Coaching 15%, Assessment 16%, Program Design 20%, Exercise Technique and Training Instruction 24%, Professional Development and Responsibility 10%",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nasm.org/certified-personal-trainer/exam-information",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Perinatology.com. Exercise in High-Risk Pregnancy (updated 2026, summarizing the 2019 Canadian guideline for physical activity throughout pregnancy, Mottola et al., and ACOG Committee Opinion 804)",
+      "checkedAt": "2026-11-17",
+      "url": "https://perinatology.com/Exercise%20in%20Pregnancy.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch of a secondary summary (the guidelines themselves were not read): stop and call the obstetric team for vaginal bleeding, fluid leakage, regular painful contractions, severe chest pain or persistent shortness of breath, persistent dizziness or faintness; modify lying flat if lightheaded; avoid contact sports, high fall-risk activities, scuba, Olympic lifts and exercise in excessive heat; moderate intensity by the talk test ('talk but not sing') and RPE."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "That lying flat on the bench makes her lightheaded at 24 weeks, that her old program's intervals reach an effort where she cannot talk, and that fluid leakage with cramping begins 20 minutes in are authored for the case. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra NASM-CPT course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a personal trainer. Jess Moreno, 31 (a fictional client), is 24 weeks pregnant and wants to keep training. She was very active before pregnancy.",
+    "handover": [
+      "Trainers program and supervise exercise; pregnancy complications go to her obstetric team.",
+      "Her midwife's labor and delivery triage line is saved on her phone."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "10:00",
+    "tick": "1min",
+    "maxDuration": "90min",
+    "calendar": "clock"
+  },
+  "params": {
+    "leakDelay": {
+      "value": 1200,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Twenty minutes into the session is the author's figure."
+      }
+    },
+    "worseDelay": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Five more minutes of exercise before the cramping becomes regular and painful is the author's figure."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "exercising": {
+      "type": "bool",
+      "init": false
+    },
+    "trust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "noteAt": {
+      "type": "time",
+      "init": null
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "modified",
+        "old",
+        "none_ex"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "benchAt": {
+      "type": "time",
+      "init": null
+    },
+    "dizzyAt": {
+      "type": "time",
+      "init": null
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    },
+    "leakAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "pushedAt": {
+      "type": "time",
+      "init": null
+    },
+    "laterAt": {
+      "type": "time",
+      "init": null
+    },
+    "worseAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Session",
+      "clock": "turns",
+      "actions": [
+        "note",
+        "program",
+        "start",
+        "bench",
+        "side",
+        "talk",
+        "stop",
+        "call",
+        "push",
+        "later",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "note": {
+      "label": "Read her clearance note and ask how the pregnancy is going",
+      "group": "Screen",
+      "available": "not busy and (isNull(noteAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(noteAt)",
+          "then": [
+            {
+              "set": "noteAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "You read the clearance and ask about the pregnancy.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Set today's session",
+      "group": "Program",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Set.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Session",
+          "options": [
+            {
+              "value": "modified",
+              "label": "Modified for pregnancy: talk-test effort, incline bench, no Olympic lifts or fall-risk moves"
+            },
+            {
+              "value": "old",
+              "label": "Her pre-pregnancy program, since she was very active"
+            },
+            {
+              "value": "none_ex",
+              "label": "No exercise until after the birth, to be safe"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "p"
+        },
+        {
+          "log": "Session set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start the session",
+      "group": "Train",
+      "available": "not busy and (isNull(startAt) and plan != \"none\" and plan != \"none_ex\")",
+      "why": "Set a session first.",
+      "effects": [
+        {
+          "if": "isNull(startAt)",
+          "then": [
+            {
+              "set": "startAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "true"
+        },
+        {
+          "log": "The session starts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "40min"
+        }
+      ]
+    },
+    "bench": {
+      "label": "Flat barbell bench press as before",
+      "group": "Train",
+      "available": "exercising and isNull(benchAt) and isNull(leakAt)",
+      "why": "Not now.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(benchAt)",
+          "then": [
+            {
+              "set": "benchAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(dizzyAt)",
+          "then": [
+            {
+              "set": "dizzyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Lying flat, she says she feels faint and sweaty.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "side": {
+      "label": "Sit her up, then onto her left side",
+      "group": "Respond",
+      "available": "not isNull(dizzyAt) and isNull(sideAt)",
+      "why": "Only if lightheaded.",
+      "effects": [
+        {
+          "if": "isNull(sideAt)",
+          "then": [
+            {
+              "set": "sideAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Off her back: the lightheadedness passes in a minute.",
+          "kind": "act"
+        }
+      ]
+    },
+    "talk": {
+      "label": "Talk test: ask her to say a sentence mid-effort",
+      "group": "Assess",
+      "available": "not busy and (exercising)",
+      "why": "Only while exercising.",
+      "effects": [
+        {
+          "if": "isNull(talkAt)",
+          "then": [
+            {
+              "set": "talkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You check her breathing and speech.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the exercise and sit her down",
+      "group": "Respond",
+      "available": "exercising",
+      "why": "She is not exercising.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stop and sit her down.",
+          "kind": "act"
+        }
+      ]
+    },
+    "call": {
+      "label": "Call labor and delivery triage with her now, and get her driven there",
+      "group": "Respond",
+      "available": "not isNull(leakAt) and isNull(callAt)",
+      "why": "Only for a warning sign.",
+      "effects": [
+        {
+          "if": "isNull(callAt)",
+          "then": [
+            {
+              "set": "callAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "Triage: come in now; her partner drives her.",
+          "kind": "good"
+        }
+      ]
+    },
+    "push": {
+      "label": "Keep going gently: 'it's probably just Braxton Hicks'",
+      "group": "Respond",
+      "available": "exercising and not isNull(leakAt)",
+      "why": "Only with a warning sign.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(pushedAt)",
+          "then": [
+            {
+              "set": "pushedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You keep her going.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "later": {
+      "label": "Finish with a cool-down and tell her to call her midwife if it keeps up",
+      "group": "Respond",
+      "available": "not isNull(leakAt) and isNull(callAt) and isNull(laterAt)",
+      "why": "Only for a warning sign.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "if": "isNull(laterAt)",
+          "then": [
+            {
+              "set": "laterAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "log": "A cool-down, then you send her home to watch it.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Clearance, the modified plan and why, the warning sign and its time, what was done and who was called"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Session cut short'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "leak",
+      "when": "exercising and isNull(leakAt) and not isNull(startAt) and t - timeAt(startAt) >= leakDelay",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(leakAt)",
+          "then": [
+            {
+              "set": "leakAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "'I think I'm leaking fluid... and it's cramping low down.'",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "worse",
+      "when": "exercising and not isNull(leakAt) and t - timeAt(leakAt) >= worseDelay and isNull(worseAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(worseAt)",
+          "then": [
+            {
+              "set": "worseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "exercising",
+          "to": "false"
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "The cramps come every few minutes now and she doubles over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For her record: how you built today's session for pregnancy, what happened and what you did.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The session",
+          "criteria": "Cleared, uncomplicated, previously active: continue moderate exercise with modifications: talk-test intensity, no prolonged lying flat (incline), no Olympic lifts or fall-risk moves, avoid heat; stopping all exercise is not the advice.",
+          "modelAnswer": "She is cleared and was active, so we kept training at a talk-test effort, swapped the flat bench for an incline and dropped the power cleans."
+        },
+        {
+          "label": "Warning sign",
+          "criteria": "Fluid leakage with cramping at 24 weeks is a warning sign: stop at once, call labor and delivery triage now, arrange transport; never 'probably Braxton Hicks' or finish the cool-down.",
+          "modelAnswer": "Fluid and cramping at 24 weeks: I stopped her at once and we called labor and delivery triage together; her partner drove her in."
+        },
+        {
+          "label": "Record",
+          "criteria": "Clearance, the plan, the time of the warning sign, what was done and the call, documented.",
+          "modelAnswer": "Everything recorded with the times."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(planAt)",
+      "class": "recovered",
+      "rationale": "No session was planned; nothing harmful, nothing done for her.",
+      "source": {
+        "cite": "Perinatology.com. Exercise in High-Risk Pregnancy (updated 2026, summarizing the 2019 Canadian guideline for physical activity throughout pregnancy, Mottola et al., and ACOG Committee Opinion 804)",
+        "checkedAt": "2026-11-17",
+        "url": "https://perinatology.com/Exercise%20in%20Pregnancy.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch of a secondary summary (the guidelines themselves were not read): stop and call the obstetric team for vaginal bleeding, fluid leakage, regular painful contractions, severe chest pain or persistent shortness of breath, persistent dizziness or faintness; modify lying flat if lightheaded; avoid contact sports, high fall-risk activities, scuba, Olympic lifts and exercise in excessive heat; moderate intensity by the talk test ('talk but not sing') and RPE."
+      }
+    }
+  },
+  "endings": {
+    "pushed": {
+      "label": "Kept exercising through a warning sign",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(worseAt)",
+      "narrative": "She kept going until the cramps were regular and painful; labor and delivery admitted her to stop preterm labor."
+    },
+    "sentHome": {
+      "label": "Sent home to watch it",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(laterAt) and isNull(callAt)",
+      "narrative": "She went home to 'watch it'; by evening the cramps were regular and she was admitted."
+    },
+    "noExercise": {
+      "label": "Told to stop exercising",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\" and plan == \"none_ex\"",
+      "narrative": "She left told not to exercise until after the birth, advice that does not match her clearance or the guidelines."
+    },
+    "calledIn": {
+      "label": "Modified, stopped, called",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and plan == \"modified\" and not isNull(noteAt) and not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(leakAt) <= 120 and not isNull(callAt) and isNull(pushedAt) and isNull(laterAt) and isNull(benchAt)",
+      "narrative": "A pregnancy-modified session, stopped the moment she felt fluid, and labor and delivery triage called with her. She is seen within the hour."
+    },
+    "gaps": {
+      "label": "Called, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "She got to triage, but {plan == \"old\" ? \"her old program was not modified for pregnancy\" : not isNull(benchAt) ? \"she was put flat on the bench\" : \"the stop or the call came late\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out."
+    }
+  },
+  "endingOrder": [
+    "pushed",
+    "sentHome",
+    "noExercise",
+    "calledIn",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "plan",
+        "label": "A session modified for pregnancy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"modified\" and isNull(benchAt)",
+            "score": "met",
+            "why": "Modified."
+          },
+          {
+            "when": "plan == \"modified\"",
+            "score": "partial",
+            "why": "Modified on paper, then flat on the bench."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmodified, or no exercise at all."
+          }
+        ]
+      },
+      {
+        "id": "stop",
+        "label": "Stopped within 2 minutes of the warning sign",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(leakAt)",
+            "score": "na",
+            "why": "No warning sign."
+          },
+          {
+            "when": "not isNull(stoppedAt) and timeAt(stoppedAt) - timeAt(leakAt) <= 120 and isNull(pushedAt)",
+            "score": "met",
+            "why": "Stopped at once."
+          },
+          {
+            "when": "not isNull(stoppedAt) or not isNull(laterAt)",
+            "score": "partial",
+            "why": "Stopped late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Kept going."
+          }
+        ]
+      },
+      {
+        "id": "call",
+        "label": "Called labor and delivery triage now",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(leakAt)",
+            "score": "na",
+            "why": "No warning sign."
+          },
+          {
+            "when": "not isNull(callAt) and isNull(laterAt)",
+            "score": "met",
+            "why": "Called with her."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Sent home to watch it, or no call."
+          }
+        ]
+      },
+      {
+        "id": "flat",
+        "label": "Lightheaded lying flat: off her back",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "isNull(dizzyAt)",
+            "score": "na",
+            "why": "Never flat."
+          },
+          {
+            "when": "not isNull(sideAt)",
+            "score": "met",
+            "why": "Sat up and on her side."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left flat."
+          }
+        ]
+      },
+      {
+        "id": "clear",
+        "label": "Read the clearance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(noteAt)",
+            "score": "met",
+            "why": "Read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not read."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written plan, warning sign and response",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCall",
+        "label": "Minutes from the warning sign to the call",
+        "value": "isNull(leakAt) or isNull(callAt) ? -1 : (timeAt(callAt) - timeAt(leakAt)) / 60",
+        "format": "number",
+        "expert": "0-2"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Start",
+        "text": "Read the clearance; a modified session: talk-test effort, incline bench, no Olympic lifts or fall-risk moves."
+      },
+      {
+        "at": "20 min",
+        "text": "Fluid and cramping: stop at once, sit her down, call labor and delivery triage with her; her partner drives."
+      },
+      {
+        "at": "Close",
+        "text": "A full record with the times."
+      }
+    ],
+    "debrief": {
+      "calledIn": {
+        "headline": "Modified, stopped, called",
+        "body": "Pregnancy changes the program, not the habit. And fluid leakage or cramping is a stop sign and a call, not a cool-down."
+      },
+      "gaps": {
+        "headline": "Called, with gaps",
+        "body": "Check the program (modified for pregnancy, no lying flat) and how fast you stopped and called."
+      },
+      "noExercise": {
+        "headline": "Not 'no exercise'",
+        "body": "A cleared, uncomplicated pregnancy is a reason to modify training, not to stop it."
+      },
+      "pushed": {
+        "headline": "A warning sign is a stop sign",
+        "body": "Fluid with cramping at 24 weeks is not Braxton Hicks to train through."
+      },
+      "sentHome": {
+        "headline": "Call now, not later",
+        "body": "The warning signs mean calling her obstetric team at once, not finishing the session and waiting."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "Cleared, uncomplicated and previously active: keep her training with modifications (moderate effort by the talk test, no prolonged lying flat, no Olympic lifts or fall-risk activities, avoid heat). Lightheaded lying flat: sit her up or onto her left side. Fluid leakage with cramping is a warning sign: stop at once, call labor and delivery triage with her and arrange transport; do not train through it or send her home to watch it. Record the times."
+  }
+}

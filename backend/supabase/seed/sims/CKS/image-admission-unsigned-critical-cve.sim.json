@@ -1,0 +1,1024 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "image-admission-unsigned-critical-cve",
+  "title": "A release with a critical CVE, images from anywhere and no SBOM: securing the supply chain at build and admission",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "secops@velora:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "trivy: booking:2.14 CRITICAL 1 (exploit public), HIGH 9, MEDIUM 32",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineCve",
+          "text": "{cve == \"rebuild\" ? \"Rebuilt on a pinned distroless base; clean\" : cve == \"patchOnly\" ? \"Patched full base by tag\" : cve == \"ship\" ? \"Shipped with an exploitable critical\" : \"\"}",
+          "when": "cve != \"none\"",
+          "at": "timeAt(cveAt)",
+          "error": "cve == \"ship\""
+        },
+        {
+          "id": "lineAdmit",
+          "text": "{admit == \"policy\" ? \"Approved registry and signatures verified\" : admit == \"registryOnly\" ? \"Approved registry only\" : admit == \"open\" ? \"Admission open\" : \"\"}",
+          "when": "admit != \"none\"",
+          "at": "timeAt(admitAt)",
+          "error": "admit == \"open\""
+        },
+        {
+          "id": "lineSbom",
+          "text": "{sbom == \"attach\" ? \"Signed SBOM attached to every image\" : sbom == \"adhoc\" ? \"Ad hoc scans\" : sbom == \"skip\" ? \"No SBOMs\" : \"\"}",
+          "when": "sbom != \"none\"",
+          "at": "timeAt(sbomAt)",
+          "error": "sbom == \"skip\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nCve",
+          "label": "booking:2.14 image",
+          "spokenLabel": "booking:2.14 image",
+          "kind": "image",
+          "status": "{cve == \"rebuild\" ? \"Rebuilt on a pinned distroless base; clean\" : cve == \"patchOnly\" ? \"Patched full base by tag\" : cve == \"ship\" ? \"Shipped with an exploitable critical\" : \"Waiting\"}",
+          "tone": "cve == \"rebuild\" ? \"up\" : cve == \"patchOnly\" ? \"degraded\" : cve == \"ship\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nAdmit",
+          "label": "admission control",
+          "spokenLabel": "admission control",
+          "kind": "ValidatingAdmissionPolicy",
+          "status": "{admit == \"policy\" ? \"Approved registry and signatures verified\" : admit == \"registryOnly\" ? \"Approved registry only\" : admit == \"open\" ? \"Admission open\" : \"Waiting\"}",
+          "tone": "admit == \"policy\" ? \"up\" : admit == \"registryOnly\" ? \"degraded\" : admit == \"open\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSbom",
+          "label": "image provenance",
+          "spokenLabel": "image provenance",
+          "kind": "SBOM",
+          "status": "{sbom == \"attach\" ? \"Signed SBOM attached to every image\" : sbom == \"adhoc\" ? \"Ad hoc scans\" : sbom == \"skip\" ? \"No SBOMs\" : \"Waiting\"}",
+          "tone": "sbom == \"attach\" ? \"up\" : sbom == \"adhoc\" ? \"degraded\" : sbom == \"skip\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nCve",
+          "to": "nAdmit",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nAdmit",
+          "to": "nSbom",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Secure your supply chain: permit only approved registries with admission control (ValidatingAdmissionPolicy or ImagePolicyWebhook), and sign and verify images with cosign",
+  "secondaryObjectives": [
+    "Scan images for known vulnerabilities before deployment and decide what blocks a release",
+    "Understand your supply chain: generate and read an SBOM (syft, Trivy), know what CI/CD and artifact repositories introduce, and track image provenance",
+    "Minimize the base image footprint with multi-stage builds, distroless or minimal bases, pinned digests and no shells or package managers in the runtime image"
+  ],
+  "sources": [
+    {
+      "cite": "CNCF CKS Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and Runtime Security 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+      "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's falco-shell-in-catalog-pod (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Trivy documentation, trivy image (v0.67)",
+      "checkedAt": "2026-11-17",
+      "url": "https://trivy.dev/docs/v0.67/references/configuration/cli/trivy_image/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: --severity selects which severities are reported (unknown, low, medium, high, critical) and --exit-code sets the exit code when issues are found."
+    },
+    {
+      "cite": "Sigstore documentation, Kubernetes Policy Controller",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.sigstore.dev/policy-controller/overview",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: an admission controller that validates image signatures and attestations against ClusterImagePolicy resources in namespaces labeled policy.sigstore.dev/include: \"true\"; spec.mode warn admits non-compliant images with a warning instead of rejecting them."
+    },
+    {
+      "cite": "Kubernetes documentation, Validating Admission Policy (v1.33)",
+      "checkedAt": "2026-11-17",
+      "url": "https://v1-33.docs.kubernetes.io/docs/reference/access-authn-authz/validating-admission-policy/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a ValidatingAdmissionPolicyBinding's validationActions Deny, Warn and Audit; CEL validations can check container image names in a Pod template (for example with startsWith)."
+    },
+    {
+      "cite": "Anchore open source documentation, Syft: Attestation",
+      "checkedAt": "2026-11-17",
+      "url": "https://oss.anchore.com/docs/guides/sbom/attestation/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: syft attest generates an SBOM as a signed in-toto attestation (keyless through Sigstore or with a cosign key) and the attestation is stored in the registry alongside the image."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the clusters, the workloads and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run platform security at Velora Travel, a fictional booking site. Today's release of the booking service is queued. The cluster admits images from any registry, nothing is signed, and the scanner has just reported a critical vulnerability in the booking image's base layer.",
+    "handover": [
+      "Image: booking:2.14 built FROM a full OS image by tag; Trivy reports one critical CVE in a TLS library with a public exploit, and 41 others.",
+      "No admission policy restricts registries; no images are signed; no SBOMs are kept."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-05-10T15:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cve": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rebuild",
+        "patchOnly",
+        "ship"
+      ],
+      "init": "none"
+    },
+    "cveAt": {
+      "type": "time",
+      "init": null
+    },
+    "admit": {
+      "type": "enum",
+      "values": [
+        "none",
+        "policy",
+        "registryOnly",
+        "open"
+      ],
+      "init": "none"
+    },
+    "admitAt": {
+      "type": "time",
+      "init": null
+    },
+    "sbom": {
+      "type": "enum",
+      "values": [
+        "none",
+        "attach",
+        "adhoc",
+        "skip"
+      ],
+      "init": "none"
+    },
+    "sbomAt": {
+      "type": "time",
+      "init": null
+    },
+    "scanAt": {
+      "type": "time",
+      "init": null
+    },
+    "admAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((cve == \"ship\") ? 1 : 0) + ((admit == \"open\") ? 1 : 0) + ((sbom == \"skip\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(cve == \"none\" or (cve == \"ship\") ? 1 : 0) + (admit == \"none\" or (admit == \"open\") ? 1 : 0) + (sbom == \"none\" or (sbom == \"skip\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The release",
+      "clock": "turns",
+      "actions": [
+        "scan",
+        "adm"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "scan": {
+      "label": "trivy image --severity CRITICAL,HIGH booking:2.14",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(scanAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "scanAt",
+          "to": "t"
+        },
+        {
+          "output": "libssl (base layer): CRITICAL, fixed in the base image's current patch release\n9 HIGH in packages the app never uses (shell, package manager, compilers)"
+        },
+        {
+          "log": "You read the scan.",
+          "kind": "act"
+        },
+        {
+          "finding": "The critical finding is in the base image's TLS library and is fixed in the current base; the nine high findings are in tools the runtime image does not need at all."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "adm": {
+      "label": "kubectl get validatingadmissionpolicies,validatingadmissionpolicybindings",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(admAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "admAt",
+          "to": "t"
+        },
+        {
+          "output": "No resources found"
+        },
+        {
+          "log": "You list the admission policies.",
+          "kind": "act"
+        },
+        {
+          "finding": "Nothing restricts where images come from or whether they are signed; last month a developer ran an image from a public registry with a typo-squatted name."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the release record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Release blocked on the reachable critical and rebuilt minimal and pinned, signed images from the approved registry enforced at admission, and SBOMs attached"
+                },
+                {
+                  "value": "summary",
+                  "label": "Release done"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "cve == \"ship\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the exploit is used against the booking service's TLS endpoint; session keys leak before the image is replaced.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "admit == \"open\"",
+              "then": [
+                {
+                  "log": "Check-in 3: a deployment pulls a typo-squatted public image; it mines cryptocurrency with the node's CPU and calls out to an unknown host.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sbom == \"skip\"",
+              "then": [
+                {
+                  "log": "Check-in 4: a new advisory lands for a logging library; with no SBOMs, it takes three days to find the 23 affected images.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release window closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_cve",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the release is due.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "cvePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_admit",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: time to close the registry gap.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "admitPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sbom",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: an auditor asks which images contain a library.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "sbomPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "cvePrompt": {
+      "title": "Ship with a critical CVE?",
+      "context": "The critical CVE has a public exploit and is reachable (the service terminates TLS). A rebuild takes 20 minutes.",
+      "choices": [
+        {
+          "id": "rebuild",
+          "label": "Block 2.14, rebuild as a multi-stage image on a patched distroless base pinned by digest, rescan, then release",
+          "effects": [
+            {
+              "set": "cve",
+              "to": "\"rebuild\""
+            },
+            {
+              "set": "cveAt",
+              "to": "t"
+            },
+            {
+              "log": "The rebuilt image scans clean of criticals and highs.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A reachable, exploitable critical blocks a release; the minimal base removes the tools behind the high findings too."
+        },
+        {
+          "id": "patchOnly",
+          "label": "Rebuild on the patched full OS base by tag and release",
+          "effects": [
+            {
+              "set": "cve",
+              "to": "\"patchOnly\""
+            },
+            {
+              "set": "cveAt",
+              "to": "t"
+            },
+            {
+              "log": "The patched full image is released.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The critical is fixed, but the shell and package manager stay, and a tag can change under you."
+        },
+        {
+          "id": "ship",
+          "label": "Ship 2.14 now and patch next sprint",
+          "effects": [
+            {
+              "set": "cve",
+              "to": "\"ship\""
+            },
+            {
+              "set": "cveAt",
+              "to": "t"
+            },
+            {
+              "log": "2.14 goes out with the critical.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A public exploit for a reachable critical is not a backlog item."
+        }
+      ]
+    },
+    "admitPrompt": {
+      "title": "Images from anywhere",
+      "context": "Any image from any registry can run, signed or not.",
+      "choices": [
+        {
+          "id": "policy",
+          "label": "Sign images with cosign in CI; a ValidatingAdmissionPolicy denies images outside the internal registry, and a verification webhook rejects unsigned images; roll out in audit first",
+          "effects": [
+            {
+              "set": "admit",
+              "to": "\"policy\""
+            },
+            {
+              "set": "admitAt",
+              "to": "t"
+            },
+            {
+              "log": "Registry restriction and signature verification are in audit, then enforced.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Restricting the registry stops typosquats; verifying signatures proves the image came from your CI."
+        },
+        {
+          "id": "registryOnly",
+          "label": "Restrict images to the internal registry, without signatures",
+          "effects": [
+            {
+              "set": "admit",
+              "to": "\"registryOnly\""
+            },
+            {
+              "set": "admitAt",
+              "to": "t"
+            },
+            {
+              "log": "Only the internal registry is allowed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "That stops public typosquats, but anyone who can push to the registry can still run anything."
+        },
+        {
+          "id": "open",
+          "label": "Leave admission open and remind developers in the wiki",
+          "effects": [
+            {
+              "set": "admit",
+              "to": "\"open\""
+            },
+            {
+              "set": "admitAt",
+              "to": "t"
+            },
+            {
+              "log": "Admission stays open.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A wiki page does not stop a typo in an image name."
+        }
+      ]
+    },
+    "sbomPrompt": {
+      "title": "What is inside our images?",
+      "context": "An auditor asks which running images contain the vulnerable TLS library. Nothing records what each image contains.",
+      "choices": [
+        {
+          "id": "attach",
+          "label": "Generate an SBOM with syft in CI for every image and attach it to the image as a signed attestation",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"attach\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "Every new image carries a signed SBOM.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An SBOM per image answers 'where is this library?' in minutes, and the attestation ties it to the image."
+        },
+        {
+          "id": "adhoc",
+          "label": "Run a scan across the registry whenever someone asks",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"adhoc\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "Ad hoc scans are run when asked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It answers eventually, but for images already running nobody can prove what was built."
+        },
+        {
+          "id": "skip",
+          "label": "Skip it: the scanner already runs at build time",
+          "effects": [
+            {
+              "set": "sbom",
+              "to": "\"skip\""
+            },
+            {
+              "set": "sbomAt",
+              "to": "t"
+            },
+            {
+              "log": "No SBOMs are kept.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A build-time scan answers only for known CVEs at that moment; the next library advisory finds you blind."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record: why the release was blocked, how admission now controls images, and how you will know what is inside them.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Build",
+          "criteria": "Blocked on the reachable critical; rebuilt multi-stage on a patched distroless base pinned by digest.",
+          "modelAnswer": "The critical was reachable with a public exploit, so 2.14 was blocked and rebuilt multi-stage on a patched distroless base pinned by digest."
+        },
+        {
+          "label": "Admission and SBOM",
+          "criteria": "Approved registry plus cosign verification, audited then enforced; a signed SBOM per image.",
+          "modelAnswer": "Admission allows only signed images from the internal registry; every image carries a signed SBOM."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (cve == \"patchOnly\") and (admit == \"registryOnly\") and (sbom == \"adhoc\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CNCF CKS Curriculum v1.37 (cncf/curriculum, pinned commit 0a8cc08a): Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring, Logging and Runtime Security 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://github.com/cncf/curriculum/tree/0a8cc08a502710a894e5724c2bec7b88404e5a6b",
+        "note": "The curriculum was read in primary text on 2026-11-07 by the course builder (backend/supabase/seed/tracks/kubernetes.ts). On 2026-11-17 a third-party summary (slauger.github.io/kubestronaut/cks/monitoring-logging-runtime) confirmed the 20% domain; the PDF itself was not re-read. The objective wording is the course seed's. Reused for REQ-336 from this course's falco-shell-in-catalog-pod (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "cveHarm": {
+      "label": "Exploited in production",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cve == \"ship\"",
+      "narrative": "The shipped critical was exploited through the TLS endpoint and session keys leaked."
+    },
+    "admitHarm": {
+      "label": "A malicious image admitted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and admit == \"open\"",
+      "narrative": "With admission open, a typo-squatted public image ran in the cluster and called out to an unknown host."
+    },
+    "sbomHarm": {
+      "label": "Blind to a new advisory",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sbom == \"skip\"",
+      "narrative": "Without SBOMs, finding the images affected by a new advisory took three days."
+    },
+    "target": {
+      "label": "A secured supply chain",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (cve == \"rebuild\") and (admit == \"policy\") and (sbom == \"attach\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The release went out clean, only signed images from the approved registry can run, and every image's contents are on record."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "cveHarm",
+    "admitHarm",
+    "sbomHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "cveCrit",
+        "label": "Blocked the release on the reachable critical and rebuilt on a minimal, pinned base",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cve == \"rebuild\"",
+            "score": "met",
+            "why": "Blocked and rebuilt minimal."
+          },
+          {
+            "when": "cve == \"patchOnly\"",
+            "score": "partial",
+            "why": "Fixed the critical only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped the critical."
+          }
+        ]
+      },
+      {
+        "id": "admitCrit",
+        "label": "Admitted only signed images from the approved registry",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "admit == \"policy\"",
+            "score": "met",
+            "why": "Registry and provenance enforced."
+          },
+          {
+            "when": "admit == \"registryOnly\"",
+            "score": "partial",
+            "why": "Registry only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No control."
+          }
+        ]
+      },
+      {
+        "id": "sbomCrit",
+        "label": "Generated and kept an SBOM with each image",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sbom == \"attach\"",
+            "score": "met",
+            "why": "SBOMs kept with images."
+          },
+          {
+            "when": "sbom == \"adhoc\"",
+            "score": "partial",
+            "why": "Ad hoc only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No inventory."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scanAt) and not isNull(admAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(scanAt) or not isNull(admAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the scan and the cluster's admission configuration first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Block the release, rebuild multi-stage on a patched distroless base pinned by digest, rescan."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Sign in CI, restrict to the approved registry and verify signatures at admission, audit first."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Generate an SBOM per image in CI and attach it as a signed attestation."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "cveHarm": {
+        "headline": "A reachable critical blocks the release",
+        "body": "Decide what blocks a release before the scan: a reachable critical with a public exploit does."
+      },
+      "admitHarm": {
+        "headline": "Admission is the last gate",
+        "body": "Allow only the approved registry and verify signatures before a Pod runs."
+      },
+      "sbomHarm": {
+        "headline": "Know what you run",
+        "body": "An SBOM per image, kept with it, answers the next advisory in minutes."
+      },
+      "target": {
+        "headline": "Good: a secured supply chain",
+        "body": "Blocked on the critical, minimal and pinned images, signatures and registry enforced at admission, and SBOMs kept."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Decide what blocks a release before scanning: a reachable critical with a public exploit does. Minimal, multi-stage images on a distroless base pinned by digest remove most findings and drift. Admission control is the last gate: allow only the approved registry and verify cosign signatures, rolled out in audit first. An SBOM generated in CI and attached as a signed attestation records what each image contains, so the next advisory is answered in minutes."
+  }
+}

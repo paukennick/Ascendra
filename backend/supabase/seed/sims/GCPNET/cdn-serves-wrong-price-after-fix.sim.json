@@ -1,0 +1,883 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cdn-serves-wrong-price-after-fix",
+  "title": "Pricing error: the origin is fixed, but the CDN keeps selling jackets at 0.99",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "10:25 orders: 214 JKT-LTD-01 at 0.99 since 10:12 (and counting); origin returns 99.00 since 10:20; banner at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: banner live, wrong price",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: banner live, correct price",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "cdn",
+          "label": "Cloud CDN (um-store)",
+          "spokenLabel": "the CDN",
+          "kind": "max-age 86400",
+          "status": "{harmed ? \"cache emptied for every path\" : fixed ? \"fetching 99.00 from origin\" : \"serving 0.99 from cache\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "origin",
+          "label": "Store origin (bs-store)",
+          "spokenLabel": "the origin",
+          "kind": "MIG, 6 VMs",
+          "status": "{harmed ? \"overloaded by misses\" : fixed ? \"returns 99.00\" : \"returns 99.00\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "shop",
+          "label": "Shoppers",
+          "spokenLabel": "the shoppers",
+          "kind": "store pages",
+          "status": "{fixed and not harmed ? \"see 99.00\" : \"see 0.99\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "cdn",
+          "to": "shop",
+          "label": "cached price",
+          "status": "{fixed and not harmed ? \"99.00\" : \"0.99\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "origin",
+          "to": "cdn",
+          "label": "fills",
+          "status": "{fixed and not harmed ? \"refreshed\" : \"not asked\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Invalidating cached content in Cloud CDN",
+  "secondaryObjectives": [
+    "Setting up Cloud CDN for supported origins: managed instance groups, Cloud Storage buckets, Cloud Run"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Network Engineer certification exam guide (April 2026): designing and planning a VPC network ~21%, VPC network implementation ~20%, managed network services ~16%, hybrid and multicloud interconnectivity ~16%, network operations ~14%, cloud network security ~13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/042426_professional_cloud_network_engineer_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullet quoted there under 1.1: 'Planning for Google Kubernetes Engine (GKE) networking (e.g., secondary ranges, scale potential based on IP address space'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud CDN: Invalidate cached content",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/cdn/docs/invalidating-cached-content",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'gcloud compute url-maps invalidate-cdn-cache URL_MAP_NAME --path \"/images/file.jpg\"'; the path 'can use an explicit filename or an asterisk as a wildcard'; 'Although you can invalidate everything, it's potentially risky. Evaluate your requirements carefully'. The cache invalidation overview (read 2026-11-18): 'invalidating too much might cause a spike in requests' to the origin; 'Invalidate only what you must', using specific paths, hosts or cache tags."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Fennick Outdoor. At 10:12 a pricing job published the limited jacket JKT-LTD-01 at 0.99 instead of 99.00. The pricing team fixed it at the origin at 10:20, but shoppers still see 0.99 and orders at that price keep arriving. The Black Friday banner goes live at 11:00 and sends ten times the traffic to the store.",
+    "handover": [
+      "The storefront is behind an external Application Load Balancer with Cloud CDN on backend bs-store (URL map um-store).",
+      "Price responses carry Cache-Control: public, max-age=86400 (set years ago for 'static' prices)."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the CDN's cached copies, the fixed origin and the shoppers in between.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "10:25",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2100,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The Black Friday banner goes live at 11:00, 35 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "curlAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAt": {
+      "type": "time",
+      "init": null
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "origincapAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cache",
+        "origin",
+        "browser"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "curl",
+        "logs",
+        "scope",
+        "origincap",
+        "inval",
+        "ttl",
+        "all",
+        "origin",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "curl": {
+      "label": "curl the price through the CDN and directly from the origin",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(curlAt)",
+          "then": [
+            {
+              "set": "curlAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ curl -sI https://store.fennick.example/api/prices/JKT-LTD-01 | grep -iE 'age|cache-control'; curl -s https://store.../api/prices/JKT-LTD-01\n{fixed and not harmed ? \"Age: 12\nCache-Control: public, max-age=60\nprice: 99.00\" : \"Age: 778\nCache-Control: public, max-age=86400\nprice: 0.99\"}\nneteng@cloudshell:~$ curl -s -H 'Host: store.fennick.example' http://10.20.0.15/api/prices/JKT-LTD-01\nprice: 99.00"
+        },
+        {
+          "finding": "The origin is right; the CDN is serving a copy cached 13 minutes ago that it will keep for a day."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "logs": {
+      "label": "Load balancer logs: cache hits for the price path",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(logsAt)",
+          "then": [
+            {
+              "set": "logsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud logging read 'resource.type=\"http_load_balancer\" AND httpRequest.requestUrl:\"/api/prices/JKT-LTD-01\"' --limit 3 --format='value(jsonPayload.cacheDecision, httpRequest.cacheHit)'\n{fixed and not harmed ? \"CACHE_MISS ... then hits with fresh content\" : \"RESPONSE_CACHEABLE  True\nRESPONSE_CACHEABLE  True\nRESPONSE_CACHEABLE  True\"}"
+        },
+        {
+          "finding": "Every request is answered from cache."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "scope": {
+      "label": "Which paths carry the bad price?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(scopeAt)",
+          "then": [
+            {
+              "set": "scopeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ grep JKT-LTD-01 /var/log/pricing/publish-1012.log\npublished: /api/prices/JKT-LTD-01, /products/jkt-ltd-01 (page embeds price)"
+        },
+        {
+          "finding": "Only two paths carry the wrong price."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "origincap": {
+      "label": "Origin capacity at banner traffic without the cache",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(origincapAt)",
+          "then": [
+            {
+              "set": "origincapAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ Monitoring: bs-store hit ratio 96%; origin at 22% CPU\nAt 10x traffic with no cache: about 2,200% of capacity"
+        },
+        {
+          "finding": "The origin survives only because the CDN serves almost everything."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "inval": {
+      "label": "Invalidate exactly /api/prices/JKT-LTD-01 and /products/jkt-ltd-01 on um-store",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute url-maps invalidate-cdn-cache um-store --path \"/api/prices/JKT-LTD-01\"\nWaiting for operation ... done.\nneteng@cloudshell:~$ gcloud compute url-maps invalidate-cdn-cache um-store --path \"/products/jkt-ltd-01\"\nWaiting for operation ... done."
+        },
+        {
+          "log": "The CDN drops its copies of the two affected paths and fetches 99.00 from the origin on the next request; every other cached object stays, so the origin's load hardly changes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "ttl": {
+      "label": "Set Cache-Control: max-age=60 on price responses and tell the pricing team the CDN path list for any correction",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ git diff origin/nginx/prices.conf\n-  add_header Cache-Control \"public, max-age=86400\";\n+  add_header Cache-Control \"public, max-age=60\";\n(pricing runbook: on any price correction, invalidate the published paths listed in the publish log)"
+        },
+        {
+          "log": "A wrong price now lives at most a minute in the cache, and the pricing team knows which paths to invalidate.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "all": {
+      "label": "Invalidate everything: --path \"/*\"",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ gcloud compute url-maps invalidate-cdn-cache um-store --path \"/*\"\nWaiting for operation ... done."
+        },
+        {
+          "log": "Every cached object is gone: the origin takes full traffic, and when the banner goes live at ten times the load it falls over.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "origin": {
+      "label": "Re-publish the correct price at the origin again",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ ./pricing publish --sku JKT-LTD-01 --price 99.00\npublished"
+        },
+        {
+          "log": "The origin was already right; the CDN keeps serving its cached copy until it expires or is invalidated.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "curl the price through the CDN and check origin load",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ curl -s https://store.../api/prices/JKT-LTD-01; bs-store CPU\n{harmed ? \"price: 99.00\norigin CPU 97% and rising (hit ratio 4%)\" : fixed ? \"price: 99.00\norigin CPU 23%\" : \"price: 0.99\norigin CPU 22%\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "cache",
+                  "label": "Cloud CDN kept serving the wrong price cached with a one-day max-age"
+                },
+                {
+                  "value": "origin",
+                  "label": "The origin still had the wrong price"
+                },
+                {
+                  "value": "browser",
+                  "label": "Shoppers' browsers cached it"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the banner traffic sees the right price.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: ten times the traffic buys jackets at 0.99.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why shoppers kept seeing 0.99, what you invalidated and why not everything, and what changes.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates origin from cache.",
+          "modelAnswer": "The origin returned 99.00 since 10:20, but the CDN had cached the 0.99 response at 10:12 with max-age 86400 and answered every request from that copy."
+        },
+        {
+          "label": "Invalidated",
+          "criteria": "Only what was wrong.",
+          "modelAnswer": "The two paths from the publish log, /api/prices/JKT-LTD-01 and /products/jkt-ltd-01. Invalidating /* would have sent the banner's ten-times traffic to an origin that survives on a 96% hit ratio."
+        },
+        {
+          "label": "Changes",
+          "criteria": "Shorter TTL, known paths.",
+          "modelAnswer": "Price responses now cache for 60 seconds, and the pricing runbook lists the paths to invalidate after a correction."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2100,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The Black Friday banner goes live at 11:00, 35 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: A full invalidation removed the cache the origin depends on."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the CDN still serving 0.99 lets the banner traffic buy at the wrong price.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud CDN: Invalidate cached content",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/cdn/docs/invalidating-cached-content",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'gcloud compute url-maps invalidate-cdn-cache URL_MAP_NAME --path \"/images/file.jpg\"'; the path 'can use an explicit filename or an asterisk as a wildcard'; 'Although you can invalidate everything, it's potentially risky. Evaluate your requirements carefully'. The cache invalidation overview (read 2026-11-18): 'invalidating too much might cause a spike in requests' to the origin; 'Invalidate only what you must', using specific paths, hosts or cache tags."
+      }
+    }
+  },
+  "endings": {
+    "originDown": {
+      "label": "Origin overwhelmed after a full invalidation",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Invalidating everything fixed the price and left the origin to take all of the banner traffic."
+    },
+    "bannerWrong": {
+      "label": "Banner traffic sold at 0.99",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 11:00 the CDN was still serving the cached 0.99."
+    },
+    "invalidated": {
+      "label": "Two paths invalidated, TTL shortened",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(curlAt) and not isNull(logsAt) and not isNull(verifiedAt) and causeDoc == \"cache\"",
+      "narrative": "The two paths were invalidated, shoppers see 99.00, and price responses now cache for a minute."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The price is right, but the TTL, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "originDown",
+    "bannerWrong",
+    "invalidated",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared the CDN's copy with the origin and found the affected paths",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(curlAt) and not isNull(logsAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(curlAt) or not isNull(logsAt) or not isNull(scopeAt) or not isNull(origincapAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Correct price by 11:00 with the cache otherwise intact",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"A full invalidation removed the cache the origin depends on.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "TTL shortened and pricing runbook updated; checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"cache\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:25-10:29",
+        "text": "CDN copy 0.99 aged 13 min, origin 99.00; all hits from cache; two paths affected; origin depends on the cache."
+      },
+      {
+        "at": "10:29-10:35",
+        "text": "Invalidate the two paths; TTL 60 s; pricing runbook."
+      },
+      {
+        "at": "10:35-10:37",
+        "text": "CDN returns 99.00; origin load unchanged."
+      }
+    ],
+    "debrief": {
+      "originDown": {
+        "headline": "Invalidate what is wrong, not everything",
+        "body": "The bad price was on two paths. A targeted invalidation fixes them; a full one removes the cache the origin needs at peak, as the documentation warns."
+      },
+      "bannerWrong": {
+        "headline": "A fixed origin is not a fixed cache",
+        "body": "With max-age one day, the CDN serves its copy until it expires. Invalidate the affected paths."
+      },
+      "invalidated": {
+        "headline": "Good: a targeted invalidation",
+        "body": "You confirmed the origin was right and the CDN stale, found exactly which paths carried the price, invalidated only those, checked the price and the origin load, and shortened the TTL."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The origin is correct and the CDN is serving a copy cached with a one-day max-age. Invalidate only the two paths that carry the price; the CDN refetches them and keeps everything else, so the origin's load hardly changes. A full invalidation before a ten-times traffic spike removes the cache the origin depends on; republishing at the origin does nothing for cached copies. Shorten the price TTL and give the pricing team the path list."
+  }
+}

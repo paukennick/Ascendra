@@ -1,0 +1,1023 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "otel-instrumentation-plan-checkout",
+  "title": "Instrumenting twelve services before peak season: agents, manual spans and semantic conventions",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "obs@tinderbox:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "postmortem: checkout slowdown last peak took 4h to localize (no cross-service traces)",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineAuto",
+          "text": "{auto == \"agents\" ? \"Zero-code agents on 8 services\" : auto == \"manualAll\" ? \"Manual on 8 (slow)\" : auto == \"skipLegacy\" ? \"Two of twelve services\" : \"\"}",
+          "when": "auto != \"none\"",
+          "at": "timeAt(autoAt)",
+          "error": "auto == \"skipLegacy\""
+        },
+        {
+          "id": "lineManual",
+          "text": "{manual == \"combine\" ? \"Library and manual spans, propagated\" : manual == \"logsOnly\" ? \"Logs with trace IDs only\" : manual == \"noContext\" ? \"Spans in separate traces\" : \"\"}",
+          "when": "manual != \"none\"",
+          "at": "timeAt(manualAt)",
+          "error": "manual == \"noContext\""
+        },
+        {
+          "id": "lineSemconv",
+          "text": "{semconv == \"conventions\" ? \"Semantic conventions everywhere\" : semconv == \"mapping\" ? \"Team names with a mapping table\" : semconv == \"custom\" ? \"A custom scheme\" : \"\"}",
+          "when": "semconv != \"none\"",
+          "at": "timeAt(semconvAt)",
+          "error": "semconv == \"custom\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nAuto",
+          "label": "8 Java and Python services",
+          "spokenLabel": "8 Java and Python services",
+          "kind": "services",
+          "status": "{auto == \"agents\" ? \"Zero-code agents on 8 services\" : auto == \"manualAll\" ? \"Manual on 8 (slow)\" : auto == \"skipLegacy\" ? \"Two of twelve services\" : \"Waiting\"}",
+          "tone": "auto == \"agents\" ? \"up\" : auto == \"manualAll\" ? \"degraded\" : auto == \"skipLegacy\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nManual",
+          "label": "C++ payment gateway",
+          "spokenLabel": "C++ payment gateway",
+          "kind": "service",
+          "status": "{manual == \"combine\" ? \"Library and manual spans, propagated\" : manual == \"logsOnly\" ? \"Logs with trace IDs only\" : manual == \"noContext\" ? \"Spans in separate traces\" : \"Waiting\"}",
+          "tone": "manual == \"combine\" ? \"up\" : manual == \"logsOnly\" ? \"degraded\" : manual == \"noContext\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nSemconv",
+          "label": "attribute naming",
+          "spokenLabel": "attribute naming",
+          "kind": "conventions",
+          "status": "{semconv == \"conventions\" ? \"Semantic conventions everywhere\" : semconv == \"mapping\" ? \"Team names with a mapping table\" : semconv == \"custom\" ? \"A custom scheme\" : \"Waiting\"}",
+          "tone": "semconv == \"conventions\" ? \"up\" : semconv == \"mapping\" ? \"degraded\" : semconv == \"custom\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nAuto",
+          "to": "nManual",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nManual",
+          "to": "nSemconv",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Choose automatic (agent and library) versus manual instrumentation for a service, and combine them",
+  "secondaryObjectives": [
+    "Analysis and outcomes: what traces, metrics and logs each let you ask, and how correlated telemetry shortens incident response",
+    "Semantic conventions: standard attribute names for HTTP, databases, messaging, resources and more, and why consistency across services matters"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+      "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Java Agent (zero-code)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/zero-code/java/agent",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: a Java agent JAR attached to any Java 8+ application injects bytecode to capture telemetry from many popular libraries and frameworks."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Python zero-code instrumentation",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/zero-code/python/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: opentelemetry-bootstrap installs instrumentation for the libraries present and opentelemetry-instrument runs the app with it, configured by environment variables such as OTEL_SERVICE_NAME; Django and Flask are auto-instrumented."
+    },
+    {
+      "cite": "OpenTelemetry documentation, Context propagation",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: propagated context lets the called service create spans in the same trace; the default propagator uses the W3C TraceContext traceparent header."
+    },
+    {
+      "cite": "OpenTelemetry semantic conventions, HTTP spans (stable)",
+      "checkedAt": "2026-11-17",
+      "url": "https://opentelemetry.io/docs/specs/semconv/http/http-spans",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: the stable HTTP span attributes http.request.method, url.path and http.route; span names use the low-cardinality http.route, never the raw URI path."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the services, the backends and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You lead observability at Tinderbox Games, a fictional online game store. Last Black Friday a checkout slowdown took four hours to find because each service logged differently and nothing linked them. Twelve services, in Java, Python and Go, need instrumenting before this year's peak, six weeks away.",
+    "handover": [
+      "Eight services are Java or Python on common frameworks; two Go services and two in-house C++ services are not.",
+      "Dashboards are built per team with their own attribute names."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-01T09:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "auto": {
+      "type": "enum",
+      "values": [
+        "none",
+        "agents",
+        "manualAll",
+        "skipLegacy"
+      ],
+      "init": "none"
+    },
+    "autoAt": {
+      "type": "time",
+      "init": null
+    },
+    "manual": {
+      "type": "enum",
+      "values": [
+        "none",
+        "combine",
+        "logsOnly",
+        "noContext"
+      ],
+      "init": "none"
+    },
+    "manualAt": {
+      "type": "time",
+      "init": null
+    },
+    "semconv": {
+      "type": "enum",
+      "values": [
+        "none",
+        "conventions",
+        "mapping",
+        "custom"
+      ],
+      "init": "none"
+    },
+    "semconvAt": {
+      "type": "time",
+      "init": null
+    },
+    "invAt": {
+      "type": "time",
+      "init": null
+    },
+    "pmAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((auto == \"skipLegacy\") ? 1 : 0) + ((manual == \"noContext\") ? 1 : 0) + ((semconv == \"custom\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(auto == \"none\" or (auto == \"skipLegacy\") ? 1 : 0) + (manual == \"none\" or (manual == \"noContext\") ? 1 : 0) + (semconv == \"none\" or (semconv == \"custom\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The instrumentation plan",
+      "clock": "turns",
+      "actions": [
+        "inv",
+        "pm"
+      ]
+    },
+    "close": {
+      "label": "Plan record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "inv": {
+      "label": "Read the service inventory",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(invAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "invAt",
+          "to": "t"
+        },
+        {
+          "output": "Java (Spring) x5, Python (Django) x3: supported by zero-code agents\nGo x2: library instrumentation needs code changes\nC++ x2: manual only"
+        },
+        {
+          "log": "You read the inventory.",
+          "kind": "act"
+        },
+        {
+          "finding": "Eight services can get traces, metrics and log correlation from zero-code agents in days; the Go and C++ services need library or manual instrumentation."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "pm": {
+      "label": "Read last year's postmortem",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(pmAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "pmAt",
+          "to": "t"
+        },
+        {
+          "output": "Cause: a payment-provider retry loop in the C++ gateway; found by reading logs service by service"
+        },
+        {
+          "log": "You read the postmortem.",
+          "kind": "act"
+        },
+        {
+          "finding": "The slowdown was inside business logic in a C++ service that no agent would see; only a trace across all services with a manual span there would have pointed at it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the plan record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Agents on the eight framework services, library and manual spans with propagation on the rest, and semantic conventions everywhere"
+                },
+                {
+                  "value": "summary",
+                  "label": "Instrumentation planned"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "auto == \"skipLegacy\"",
+              "then": [
+                {
+                  "log": "Check-in 2: a staging load test slows down in a service nobody instrumented; the traces end at the second hop.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "manual == \"noContext\"",
+              "then": [
+                {
+                  "log": "Check-in 3: in a rehearsal incident, the checkout trace ends at the gateway and its spans are in thousands of unrelated traces.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "semconv == \"custom\"",
+              "then": [
+                {
+                  "log": "Check-in 4: during the rehearsal, a query on the custom route attribute misses every agent-instrumented service; the slow endpoint is not found.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The plan is agreed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_auto",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the plan starts.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "autoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_manual",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the C++ and Go services.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "manualPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_semconv",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: dashboards.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "semconvPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "autoPrompt": {
+      "title": "Eight services on common frameworks",
+      "context": "Zero-code agents cover their frameworks, HTTP clients and database drivers.",
+      "choices": [
+        {
+          "id": "agents",
+          "label": "Use the zero-code agents (Java agent, Python auto-instrumentation) for the eight services this week, configured with OTEL_SERVICE_NAME and resource attributes",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"agents\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "Eight services emit traces within days.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Agents give broad coverage of frameworks, clients and drivers with no code change."
+        },
+        {
+          "id": "manualAll",
+          "label": "Hand-instrument all eight with the API for full control",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"manualAll\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "Hand instrumentation starts on eight services.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Possible, but weeks of work the agents do for free, and it will not be done by peak."
+        },
+        {
+          "id": "skipLegacy",
+          "label": "Instrument only the two newest services; the rest are 'stable'",
+          "effects": [
+            {
+              "set": "auto",
+              "to": "\"skipLegacy\""
+            },
+            {
+              "set": "autoAt",
+              "to": "t"
+            },
+            {
+              "log": "Only two services are instrumented.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A trace that covers two of twelve services cannot show where a request is slow."
+        }
+      ]
+    },
+    "manualPrompt": {
+      "title": "Where no agent reaches",
+      "context": "Last year's cause was a retry loop inside the C++ gateway's business logic.",
+      "choices": [
+        {
+          "id": "combine",
+          "label": "Add library instrumentation to the Go services and manual spans with the API around the C++ gateway's provider calls and retries, propagating W3C trace context so they join the agents' traces",
+          "effects": [
+            {
+              "set": "manual",
+              "to": "\"combine\""
+            },
+            {
+              "set": "manualAt",
+              "to": "t"
+            },
+            {
+              "log": "Manual spans join the automatic ones in one trace.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Manual spans cover the business steps agents can't see; shared context joins them into one trace."
+        },
+        {
+          "id": "logsOnly",
+          "label": "Add structured logs with trace IDs to the C++ gateway, no spans",
+          "effects": [
+            {
+              "set": "manual",
+              "to": "\"logsOnly\""
+            },
+            {
+              "set": "manualAt",
+              "to": "t"
+            },
+            {
+              "log": "The gateway logs with trace IDs.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Logs correlate, but the trace waterfall still shows a gap where the time is spent."
+        },
+        {
+          "id": "noContext",
+          "label": "Add manual spans in the C++ gateway but start a new trace there, to avoid touching headers",
+          "effects": [
+            {
+              "set": "manual",
+              "to": "\"noContext\""
+            },
+            {
+              "set": "manualAt",
+              "to": "t"
+            },
+            {
+              "log": "The gateway starts its own traces.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without propagated context, the gateway's spans sit in separate traces nobody can link to the slow checkout."
+        }
+      ]
+    },
+    "semconvPrompt": {
+      "title": "Each team names attributes its own way",
+      "context": "Teams use url, httpPath, route and endpoint for the same thing.",
+      "choices": [
+        {
+          "id": "conventions",
+          "label": "Adopt the semantic conventions (http.request.method, url.path, http.route, db.system and the like) for all manual spans, and build shared dashboards on them",
+          "effects": [
+            {
+              "set": "semconv",
+              "to": "\"conventions\""
+            },
+            {
+              "set": "semconvAt",
+              "to": "t"
+            },
+            {
+              "log": "One vocabulary across services.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Agents already emit the conventions; manual spans that match them make every dashboard and query work across services."
+        },
+        {
+          "id": "mapping",
+          "label": "Keep team names and maintain a mapping table in the dashboards",
+          "effects": [
+            {
+              "set": "semconv",
+              "to": "\"mapping\""
+            },
+            {
+              "set": "semconvAt",
+              "to": "t"
+            },
+            {
+              "log": "A mapping table is kept.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works until the table is out of date."
+        },
+        {
+          "id": "custom",
+          "label": "Invent a company-wide naming scheme different from the conventions",
+          "effects": [
+            {
+              "set": "semconv",
+              "to": "\"custom\""
+            },
+            {
+              "set": "semconvAt",
+              "to": "t"
+            },
+            {
+              "log": "A new scheme is announced.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The agents still emit the standard names, so every service now has two vocabularies and queries miss half the data."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the instrumentation plan: where you used automatic and manual instrumentation and why, and how the traces will answer last year's question.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Automatic and manual",
+          "criteria": "Agents for the framework services; library and manual spans for Go and C++, joined by propagated context.",
+          "modelAnswer": "Agents cover the eight Java and Python services; Go gets library instrumentation and the C++ gateway manual spans around provider calls, all in one trace."
+        },
+        {
+          "label": "Outcome",
+          "criteria": "Semantic conventions make the traces queryable across services; the slow step would be visible in one trace.",
+          "modelAnswer": "With one trace across all twelve services and standard attributes, last year's retry loop would show as a long span in the gateway."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (auto == \"manualAll\") and (manual == \"logsOnly\") and (semconv == \"mapping\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, OpenTelemetry Certified Associate (OTCA) exam page: Fundamentals of Observability 18%, The OpenTelemetry API and SDK 46%, The OpenTelemetry Collector 26%, Maintaining and Debugging Observability Pipelines 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/opentelemetry-certified-associate-otca/",
+        "note": "Read through a summarizing fetch on 2026-11-17: the four domains and weights above, with context propagation named under the API and SDK domain and under maintaining and debugging pipelines. The objective wording is the course seed's. Reused for REQ-336 from this course's split-traces-b3-propagator (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "autoHarm": {
+      "label": "Traces with holes",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and auto == \"skipLegacy\"",
+      "narrative": "With two of twelve services instrumented, the load test's slowdown was invisible past the second hop."
+    },
+    "manualHarm": {
+      "label": "Broken traces",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and manual == \"noContext\"",
+      "narrative": "The gateway's spans started new traces; the rehearsal incident could not link them to the slow checkout."
+    },
+    "semconvHarm": {
+      "label": "Queries miss half the data",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and semconv == \"custom\"",
+      "narrative": "The custom scheme split the data; queries missed every agent-instrumented service in the rehearsal."
+    },
+    "target": {
+      "label": "One trace across all twelve services",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (auto == \"agents\") and (manual == \"combine\") and (semconv == \"conventions\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Before peak, every request can be followed across all twelve services with consistent attributes."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "autoHarm",
+    "manualHarm",
+    "semconvHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "autoCrit",
+        "label": "Used zero-code agents where they cover the stack",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "auto == \"agents\"",
+            "score": "met",
+            "why": "Agents where they fit."
+          },
+          {
+            "when": "auto == \"manualAll\"",
+            "score": "partial",
+            "why": "Slow for no gain."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Coverage gap."
+          }
+        ]
+      },
+      {
+        "id": "manualCrit",
+        "label": "Added manual spans where the business logic lives and combined them with automatic instrumentation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "manual == \"combine\"",
+            "score": "met",
+            "why": "Combined, with context."
+          },
+          {
+            "when": "manual == \"logsOnly\"",
+            "score": "partial",
+            "why": "Correlated, not traced."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke the trace."
+          }
+        ]
+      },
+      {
+        "id": "semconvCrit",
+        "label": "Adopted semantic conventions across services",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "semconv == \"conventions\"",
+            "score": "met",
+            "why": "One vocabulary."
+          },
+          {
+            "when": "semconv == \"mapping\"",
+            "score": "partial",
+            "why": "A brittle mapping."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fought the standard."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(invAt) and not isNull(pmAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(invAt) or not isNull(pmAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the inventory and last year's postmortem first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Use zero-code agents for the eight framework-based services."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Add library instrumentation to Go and manual spans with propagation in the C++ gateway."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Use the semantic conventions for manual attributes and shared dashboards."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "autoHarm": {
+        "headline": "Cover the request path",
+        "body": "Agents make broad coverage cheap; use them wherever the stack is supported."
+      },
+      "manualHarm": {
+        "headline": "Propagate context",
+        "body": "Manual spans join the trace only if context is propagated across the hop."
+      },
+      "semconvHarm": {
+        "headline": "Use the semantic conventions",
+        "body": "Standard attribute names make telemetry consistent across services and tools."
+      },
+      "target": {
+        "headline": "Good: one trace across all twelve services",
+        "body": "Agents where they fit, manual spans where the logic is, and one vocabulary."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Zero-code agents give broad, cheap coverage of frameworks, HTTP clients and drivers; manual instrumentation through the API covers business logic agents can't see. Combine them, propagating W3C trace context so manual spans join the same traces. Semantic conventions give every service the same attribute names, so dashboards and queries work across the system; correlated traces, metrics and logs are what shorten incident response."
+  }
+}

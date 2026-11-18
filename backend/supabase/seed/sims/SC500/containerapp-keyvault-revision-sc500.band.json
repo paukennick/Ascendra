@@ -1,0 +1,33 @@
+{
+  "band": "sc500",
+  "label": "Cloud and AI Security Engineer (SC-500)",
+  "base": {
+    "course": "AI200",
+    "slug": "ai200-containerapp-keyvault-revision"
+  },
+  "slug": "containerapp-keyvault-revision-sc500",
+  "patch": {
+    "objective": "Securing AKS, Container Registry, Container Instances and Container Apps, and acting on Defender for Containers findings",
+    "secondaryObjectives": [],
+    "sources": [
+      {
+        "cite": "Microsoft Learn, Study guide for Exam SC-500: Implementing End-to-End Security Controls for Cloud and AI Workloads (page last updated 2026-05-13): identity, access and governance 20-25%, storage, databases and networking 25-30%, compute 20-25%, security posture 20-25%",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-500",
+        "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted: 'Configure Azure private endpoints to secure access to Azure platform as a service (PaaS) resources'; 'Implement and configure Azure Firewall'; 'Implement and configure security controls by using Azure Policy, including built-in and custom policy definitions'; 'Implement and configure managed identities for Azure resources'. The objective wording is the course seed's."
+      },
+      {
+        "cite": "Microsoft Learn, 'Update and deploy changes in Azure Container Apps' (revisions), page footer 2025-10-27",
+        "checkedAt": "2026-11-16",
+        "url": "https://learn.microsoft.com/en-us/azure/container-apps/revisions",
+        "note": "Relevant text: single revision mode: 'If an update fails, traffic remains pointed to the old revision'; 'The existing active revision isn't deactivated until the new revision is ready'; a revision is ready when it 'has provisioned successfully', has scaled up and 'All the replicas have passed their startup and readiness probes'; multiple mode lets you 'split traffic between revisions'. Read through a summarizing fetch on 2026-11-14. The az output in the scenario is an authored rendering in the CLI's style. The flags were checked 2026-11-16 against the Azure CLI reference on learn.microsoft.com (summarizing fetch with quotes): 'az containerapp logs show' takes --revision, --tail (default 20) and --type {console, system}; 'az containerapp revision list' takes -n/-g; 'az containerapp revision set-mode --mode {multiple, single}'; 'az containerapp ingress traffic set --revision-weight' takes 'revision_name=weight' pairs; 'az containerapp secret set --secrets' takes 'key=value' or 'key=keyvaultref:keyvaulturl,identityref:identity'; the revisions page says the suffix is set through 'az containerapp create' and 'az containerapp update'. The identity show and role assignment commands were not checked."
+      },
+      {
+        "cite": "Microsoft Learn, 'Manage secrets in Azure Container Apps' (Key Vault references), last updated 2026-09-11",
+        "checkedAt": "2026-11-14",
+        "url": "https://learn.microsoft.com/en-us/azure/container-apps/manage-secrets",
+        "note": "Relevant text: 'To reference a secret from Key Vault, you must first enable managed identity in your container app and grant the identity access to the Key Vault secrets'; 'grant the Azure RBAC role Key Vault Secrets User to the managed identity'; troubleshooting row 'Authentication failed: The managed identity lacks the required permissions to read the secret'; 'If a version isn't specified in the URI ... the app automatically retrieves the latest version within 30 minutes' and active revisions referencing it in an environment variable are restarted. Read through a summarizing fetch on 2026-11-14."
+      }
+    ]
+  }
+}

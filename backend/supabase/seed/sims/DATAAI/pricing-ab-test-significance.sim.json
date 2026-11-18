@@ -1,0 +1,1003 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pricing-ab-test-significance",
+  "title": "A pricing A/B test: peeking, the right test for the data, and a result that's significant but tiny",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "checkout_price_test (A/B results)",
+      "flags": [
+        {
+          "id": "fPeek",
+          "label": "Day 4: p = 0.03",
+          "text": "{peek == \"runFull\" ? \"Full 14 days run\" : peek == \"extend\" ? \"Provisional result shared\" : peek == \"stop\" ? \"Stopped on day 4\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fTest",
+          "label": "Choosing the statistical test",
+          "text": "{test == \"chisq\" ? \"Chi-squared on the 2x2 table, with CI\" : test == \"ttest\" ? \"t-test on 0/1 values\" : test == \"anova\" ? \"ANOVA on skewed order values\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "info"
+        },
+        {
+          "id": "fPractical",
+          "label": "Significant but small",
+          "text": "{practical == \"effect\" ? \"Effect weighed against cost: don't roll out\" : practical == \"pOnly\" ? \"p-value only\" : practical == \"rollOut\" ? \"Rolled out on significance alone\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iPlan",
+          "label": "Read the test plan",
+          "text": "The plan fixed the sample size and duration in advance; stopping early on a p-value inflates false positives.",
+          "when": "not isNull(planAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iDtype",
+          "label": "Read the metric's data type",
+          "text": "Conversion is a yes/no per visitor (counts in a 2x2 table); order value is continuous and skewed.",
+          "when": "not isNull(dtypeAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rPeek",
+              "cells": [
+                "Stopping rule",
+                "{peek == \"runFull\" ? \"Full 14 days run\" : peek == \"extend\" ? \"Provisional result shared\" : peek == \"stop\" ? \"Stopped on day 4\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "peek == \"stop\""
+            },
+            {
+              "id": "rTest",
+              "cells": [
+                "Test fits the data",
+                "{test == \"chisq\" ? \"Chi-squared on the 2x2 table, with CI\" : test == \"ttest\" ? \"t-test on 0/1 values\" : test == \"anova\" ? \"ANOVA on skewed order values\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "test == \"anova\""
+            },
+            {
+              "id": "rPractical",
+              "cells": [
+                "Effect size against cost",
+                "{practical == \"effect\" ? \"Effect weighed against cost: don't roll out\" : practical == \"pOnly\" ? \"p-value only\" : practical == \"rollOut\" ? \"Rolled out on significance alone\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "practical == \"rollOut\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Temporal models compared and contrasted: time series (AR, MA, ARIMA), survival analysis, and causal inference (DAGs, difference-in-differences, A/B testing, RCTs)",
+  "secondaryObjectives": [
+    "Statistical methods and concepts: t-tests, chi-squared tests, ANOVA, hypothesis testing, regression performance metrics (R2, RMSE), and confusion-matrix metrics (precision, recall, F1, MCC)"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst for Copperfield Outdoors, a fictional online outdoor store. A two-week A/B test compares free shipping over 50 dollars (B) against the current 75 dollars (A). The marketing lead checks the dashboard every morning.",
+    "handover": [
+      "Planned: 14 days, 40,000 visitors per arm, primary metric conversion rate, alpha 0.05.",
+      "Day 4: B is ahead with p = 0.03 on the dashboard."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "peek": {
+      "type": "enum",
+      "values": [
+        "none",
+        "runFull",
+        "extend",
+        "stop"
+      ],
+      "init": "none"
+    },
+    "peekAt": {
+      "type": "time",
+      "init": null
+    },
+    "test": {
+      "type": "enum",
+      "values": [
+        "none",
+        "chisq",
+        "ttest",
+        "anova"
+      ],
+      "init": "none"
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "practical": {
+      "type": "enum",
+      "values": [
+        "none",
+        "effect",
+        "pOnly",
+        "rollOut"
+      ],
+      "init": "none"
+    },
+    "practicalAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "dtypeAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((peek == \"stop\") ? 1 : 0) + ((test == \"anova\") ? 1 : 0) + ((practical == \"rollOut\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(peek == \"none\" or (peek == \"stop\") ? 1 : 0) + (test == \"none\" or (test == \"anova\") ? 1 : 0) + (practical == \"none\" or (practical == \"rollOut\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The A/B test",
+      "clock": "turns",
+      "actions": [
+        "plan",
+        "dtype"
+      ]
+    },
+    "close": {
+      "label": "Readout",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "plan": {
+      "label": "Read the test plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "The plan fixed the sample size and duration in advance; stopping early on a p-value inflates false positives."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "dtype": {
+      "label": "Read the metric's data type",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(dtypeAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "dtypeAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the metric.",
+          "kind": "act"
+        },
+        {
+          "finding": "Conversion is a yes/no per visitor (counts in a 2x2 table); order value is continuous and skewed."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the readout",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the readout says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Full duration kept, a chi-squared test with an interval, and the effect weighed against cost (don't roll out)"
+                },
+                {
+                  "value": "summary",
+                  "label": "B wins"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "peek == \"stop\"",
+              "then": [
+                {
+                  "log": "Step 2: over the next month, conversion under B is the same as before, and shipping costs are up 12%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "test == \"anova\"",
+              "then": [
+                {
+                  "log": "Step 3: the readout reports 'no effect' from the order-value test; leadership misreads it as the shipping test failing.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "practical == \"rollOut\"",
+              "then": [
+                {
+                  "log": "Step 4: three months after roll-out, the margin is down 24,000 dollars against the old threshold.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The test readout is due.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_peek",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: the marketing lead wants to stop now.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "peekPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_test",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: day 14; choosing the test.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "testPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_practical",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: the readout.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "practicalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "peekPrompt": {
+      "title": "Stop early?",
+      "context": "B is significant on day 4 of 14.",
+      "choices": [
+        {
+          "id": "runFull",
+          "label": "Run the full 14 days as planned; explain that repeated peeking inflates the false-positive rate",
+          "effects": [
+            {
+              "set": "peek",
+              "to": "\"runFull\""
+            },
+            {
+              "set": "peekAt",
+              "to": "t"
+            },
+            {
+              "log": "The test runs to day 14.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Peeking and stopping on the first significant result inflates false positives well above alpha."
+        },
+        {
+          "id": "extend",
+          "label": "Keep running but report the day-4 result as provisional",
+          "effects": [
+            {
+              "set": "peek",
+              "to": "\"extend\""
+            },
+            {
+              "set": "peekAt",
+              "to": "t"
+            },
+            {
+              "log": "A provisional result is shared.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Honest labelling, but it anchors the team on an early number."
+        },
+        {
+          "id": "stop",
+          "label": "Stop now and roll B out to everyone",
+          "effects": [
+            {
+              "set": "peek",
+              "to": "\"stop\""
+            },
+            {
+              "set": "peekAt",
+              "to": "t"
+            },
+            {
+              "log": "The test stops; B rolls out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "An early significant result is often noise; the decision rests on an inflated false-positive rate."
+        }
+      ]
+    },
+    "testPrompt": {
+      "title": "Which test?",
+      "context": "Conversion: counts of converted and not converted per arm.",
+      "choices": [
+        {
+          "id": "chisq",
+          "label": "A chi-squared test (or two-proportion z-test) on the 2x2 conversion table, with a confidence interval for the difference",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"chisq\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "log": "B's conversion is 3.42% against 3.30%: p = 0.04; 95% CI for the difference 0.01 to 0.23 points.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A yes/no outcome per visitor is a proportion; a chi-squared test with an interval fits."
+        },
+        {
+          "id": "ttest",
+          "label": "A t-test on the 0/1 conversion values",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"ttest\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "log": "A t-test gives a similar p-value.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "With large samples it approximates the proportion test, but it isn't the natural choice and gives no clean interval."
+        },
+        {
+          "id": "anova",
+          "label": "An ANOVA on order values, ignoring conversion",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"anova\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "log": "ANOVA on order values.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "That tests a different, skewed metric than the one pre-registered."
+        }
+      ]
+    },
+    "practicalPrompt": {
+      "title": "Significant, but worth it?",
+      "context": "B raises conversion by 0.12 points; shipping costs rise 9%.",
+      "choices": [
+        {
+          "id": "effect",
+          "label": "Report the effect size and interval against the cost: 0.12 points of conversion is about 18,000 dollars a month against 26,000 dollars of extra shipping, so recommend not rolling out",
+          "effects": [
+            {
+              "set": "practical",
+              "to": "\"effect\""
+            },
+            {
+              "set": "practicalAt",
+              "to": "t"
+            },
+            {
+              "log": "The readout weighs effect against cost.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Statistical significance says the effect is likely real, not that it's worth it."
+        },
+        {
+          "id": "pOnly",
+          "label": "Report p = 0.04 and let marketing decide",
+          "effects": [
+            {
+              "set": "practical",
+              "to": "\"pOnly\""
+            },
+            {
+              "set": "practicalAt",
+              "to": "t"
+            },
+            {
+              "log": "The p-value is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Correct but incomplete: the decision needs the size of the effect."
+        },
+        {
+          "id": "rollOut",
+          "label": "Recommend rolling out: it's significant",
+          "effects": [
+            {
+              "set": "practical",
+              "to": "\"rollOut\""
+            },
+            {
+              "set": "practicalAt",
+              "to": "t"
+            },
+            {
+              "log": "Roll-out is recommended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The change loses money: the gain is smaller than the cost."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the readout: how the test was run and analyzed, and what the business should do.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Method",
+          "criteria": "Pre-registered duration kept; chi-squared on the conversion table with a CI.",
+          "modelAnswer": "We ran all 14 days; a chi-squared test on conversion gives p = 0.04, CI 0.01 to 0.23 points."
+        },
+        {
+          "label": "Decision",
+          "criteria": "Effect size against cost; don't roll out.",
+          "modelAnswer": "The 0.12-point gain is worth about 18,000 dollars a month against 26,000 of shipping, so we recommend keeping the 75-dollar threshold."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (peek == \"extend\") and (test == \"ttest\") and (practical == \"pOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA DataAI DY0-001 V1 Exam Objectives, document version 8.0: Mathematics and Statistics 17%, Modeling, Analysis and Outcomes 24%, Machine Learning 24%, Operations and Processes 22%, Specialized Applications 13%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1d9743d4bef111ef808db6dd7849a8fd",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Class imbalance and mitigations' (oversampling the minority class, undersampling the majority class, SMOTE); 'Model drift causes' (data drift, concept drift); 'Explain the importance of DevOps and MLOps principles in data science' (model deployment, model performance monitoring). The objective wording here is the course seed's. Reused for REQ-336 from this course's loan-data-bias-dataai (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "peekHarm": {
+      "label": "A false win rolled out",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and peek == \"stop\"",
+      "narrative": "Stopped early, B's 'win' was noise: no conversion gain and 12% more shipping cost."
+    },
+    "testHarm": {
+      "label": "The wrong question answered",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and test == \"anova\"",
+      "narrative": "Testing order values instead of conversion answered a different question; leadership misread the result."
+    },
+    "practicalHarm": {
+      "label": "A significant loss",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and practical == \"rollOut\"",
+      "narrative": "Rolled out on significance alone, the change cost more than it gained."
+    },
+    "target": {
+      "label": "A sound experiment and decision",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (peek == \"runFull\") and (test == \"chisq\") and (practical == \"effect\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The test ran as designed and the business avoided a change that would have lost money."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "peekHarm",
+    "testHarm",
+    "practicalHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "peekCrit",
+        "label": "Kept the pre-registered stopping rule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "peek == \"runFull\"",
+            "score": "met",
+            "why": "Pre-registered rule kept."
+          },
+          {
+            "when": "peek == \"extend\"",
+            "score": "partial",
+            "why": "Anchoring."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Stopped early."
+          }
+        ]
+      },
+      {
+        "id": "testCrit",
+        "label": "Used a test that fits the data type",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "test == \"chisq\"",
+            "score": "met",
+            "why": "Right test."
+          },
+          {
+            "when": "test == \"ttest\"",
+            "score": "partial",
+            "why": "Works, imprecise."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong metric and test."
+          }
+        ]
+      },
+      {
+        "id": "practicalCrit",
+        "label": "Weighed effect size against cost, not just the p-value",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "practical == \"effect\"",
+            "score": "met",
+            "why": "Practical significance."
+          },
+          {
+            "when": "practical == \"pOnly\"",
+            "score": "partial",
+            "why": "Incomplete."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored the effect size."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(planAt) and not isNull(dtypeAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(planAt) or not isNull(dtypeAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the plan and the data types before choosing a test."
+      },
+      {
+        "at": "Step 1",
+        "text": "Run the planned duration and explain the peeking problem."
+      },
+      {
+        "at": "Step 2",
+        "text": "Use a chi-squared or two-proportion test with a confidence interval."
+      },
+      {
+        "at": "Step 3",
+        "text": "Weigh the effect size and interval against cost."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "peekHarm": {
+        "headline": "Keep the stopping rule",
+        "body": "Run the pre-registered sample; peeking inflates false positives."
+      },
+      "testHarm": {
+        "headline": "Test the pre-registered metric",
+        "body": "Pick the test that fits the metric's data type."
+      },
+      "practicalHarm": {
+        "headline": "Significant isn't worthwhile",
+        "body": "Report effect size and intervals and weigh them against cost."
+      },
+      "target": {
+        "headline": "Good: a sound experiment and decision",
+        "body": "No peeking, the right test, and practical significance."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "An A/B test is a randomized experiment: its sample size and stopping rule are fixed in advance, because peeking and stopping early inflates false positives. The test fits the data: proportions in a 2x2 table call for a chi-squared or two-proportion test with a confidence interval. Statistical significance is not practical significance; the effect size and its interval are weighed against cost."
+  }
+}

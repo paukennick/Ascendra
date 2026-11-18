@@ -1,0 +1,1138 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "sprint-review-demo-to-working-session",
+  "title": "A Sprint Review that became a slide show: inviting the right people, inspecting the Increment, and changing the backlog",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Sprint 9 of the clinic scheduling app",
+      "commitments": [
+        {
+          "id": "sgoal",
+          "label": "Sprint Goal",
+          "text": "Front-desk staff can book and reschedule an appointment in under a minute."
+        },
+        {
+          "id": "pg",
+          "label": "Product Goal",
+          "text": "Clinics manage all appointments in one app."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wInvite",
+          "label": "Review invitations",
+          "column": "invite == \"stakeholders\" ? \"done\" : invite == \"poOnly\" ? \"blocked\" : invite == \"execs\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "invite == \"execs\""
+        },
+        {
+          "id": "wFormat",
+          "label": "Review format",
+          "column": "format == \"handsOn\" ? \"done\" : format == \"demo\" ? \"blocked\" : format == \"slides\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "format == \"slides\""
+        },
+        {
+          "id": "wAdapt",
+          "label": "Product Backlog after the Review",
+          "column": "adapt == \"updateBacklog\" ? \"done\" : adapt == \"noteIt\" ? \"blocked\" : adapt == \"ignoreFb\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "adapt == \"ignoreFb\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iInvite",
+          "label": "Stakeholders absent",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{invite == \"stakeholders\" ? \"Key stakeholders invited\" : invite == \"poOnly\" ? \"Product Owner only\" : invite == \"execs\" ? \"Executive show\" : \"Due\"}",
+          "open": "invite == \"none\""
+        },
+        {
+          "id": "iFormat",
+          "label": "Increment not inspected",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{format == \"handsOn\" ? \"Stakeholders use the Increment\" : format == \"demo\" ? \"Live demo\" : format == \"slides\" ? \"Slide sign-off\" : \"Due\"}",
+          "open": "format == \"none\""
+        },
+        {
+          "id": "iAdapt",
+          "label": "Feedback not used",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{adapt == \"updateBacklog\" ? \"Backlog adapted in the Review\" : adapt == \"noteIt\" ? \"Feedback noted\" : adapt == \"ignoreFb\" ? \"Roadmap unchanged\" : \"Due\"}",
+          "open": "adapt == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sDevs",
+          "label": "Developers",
+          "spokenLabel": "the Developers' trust",
+          "value": "devs",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPo",
+          "label": "Product Owner",
+          "spokenLabel": "the Product Owner's trust",
+          "value": "po",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSh",
+          "label": "Stakeholders",
+          "spokenLabel": "the stakeholders' trust",
+          "value": "sh",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mInvite",
+          "label": "Daily Scrum, day 1",
+          "at": "86400",
+          "status": "{invite == \"stakeholders\" ? \"Key stakeholders invited\" : invite == \"poOnly\" ? \"Product Owner only\" : invite == \"execs\" ? \"Executive show\" : \"Ahead\"}"
+        },
+        {
+          "id": "mFormat",
+          "label": "Daily Scrum, day 5",
+          "at": "172800",
+          "status": "{format == \"handsOn\" ? \"Stakeholders use the Increment\" : format == \"demo\" ? \"Live demo\" : format == \"slides\" ? \"Slide sign-off\" : \"Ahead\"}"
+        },
+        {
+          "id": "mAdapt",
+          "label": "Sprint Review",
+          "at": "259200",
+          "status": "{adapt == \"updateBacklog\" ? \"Backlog adapted in the Review\" : adapt == \"noteIt\" ? \"Feedback noted\" : adapt == \"ignoreFb\" ? \"Roadmap unchanged\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Running a Sprint Review as a working session with stakeholders that can change the Product Backlog",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's csm-sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+      "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the Scrum Master for a fictional team building a scheduling app for Brightwell Clinics. The last three Sprint Reviews were slide presentations to the Product Owner alone.",
+    "handover": [
+      "Stakeholders (clinic managers, two front-desk leads) have never attended.",
+      "The Product Backlog has not changed after any Review."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "devs": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "po": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sh": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "invite": {
+      "type": "enum",
+      "values": [
+        "none",
+        "stakeholders",
+        "poOnly",
+        "execs"
+      ],
+      "init": "none"
+    },
+    "inviteAt": {
+      "type": "time",
+      "init": null
+    },
+    "format": {
+      "type": "enum",
+      "values": [
+        "none",
+        "handsOn",
+        "demo",
+        "slides"
+      ],
+      "init": "none"
+    },
+    "formatAt": {
+      "type": "time",
+      "init": null
+    },
+    "adapt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "updateBacklog",
+        "noteIt",
+        "ignoreFb"
+      ],
+      "init": "none"
+    },
+    "adaptAt": {
+      "type": "time",
+      "init": null
+    },
+    "reviewsAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(devs, po), sh)"
+    },
+    "missCount": {
+      "expr": "((invite == \"execs\") ? 1 : 0) + ((format == \"slides\") ? 1 : 0) + ((adapt == \"ignoreFb\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(invite == \"none\" or (invite == \"execs\") ? 1 : 0) + (format == \"none\" or (format == \"slides\") ? 1 : 0) + (adapt == \"none\" or (adapt == \"ignoreFb\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The Sprint",
+      "clock": "turns",
+      "actions": [
+        "reviews",
+        "talk"
+      ]
+    },
+    "close": {
+      "label": "Sprint notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "reviews": {
+      "label": "Read the last three Review notes",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(reviewsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "reviewsAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the last three Review notes.",
+          "kind": "act"
+        },
+        {
+          "finding": "Slides of completed items; no stakeholders; no feedback recorded; no backlog changes."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "talk": {
+      "label": "Ask the Product Owner what the Review is for",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(talkAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "talkAt",
+          "to": "t"
+        },
+        {
+          "log": "Ask the Product Owner what the Review is for.",
+          "kind": "act"
+        },
+        {
+          "finding": "She sees it as a sign-off meeting where the team shows progress to her."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Key stakeholders invited, the Increment inspected hands-on, and the Product Backlog adapted in the Review"
+                },
+                {
+                  "value": "summary",
+                  "label": "Sprint closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "invite == \"execs\"",
+              "then": [
+                {
+                  "log": "Day 2: the team spends two days building slides for executives instead of working on the Sprint Goal.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "format == \"slides\"",
+              "then": [
+                {
+                  "log": "Day 6: the rescheduling flow goes to clinics; desk staff take twice as long and revert to phone calls.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "adapt == \"ignoreFb\"",
+              "then": [
+                {
+                  "log": "Day 10: the clinic managers decline the next Review: 'nothing we say changes anything'.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The Sprint ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_invite",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: planning the Review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "invitePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_format",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 5: the Review agenda.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "formatPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_adapt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 9: after the Review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "adaptPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "invitePrompt": {
+      "title": "No stakeholders",
+      "context": "Only the Product Owner attends.",
+      "choices": [
+        {
+          "id": "stakeholders",
+          "label": "With the Product Owner, invite the clinic managers and front-desk leads who will use the app, and explain the Review is where they help decide what's next",
+          "effects": [
+            {
+              "set": "invite",
+              "to": "\"stakeholders\""
+            },
+            {
+              "set": "inviteAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "10"
+            },
+            {
+              "log": "Five stakeholders accept.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Sprint Review inspects the outcome with key stakeholders; without them it cannot adapt to their needs."
+        },
+        {
+          "id": "poOnly",
+          "label": "Keep it to the Product Owner, who represents stakeholders",
+          "effects": [
+            {
+              "set": "invite",
+              "to": "\"poOnly\""
+            },
+            {
+              "set": "inviteAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-15"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Her view is valuable, but stakeholders never see or react to the product."
+        },
+        {
+          "id": "execs",
+          "label": "Invite the clinic group's executives for a polished presentation",
+          "effects": [
+            {
+              "set": "invite",
+              "to": "\"execs\""
+            },
+            {
+              "set": "inviteAt",
+              "to": "t"
+            },
+            {
+              "add": "sh",
+              "by": "-25"
+            },
+            {
+              "log": "Executives are invited.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "It becomes a status presentation, not a working session."
+        }
+      ]
+    },
+    "formatPrompt": {
+      "title": "Slides or the product?",
+      "context": "The team drafts slides again.",
+      "choices": [
+        {
+          "id": "handsOn",
+          "label": "Replace slides with the working Increment: stakeholders try booking and rescheduling themselves while the team watches and takes feedback",
+          "effects": [
+            {
+              "set": "format",
+              "to": "\"handsOn\""
+            },
+            {
+              "set": "formatAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "10"
+            },
+            {
+              "log": "Front-desk leads find rescheduling takes too many steps.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Review is a working session: the team shows what it accomplished and stakeholders inspect and give feedback."
+        },
+        {
+          "id": "demo",
+          "label": "Demo the Increment live, with questions at the end",
+          "effects": [
+            {
+              "set": "format",
+              "to": "\"demo\""
+            },
+            {
+              "set": "formatAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-15"
+            },
+            {
+              "log": "A live demo is given.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better than slides, but stakeholders watch rather than use it."
+        },
+        {
+          "id": "slides",
+          "label": "Present slides of completed items for sign-off",
+          "effects": [
+            {
+              "set": "format",
+              "to": "\"slides\""
+            },
+            {
+              "set": "formatAt",
+              "to": "t"
+            },
+            {
+              "add": "po",
+              "by": "-25"
+            },
+            {
+              "log": "Slides are presented.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody touches the product; the rescheduling problem stays hidden."
+        }
+      ]
+    },
+    "adaptPrompt": {
+      "title": "Feedback with nowhere to go",
+      "context": "Stakeholders asked for faster rescheduling and a waitlist.",
+      "choices": [
+        {
+          "id": "updateBacklog",
+          "label": "The Product Owner reorders the Product Backlog in the Review: faster rescheduling moves to the top, the waitlist is added, and a planned reporting feature drops",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"updateBacklog\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "10"
+            },
+            {
+              "log": "The backlog changes with stakeholders present.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The Product Backlog may be adjusted in the Review to meet new opportunities."
+        },
+        {
+          "id": "noteIt",
+          "label": "Note the feedback for the Product Owner to consider later",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"noteIt\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-15"
+            },
+            {
+              "log": "Notes are taken.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It may change the backlog, but stakeholders do not see their input acted on."
+        },
+        {
+          "id": "ignoreFb",
+          "label": "Keep the backlog as planned; the roadmap is fixed",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"ignoreFb\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "devs",
+              "by": "-25"
+            },
+            {
+              "log": "The plan holds.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The Review changes nothing, so stakeholders stop coming."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the Sprint notes on how the Review worked.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The Review",
+          "criteria": "Stakeholders used the Increment.",
+          "modelAnswer": "Clinic managers and front-desk leads tried booking and rescheduling themselves and found rescheduling too slow."
+        },
+        {
+          "label": "The backlog",
+          "criteria": "Rescheduling up, waitlist added, reporting dropped.",
+          "modelAnswer": "The Product Owner reordered the backlog in the Review with stakeholders present."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (invite == \"poOnly\") and (format == \"demo\") and (adapt == \"noteIt\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Ken Schwaber and Jeff Sutherland, The Scrum Guide (November 2020)",
+        "url": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (the PDF). Daily Scrum: 'The purpose of the Daily Scrum is to inspect progress toward the Sprint Goal and adapt the Sprint Backlog as necessary'; 'a 15-minute event for the Developers of the Scrum Team'. Reused for REQ-336 from this course's csm-sprint-status-meeting-daily-scrum (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "inviteHarm": {
+      "label": "Work lost to slides",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and invite == \"execs\"",
+      "narrative": "Preparing an executive show cost two days of Sprint work."
+    },
+    "formatHarm": {
+      "label": "A flaw shipped",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and format == \"slides\"",
+      "narrative": "Slides hid a rescheduling flaw that reached clinics."
+    },
+    "adaptHarm": {
+      "label": "Stakeholders withdraw",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and adapt == \"ignoreFb\"",
+      "narrative": "Ignoring feedback lost the stakeholders."
+    },
+    "target": {
+      "label": "A Review that changes the product",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (invite == \"stakeholders\") and (format == \"handsOn\") and (adapt == \"updateBacklog\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "Stakeholders shape what comes next, and the team builds what clinics need."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "inviteHarm",
+    "formatHarm",
+    "adaptHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "inviteCrit",
+        "label": "Invited key stakeholders to the Review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "invite == \"stakeholders\"",
+            "score": "met",
+            "why": "Right people."
+          },
+          {
+            "when": "invite == \"poOnly\"",
+            "score": "partial",
+            "why": "Narrow."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Theater."
+          }
+        ]
+      },
+      {
+        "id": "formatCrit",
+        "label": "Made the Review a working session on the Increment",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "format == \"handsOn\"",
+            "score": "met",
+            "why": "Inspected."
+          },
+          {
+            "when": "format == \"demo\"",
+            "score": "partial",
+            "why": "Passive."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not inspected."
+          }
+        ]
+      },
+      {
+        "id": "adaptCrit",
+        "label": "Changed the Product Backlog from the Review",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "adapt == \"updateBacklog\"",
+            "score": "met",
+            "why": "Adapted."
+          },
+          {
+            "when": "adapt == \"noteIt\"",
+            "score": "partial",
+            "why": "Deferred."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unadapted."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(reviewsAt) and not isNull(talkAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(reviewsAt) or not isNull(talkAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the Review notes and talk to the Product Owner first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Invite key stakeholders."
+      },
+      {
+        "at": "Day 5",
+        "text": "Let stakeholders use the Increment."
+      },
+      {
+        "at": "Day 9",
+        "text": "Adapt the Product Backlog during the Review."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "inviteHarm": {
+        "headline": "A working session",
+        "body": "Invite the people who use the product."
+      },
+      "formatHarm": {
+        "headline": "Inspect the Increment",
+        "body": "Stakeholders use it."
+      },
+      "adaptHarm": {
+        "headline": "Adapt from the Review",
+        "body": "The backlog changes from what was learned."
+      },
+      "target": {
+        "headline": "Good: a Review that changes the product",
+        "body": "The right people, the real Increment and an adapted backlog."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The Sprint Review is a working session: the Scrum Team presents the results of its work to key stakeholders, who inspect the Increment, and the Product Backlog may be adjusted to meet new opportunities. Slides and sign-offs without stakeholders turn it into a status meeting."
+  }
+}

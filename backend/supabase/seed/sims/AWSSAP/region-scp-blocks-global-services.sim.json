@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "region-scp-blocks-global-services",
+  "title": "Launch: a new data-residency guardrail blocks every deployment",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "arch@mgmt:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "15:00 pipeline launch-prod: CREATE_FAILED LaunchRole, CloudFront and Route 53 steps AccessDenied; launch deploy at 16:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "16:00: launch deploy failed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "16:00: launch deployed",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "org",
+          "label": "Organization root",
+          "spokenLabel": "the organization",
+          "kind": "management account",
+          "status": "{fixed and not harmed ? \"unchanged\" : \"unchanged\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ou",
+          "label": "OU Workloads",
+          "spokenLabel": "the workloads OU",
+          "kind": "12 accounts",
+          "status": "{harmed ? \"no residency guardrail\" : fixed ? \"eu-only v2 attached\" : \"eu-only attached\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "scp",
+          "label": "SCP eu-only",
+          "spokenLabel": "the residency SCP",
+          "kind": "Deny if Region not eu-central-1/eu-west-1",
+          "status": "{harmed ? \"detached\" : fixed ? \"exempts global services, still denies other Regions\" : \"denies global services too\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "pipe",
+          "label": "Pipeline launch-prod",
+          "spokenLabel": "the deployment pipeline",
+          "kind": "CloudFormation",
+          "status": "{fixed and not harmed ? \"deploys\" : \"IAM, CloudFront, Route 53 denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "scp",
+          "to": "ou",
+          "label": "attached to",
+          "status": "{fixed and not harmed ? \"guarding\" : \"blocking\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "pipe",
+          "to": "ou",
+          "label": "deploys into",
+          "status": "{fixed and not harmed ? \"allowed\" : \"denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Policy enforcement with service control policies (SCPs) and resource control policies (RCPs)",
+  "secondaryObjectives": [
+    "Data residency controls: Region-specific deployments and transfer restrictions"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Solutions Architect - Professional (SAP-C03) exam guide: Architecture Design and Implementation Built for the Cloud 25%, Security, Compliance, and Governance 25%, Cost-Optimized Architecture Design 15%, Resilience, Migration, and Business Continuity 15%, Operational Excellence and Automation 20%",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.aws.amazon.com/aws-certification/latest/solutions-architect-professional-03/solutions-architect-professional-03.html",
+      "note": "Read through a summarizing fetch on 2026-11-18. The domain names and weights match the course seed's units; the Domain 1 page lists 5 task statements and 34 skills, matching the seed unit's 34 objectives in topic. The exam guides index says SAP-C02's last day was November 16, 2026. Objective wording is the course seed's."
+    },
+    {
+      "cite": "AWS IAM User Guide, 'AWS: Denies access to AWS based on the requested Region'",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_aws_deny-requested-region.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Actions in the CloudFront, IAM, Route 53, and Support services should not be denied because these are popular AWS global services with a single endpoint that is physically located in the us-east-1 Region ... the requests would be denied without the NotAction element'; the example's NotAction lists cloudfront, iam, organizations, route53 and support, and the page says to extend it for other global services you use (budgets, globalaccelerator, waf ...). The page covers identity policies; The AWS Organizations page 'SCP evaluation' (read 2026-11-18): a deny in any SCP from the root through the OUs to the account applies to everything beneath it and no allow can override it; an action is allowed only if every level allows it, so SCPs set the maximum available permissions and grant nothing to users or roles themselves. The CloudTrail message in the case is an authored rendering."
+    }
+  ],
+  "brief": {
+    "situation": "You are the cloud architect at Verity Health Analytics, a fictional company whose customer data must stay in the EU. This morning the platform team attached a new SCP, eu-only, to the Workloads OU: it denies every action whose requested Region is not eu-central-1 or eu-west-1. Since then every deployment in Workloads fails. The product launch deploys at 16:00.",
+    "handover": [
+      "The launch stack creates an IAM role, updates a CloudFront distribution and adds Route 53 records.",
+      "The compliance officer signed off the eu-only guardrail; it must stay in force for the regulated accounts."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the organization's OUs, the eu-only SCP and the calls the deployment makes.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3300,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The launch deploys at 16:00; the stack needs about 5 minutes after the policy is fixed."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "trailAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "targetsAt": {
+      "type": "time",
+      "init": null
+    },
+    "roleAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "globals",
+        "role",
+        "cfn"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "trail",
+        "policy",
+        "targets",
+        "role",
+        "exempt",
+        "review",
+        "detach",
+        "admin",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "trail": {
+      "label": "CloudTrail: the pipeline role's AccessDenied events (last hour)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(trailAt)",
+          "then": [
+            {
+              "set": "trailAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@mgmt:~$ aws cloudtrail lookup-events --lookup-attributes AttributeKey=Username,AttributeValue=launch-deployer --max-results 3 ...\n{harmed ? \"(no AccessDenied in the last 10 minutes)\" : fixed ? \"(no AccessDenied in the last 10 minutes)\" : \"iam:CreateRole            AccessDenied  ... with an explicit deny in a service control policy\ncloudfront:UpdateDistribution  AccessDenied  ... explicit deny in a service control policy\nroute53:ChangeResourceRecordSets  AccessDenied  ... explicit deny in a service control policy\"}"
+        },
+        {
+          "finding": "Every failure is an explicit deny from a service control policy, and every one is a global service: IAM, CloudFront, Route 53."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "policy": {
+      "label": "aws organizations describe-policy (eu-only)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(policyAt)",
+          "then": [
+            {
+              "set": "policyAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@mgmt:~$ aws organizations describe-policy --policy-id p-euonly --query Policy.Content --output text\n{harmed ? \"Deny  Action: *  Resource: *\n      Condition: StringNotEquals aws:RequestedRegion [eu-central-1, eu-west-1]  (detached)\" : fixed ? \"Deny  NotAction: iam:*, organizations:*, route53:*, cloudfront:*, support:*, waf:*, budgets:*, sts:*\n      Resource: *  Condition: StringNotEquals aws:RequestedRegion [eu-central-1, eu-west-1]\" : \"Deny  Action: *  Resource: *\n      Condition: StringNotEquals aws:RequestedRegion [eu-central-1, eu-west-1]\"}"
+        },
+        {
+          "finding": "The deny covers every action. Global services such as IAM, CloudFront and Route 53 have one endpoint in us-east-1, so their calls are always 'outside' the allowed Regions."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "targets": {
+      "label": "aws organizations list-policies-for-target --target-id ou-workloads",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(targetsAt)",
+          "then": [
+            {
+              "set": "targetsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@mgmt:~$ aws organizations list-policies-for-target --target-id ou-workloads --filter SERVICE_CONTROL_POLICY\n{harmed ? \"FullAWSAccess\" : fixed ? \"FullAWSAccess, eu-only (v2)\" : \"FullAWSAccess, eu-only\"}"
+        },
+        {
+          "finding": "eu-only is attached to the whole Workloads OU, which holds the regulated accounts."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "role": {
+      "label": "aws iam list-attached-role-policies --role-name launch-deployer",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(roleAt)",
+          "then": [
+            {
+              "set": "roleAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@mgmt:~$ aws iam list-attached-role-policies --role-name launch-deployer\nlaunch-deployer-policy (allows iam:CreateRole on launch-*, cloudfront:*, route53:ChangeResourceRecordSets on the launch zone)"
+        },
+        {
+          "finding": "The role's own permissions allow these calls: the deny comes from above the account."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "exempt": {
+      "label": "Update eu-only to Deny with NotAction for the global services the workloads use, test in the sandbox OU, then update the Workloads policy",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "arch@mgmt:~$ aws organizations update-policy --policy-id p-euonly-test --content file://eu-only-v2.json   # NotAction: iam, organizations, route53, cloudfront, support, waf, budgets, sts\narch@mgmt:~$ ./scp-probe --ou sandbox  # iam:CreateRole OK; ec2:RunInstances us-east-1 DENIED; ec2:RunInstances eu-central-1 OK\narch@mgmt:~$ aws organizations update-policy --policy-id p-euonly --content file://eu-only-v2.json"
+        },
+        {
+          "log": "Calls to global services pass; any regional action outside the two EU Regions is still denied, which is what the residency rule needs. The test OU showed both before the change reached Workloads.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "review": {
+      "label": "Record the exemption list with the compliance officer and add an SCP test to the policy pipeline",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "arch@mgmt:~$ git commit -am 'scp eu-only v2: exempt global services (single us-east-1 endpoint); residency unchanged'\n(compliance sign-off REQ-SEC-118 updated: global service list reviewed)\narch@mgmt:~$ echo 'scp-probe --ou sandbox' >> .github/workflows/scp.yml"
+        },
+        {
+          "log": "The compliance officer has seen why each global service is exempt, and the next SCP change is tested against real calls before it is attached to Workloads.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "detach": {
+      "label": "Detach eu-only from the Workloads OU until after the launch",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "arch@mgmt:~$ aws organizations detach-policy --policy-id p-euonly --target-id ou-workloads\n(no output)"
+        },
+        {
+          "log": "The launch deploys, but every regulated account can now create resources and copy customer data in any Region: the residency control the company signed off is gone.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "admin": {
+      "label": "Attach AdministratorAccess to the launch-deployer role",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "arch@mgmt:~$ aws iam attach-role-policy --role-name launch-deployer --policy-arn arn:aws:iam::aws:policy/AdministratorAccess\n(no output)"
+        },
+        {
+          "log": "An explicit deny in an SCP overrides any allow in the account: the role now has every permission and the same three calls still fail.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Re-run the launch stack's change set in a dry run and probe a non-EU Region",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "arch@mgmt:~$ aws cloudformation create-change-set --stack-name launch-prod ... ; ./scp-probe --account regulated-01\n{harmed ? \"change set: CREATE_COMPLETE\nec2:RunInstances us-east-1: ALLOWED (no residency guardrail)\" : fixed ? \"change set: CREATE_COMPLETE (IAM role, CloudFront, Route 53 included)\nec2:RunInstances us-east-1: DENIED (eu-only v2)\" : \"change set: FAILED (iam:CreateRole explicit deny)\nec2:RunInstances us-east-1: DENIED (eu-only)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "globals",
+                  "label": "The Region-deny SCP had no exemption for global services, whose endpoint is in us-east-1"
+                },
+                {
+                  "value": "role",
+                  "label": "The deployment role lacked IAM permissions"
+                },
+                {
+                  "value": "cfn",
+                  "label": "A CloudFormation template error"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the launch stack deploys in eu-central-1 with its IAM role, CloudFront and DNS changes.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "16:00: the launch deploy fails again; the launch slips.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the deployments failed, how you fixed it without losing the residency control, and how the next SCP change is tested.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the explicit deny to global endpoints.",
+          "modelAnswer": "CloudTrail showed explicit denies from an SCP on IAM, CloudFront and Route 53. eu-only denied every action whose requested Region was not in the EU, and those global services have a single endpoint in us-east-1."
+        },
+        {
+          "label": "Fix",
+          "criteria": "Narrows the deny and keeps the control.",
+          "modelAnswer": "eu-only v2 denies with NotAction for the global services we use, so regional actions outside the EU are still denied. Tested in the sandbox OU first. Detaching it would have removed a signed-off residency control; AdministratorAccess cannot override an SCP deny."
+        },
+        {
+          "label": "Next time",
+          "criteria": "Tests guardrails against real calls.",
+          "modelAnswer": "The exemption list is reviewed with compliance, and the policy pipeline runs a probe in the sandbox OU before any SCP reaches Workloads."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3300,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The launch deploys at 16:00; the stack needs about 5 minutes after the policy is fixed."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The residency guardrail was removed from the regulated accounts."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the SCP unchanged leaves every deployment in Workloads failing.",
+      "source": {
+        "cite": "AWS IAM User Guide, 'AWS: Denies access to AWS based on the requested Region'",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_examples_aws_deny-requested-region.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'Actions in the CloudFront, IAM, Route 53, and Support services should not be denied because these are popular AWS global services with a single endpoint that is physically located in the us-east-1 Region ... the requests would be denied without the NotAction element'; the example's NotAction lists cloudfront, iam, organizations, route53 and support, and the page says to extend it for other global services you use (budgets, globalaccelerator, waf ...). The page covers identity policies; The AWS Organizations page 'SCP evaluation' (read 2026-11-18): a deny in any SCP from the root through the OUs to the account applies to everything beneath it and no allow can override it; an action is allowed only if every level allows it, so SCPs set the maximum available permissions and grant nothing to users or roles themselves. The CloudTrail message in the case is an authored rendering."
+      }
+    }
+  },
+  "endings": {
+    "guardrailRemoved": {
+      "label": "Residency guardrail removed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Detaching the SCP let the launch through and left every regulated account free to use any Region."
+    },
+    "launchSlipped": {
+      "label": "Launch deploy failed again",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 16:00 the SCP still denied IAM, CloudFront and Route 53."
+    },
+    "scoped": {
+      "label": "Guardrail scoped, launch deployed, test added",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(trailAt) and not isNull(policyAt) and not isNull(verifiedAt) and causeDoc == \"globals\"",
+      "narrative": "eu-only now exempts global services and still denies other Regions; the launch deployed."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The launch deployed, but the sign-off, the test, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "guardrailRemoved",
+    "launchSlipped",
+    "scoped",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the explicit deny and the SCP's content",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(trailAt) and not isNull(policyAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(trailAt) or not isNull(policyAt) or not isNull(targetsAt) or not isNull(roleAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Launch deployed by 16:00 with the residency rule still enforced",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The residency guardrail was removed from the regulated accounts.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Exemptions reviewed with compliance, SCP test added, result checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"globals\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:00-15:04",
+        "text": "CloudTrail: explicit SCP deny on IAM, CloudFront, Route 53; eu-only denies all actions; attached to Workloads; the role allows the calls."
+      },
+      {
+        "at": "15:04-15:11",
+        "text": "eu-only v2 with NotAction for global services, tested in sandbox, applied; sign-off and an SCP test in the pipeline."
+      },
+      {
+        "at": "15:11-15:13",
+        "text": "Change set completes; us-east-1 EC2 still denied."
+      }
+    ],
+    "debrief": {
+      "guardrailRemoved": {
+        "headline": "The control was right; its scope was wrong",
+        "body": "The deny was meant for regional actions. Exempting global services keeps the residency rule and lets the deployment work; removing it breaks a signed-off compliance control."
+      },
+      "launchSlipped": {
+        "headline": "No IAM allow beats an SCP deny",
+        "body": "An SCP sets the maximum for every principal in the account. Fix the SCP (NotAction for global services); permissions inside the account cannot override it."
+      },
+      "scoped": {
+        "headline": "Good: guardrail kept, scope corrected",
+        "body": "You read the deny in CloudTrail, saw the policy covered global services with us-east-1 endpoints, tested an exemption list in a sandbox OU, kept the residency rule, and put an SCP test in the pipeline."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The failures are explicit denies from an SCP, all on global services whose single endpoint is in us-east-1, so a Region deny on every action blocks them. Keep the residency rule and narrow it: deny with NotAction for the global services the workloads use, test it in a sandbox OU, then apply it. Detaching the SCP removes a compliance control; no IAM allow can override an SCP deny. Then review the exemptions with compliance and test SCP changes before they reach production OUs."
+  }
+}

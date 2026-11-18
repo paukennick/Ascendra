@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "payroll-service-utility-warranty-sla",
+  "title": "A payroll service that 'works': utility, warranty, outcomes and what the service level agreement should say",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tUw",
+          "ref": "REQ-8101",
+          "kind": "request",
+          "title": "Rewrite the payroll service description",
+          "when": "p >= 1",
+          "at": "86400",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{uw == \"both\" ? \"Utility and warranty described\" : uw == \"addFeatures\" ? \"More utility\" : uw == \"unchanged\" ? \"Functions only\" : \"Due\"}",
+          "open": "uw == \"none\"",
+          "due": "172800"
+        },
+        {
+          "id": "tOut",
+          "ref": "PRB-8102",
+          "kind": "problem",
+          "title": "What the agreement measures",
+          "when": "p >= 2",
+          "at": "172800",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{out == \"outcomes\" ? \"Outcome measures agreed\" : out == \"moreOutputs\" ? \"More outputs\" : out == \"files\" ? \"Files on time\" : \"Due\"}",
+          "open": "out == \"none\"",
+          "due": "259200"
+        },
+        {
+          "id": "tSla",
+          "ref": "CHG-8103",
+          "kind": "change",
+          "title": "Renegotiate the agreement",
+          "when": "p >= 3",
+          "at": "259200",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{sla == \"agreed\" ? \"Agreed, measured service levels\" : sla == \"internal\" ? \"Internal targets\" : sla == \"vague\" ? \"Best effort\" : \"Due\"}",
+          "open": "sla == \"none\"",
+          "due": "345600"
+        }
+      ],
+      "services": [
+        {
+          "id": "vUw",
+          "label": "Payroll service",
+          "spokenLabel": "Payroll service",
+          "status": "{uw == \"both\" ? \"Utility and warranty described\" : uw == \"addFeatures\" ? \"More utility\" : uw == \"unchanged\" ? \"Functions only\" : \"Normal service\"}",
+          "tone": "uw == \"both\" ? \"ok\" : uw == \"addFeatures\" ? \"degraded\" : uw == \"unchanged\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vOut",
+          "label": "Pay queries",
+          "spokenLabel": "Pay queries",
+          "status": "{out == \"outcomes\" ? \"Outcome measures agreed\" : out == \"moreOutputs\" ? \"More outputs\" : out == \"files\" ? \"Files on time\" : \"Normal service\"}",
+          "tone": "out == \"outcomes\" ? \"ok\" : out == \"moreOutputs\" ? \"degraded\" : out == \"files\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vSla",
+          "label": "Service agreement",
+          "spokenLabel": "Service agreement",
+          "status": "{sla == \"agreed\" ? \"Agreed, measured service levels\" : sla == \"internal\" ? \"Internal targets\" : sla == \"vague\" ? \"Best effort\" : \"Normal service\"}",
+          "tone": "sla == \"agreed\" ? \"ok\" : sla == \"internal\" ? \"degraded\" : sla == \"vague\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Analyzing a service description for its utility, warranty, user experience and sustainability",
+  "secondaryObjectives": [
+    "Telling an output from an outcome in a scenario",
+    "Explaining the service journey, service quality, service levels and what a service level agreement records"
+  ],
+  "sources": [
+    {
+      "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+      "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+      "checkedAt": "2026-11-16",
+      "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the service owner for a payroll service your company, Ridgeway Shared Services (fictional), provides to three hospitals. The service runs every payroll on time, yet the hospitals are unhappy.",
+    "handover": [
+      "The agreement measures 'payroll files produced on time'.",
+      "Staff queries about pay take two weeks to answer."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a day at a time. A decision comes to you at each service review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cust": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "uw": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "addFeatures",
+        "unchanged"
+      ],
+      "init": "none"
+    },
+    "uwAt": {
+      "type": "time",
+      "init": null
+    },
+    "out": {
+      "type": "enum",
+      "values": [
+        "none",
+        "outcomes",
+        "moreOutputs",
+        "files"
+      ],
+      "init": "none"
+    },
+    "outAt": {
+      "type": "time",
+      "init": null
+    },
+    "sla": {
+      "type": "enum",
+      "values": [
+        "none",
+        "agreed",
+        "internal",
+        "vague"
+      ],
+      "init": "none"
+    },
+    "slaAt": {
+      "type": "time",
+      "init": null
+    },
+    "descAt": {
+      "type": "time",
+      "init": null
+    },
+    "complAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(cust, users), team)"
+    },
+    "missCount": {
+      "expr": "((uw == \"unchanged\") ? 1 : 0) + ((out == \"files\") ? 1 : 0) + ((sla == \"vague\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(uw == \"none\" or (uw == \"unchanged\") ? 1 : 0) + (out == \"none\" or (out == \"files\") ? 1 : 0) + (sla == \"none\" or (sla == \"vague\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Service review",
+      "clock": "turns",
+      "actions": [
+        "desc",
+        "compl"
+      ]
+    },
+    "close": {
+      "label": "Service record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "desc": {
+      "label": "Read the service description",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(descAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "descAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the service description.",
+          "kind": "act"
+        },
+        {
+          "finding": "It describes what payroll does (utility) but nothing about availability during the pay run, query response or security (warranty)."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "compl": {
+      "label": "Read the hospitals' complaints",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(complAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "complAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the hospitals' complaints.",
+          "kind": "act"
+        },
+        {
+          "finding": "Nurses get pay errors fixed weeks late; the hospitals care about staff paid correctly, not files produced."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Utility and warranty described, outcome measures agreed, and an SLA with measurable levels"
+                },
+                {
+                  "value": "summary",
+                  "label": "Service reviewed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "uw == \"unchanged\"",
+              "then": [
+                {
+                  "log": "Day 2: the system is down on pay day morning; the hospitals discover nothing in the description covers it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "out == \"files\"",
+              "then": [
+                {
+                  "log": "Day 3: the agreement shows 100% green while 40 nurses wait three weeks for corrected pay; a hospital threatens to leave.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sla == \"vague\"",
+              "then": [
+                {
+                  "log": "Day 4: a hospital disputes a pay-week outage and there's nothing measurable to settle it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The service review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_uw",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: the description.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "uwPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_out",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: what is measured.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "outPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sla",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the agreement.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "slaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "uwPrompt": {
+      "title": "What the service promises",
+      "context": "The description lists functions only.",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Rewrite the description with utility (what it does) and warranty (availability in pay week, query response within 2 days, security, capacity at year-end)",
+          "effects": [
+            {
+              "set": "uw",
+              "to": "\"both\""
+            },
+            {
+              "set": "uwAt",
+              "to": "t"
+            },
+            {
+              "log": "The description covers both.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A service is fit for purpose (utility) and fit for use (warranty); both must be described."
+        },
+        {
+          "id": "addFeatures",
+          "label": "Add more features to the description",
+          "effects": [
+            {
+              "set": "uw",
+              "to": "\"addFeatures\""
+            },
+            {
+              "set": "uwAt",
+              "to": "t"
+            },
+            {
+              "log": "Features added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Warranty is still missing."
+        },
+        {
+          "id": "unchanged",
+          "label": "Keep the description: payroll runs",
+          "effects": [
+            {
+              "set": "uw",
+              "to": "\"unchanged\""
+            },
+            {
+              "set": "uwAt",
+              "to": "t"
+            },
+            {
+              "log": "No change.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without warranty, nobody agreed on availability or response."
+        }
+      ]
+    },
+    "outPrompt": {
+      "title": "Files on time, staff unhappy",
+      "context": "The agreement measures files produced.",
+      "choices": [
+        {
+          "id": "outcomes",
+          "label": "Measure outcomes: staff paid correctly first time and pay errors fixed within 2 days, alongside the output",
+          "effects": [
+            {
+              "set": "out",
+              "to": "\"outcomes\""
+            },
+            {
+              "set": "outAt",
+              "to": "t"
+            },
+            {
+              "log": "Outcome measures are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Outputs are what the service produces; outcomes are what the customer achieves. Value comes from outcomes."
+        },
+        {
+          "id": "moreOutputs",
+          "label": "Add more output measures",
+          "effects": [
+            {
+              "set": "out",
+              "to": "\"moreOutputs\""
+            },
+            {
+              "set": "outAt",
+              "to": "t"
+            },
+            {
+              "log": "More outputs.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Still not what the hospitals value."
+        },
+        {
+          "id": "files",
+          "label": "Keep measuring files on time",
+          "effects": [
+            {
+              "set": "out",
+              "to": "\"files\""
+            },
+            {
+              "set": "outAt",
+              "to": "t"
+            },
+            {
+              "log": "No change.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The service hits its target while staff stay unpaid."
+        }
+      ]
+    },
+    "slaPrompt": {
+      "title": "What it records",
+      "context": "The hospitals want it renegotiated.",
+      "choices": [
+        {
+          "id": "agreed",
+          "label": "Agree service levels with the hospitals (availability in pay week, query response, accuracy), how they're measured and reported, and review dates",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"agreed\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "log": "A new agreement is signed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An SLA records agreed, measurable service levels and how they are reported."
+        },
+        {
+          "id": "internal",
+          "label": "Set internal targets only",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"internal\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "log": "Internal targets.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The customer never agreed them."
+        },
+        {
+          "id": "vague",
+          "label": "Promise 'best effort' service",
+          "effects": [
+            {
+              "set": "sla",
+              "to": "\"vague\""
+            },
+            {
+              "set": "slaAt",
+              "to": "t"
+            },
+            {
+              "log": "Best effort.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing to measure or hold anyone to."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the service record for the hospitals' account manager.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Description",
+          "criteria": "Utility and warranty; outputs versus outcomes.",
+          "modelAnswer": "The description now covers what payroll does and how well: availability, response, security and capacity. We measure staff paid correctly, not files produced."
+        },
+        {
+          "label": "Agreement",
+          "criteria": "Agreed, measured service levels with reporting and reviews.",
+          "modelAnswer": "The new agreement records pay-week availability, query response and accuracy, measured and reported monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (uw == \"addFeatures\") and (out == \"moreOutputs\") and (sla == \"internal\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PeopleCert, ITIL Foundation Syllabus, Version 5.0 (February 2026), as printed in Van Haren's ITIL 5 Foundation Courseware (July 2026), sample pages",
+        "url": "https://download.boekhuis.nl/9789401814720_fragm-docb.pdf",
+        "checkedAt": "2026-11-16",
+        "note": "Read 2026-11-16 directly (PDF). Learning outcomes 1.5.5 'Define service quality, service level', 1.5.6 'Define Service Level Agreement (SLA)', 4.4.3 'Define incident, event', 4.4.7 'Define service request', 4.4.8 'Define disaster, problem, error, and known error', 4.4.10 'Distinguish between a problem, an error and a known error'. The fragment states the outcomes but does not print the definitions. Reused for REQ-336 from this course's monday-service-desk-wifi-problem (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "uwHarm": {
+      "label": "No promise for pay day",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and uw == \"unchanged\"",
+      "narrative": "Pay day downtime wasn't covered by any warranty in the description."
+    },
+    "outHarm": {
+      "label": "Green while failing",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and out == \"files\"",
+      "narrative": "The output target was green while nurses waited weeks for pay."
+    },
+    "slaHarm": {
+      "label": "An unsettled dispute",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sla == \"vague\"",
+      "narrative": "With 'best effort', a pay-week outage dispute had nothing to settle it."
+    },
+    "target": {
+      "label": "A service described and measured by its value",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (uw == \"both\") and (out == \"outcomes\") and (sla == \"agreed\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "The hospitals' agreement now reflects what they value, and the service is measured on it."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "uwHarm",
+    "outHarm",
+    "slaHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "uwCrit",
+        "label": "Described both utility and warranty",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "uw == \"both\"",
+            "score": "met",
+            "why": "Complete."
+          },
+          {
+            "when": "uw == \"addFeatures\"",
+            "score": "partial",
+            "why": "Utility only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Incomplete."
+          }
+        ]
+      },
+      {
+        "id": "outCrit",
+        "label": "Measured outcomes the customer values",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "out == \"outcomes\"",
+            "score": "met",
+            "why": "Outcomes."
+          },
+          {
+            "when": "out == \"moreOutputs\"",
+            "score": "partial",
+            "why": "Outputs."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong measure."
+          }
+        ]
+      },
+      {
+        "id": "slaCrit",
+        "label": "Recorded agreed service levels the customer and provider share",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sla == \"agreed\"",
+            "score": "met",
+            "why": "Agreed."
+          },
+          {
+            "when": "sla == \"internal\"",
+            "score": "partial",
+            "why": "Not shared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmeasurable."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(descAt) and not isNull(complAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(descAt) or not isNull(complAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the service description and the hospitals' complaints first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Describe utility and warranty."
+      },
+      {
+        "at": "Day 2",
+        "text": "Measure staff paid correctly and errors fixed in 2 days."
+      },
+      {
+        "at": "Day 3",
+        "text": "Agree measurable service levels, reporting and reviews."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "uwHarm": {
+        "headline": "Utility and warranty",
+        "body": "Describe what it does and how well it is delivered."
+      },
+      "outHarm": {
+        "headline": "Measure outcomes",
+        "body": "Value is in the customer's outcomes."
+      },
+      "slaHarm": {
+        "headline": "Record agreed levels",
+        "body": "An SLA records measurable, agreed service levels."
+      },
+      "target": {
+        "headline": "Good: a service described and measured by its value",
+        "body": "Utility and warranty, outcomes, and an agreed SLA."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A service's value comes from outcomes for the consumer, not outputs: payroll files on time matter less than staff paid correctly. A service description covers utility (fit for purpose) and warranty (availability, capacity, security, continuity), and a service level agreement records measurable levels agreed with the customer."
+  }
+}

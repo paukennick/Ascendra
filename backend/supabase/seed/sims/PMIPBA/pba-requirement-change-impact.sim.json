@@ -1,0 +1,1163 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pba-requirement-change-impact",
+  "title": "Requirements in flight: a change request traced for impact, status that tells the truth, and a requirement nobody tested",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Planning portal requirements, week {p}",
+      "commitments": [
+        {
+          "id": "base",
+          "label": "Requirements baseline",
+          "text": "64 requirements signed off; changes through impact analysis and the change board."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wChg",
+          "label": "Change request: 3D uploads",
+          "column": "chg == \"impact\" ? \"done\" : chg == \"smallNow\" ? \"risk\" : chg == \"justDo\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "chg == \"justDo\""
+        },
+        {
+          "id": "wStat",
+          "label": "Requirements status",
+          "column": "stat == \"report\" ? \"done\" : stat == \"counts\" ? \"risk\" : stat == \"hide\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "stat == \"hide\""
+        },
+        {
+          "id": "wTest",
+          "label": "R-41 fee calculator",
+          "column": "test == \"addTest\" ? \"done\" : test == \"demo\" ? \"risk\" : test == \"assume\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "test == \"assume\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iChg",
+          "label": "Uncontrolled requirement change",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{chg == \"impact\" ? \"Impact assessed; board decided\" : chg == \"smallNow\" ? \"Simplified change without control\" : chg == \"justDo\" ? \"Change added directly\" : \"Due\"}",
+          "open": "chg == \"none\""
+        },
+        {
+          "id": "iStat",
+          "label": "Status hides conflicts",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{stat == \"report\" ? \"Status, conflicts and risks reported\" : stat == \"counts\" ? \"Counts only\" : stat == \"hide\" ? \"Conflict hidden\" : \"Due\"}",
+          "open": "stat == \"none\""
+        },
+        {
+          "id": "iTest",
+          "label": "Requirement without evidence",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{test == \"addTest\" ? \"R-41 tested and traced\" : test == \"demo\" ? \"Demo only\" : test == \"assume\" ? \"Marked delivered untested\" : \"Due\"}",
+          "open": "test == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business stakeholders",
+          "spokenLabel": "the business stakeholders' support",
+          "value": "biz",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mChg",
+          "label": "Change board",
+          "at": "604800",
+          "status": "{chg == \"impact\" ? \"Impact assessed; board decided\" : chg == \"smallNow\" ? \"Simplified change without control\" : chg == \"justDo\" ? \"Change added directly\" : \"Due\"}"
+        },
+        {
+          "id": "mStat",
+          "label": "Status meeting",
+          "at": "1209600",
+          "status": "{stat == \"report\" ? \"Status, conflicts and risks reported\" : stat == \"counts\" ? \"Counts only\" : stat == \"hide\" ? \"Conflict hidden\" : \"Due\"}"
+        },
+        {
+          "id": "mTest",
+          "label": "Release readiness",
+          "at": "1814400",
+          "status": "{test == \"addTest\" ? \"R-41 tested and traced\" : test == \"demo\" ? \"Demo only\" : test == \"assume\" ? \"Marked delivered untested\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Managing requirement changes by assessing impact, dependencies, and risk against the change-control plan and requirements baseline",
+  "secondaryObjectives": [
+    "Communicating requirements status to the project manager and stakeholders: issues, conflicts, changes, risks, and overall status",
+    "Tracking requirements using traceability artifacts/tools to provide evidence of delivery against what was stated"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+      "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the business analyst for a fictional council's planning-permission portal. The requirements baseline was signed off; build is half done. The planning director asks for an urgent change.",
+    "handover": [
+      "Traceability matrix links 64 requirements to designs and test cases.",
+      "Change control: impact analysis, then the change board."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "biz": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "chg": {
+      "type": "enum",
+      "values": [
+        "none",
+        "impact",
+        "smallNow",
+        "justDo"
+      ],
+      "init": "none"
+    },
+    "chgAt": {
+      "type": "time",
+      "init": null
+    },
+    "stat": {
+      "type": "enum",
+      "values": [
+        "none",
+        "report",
+        "counts",
+        "hide"
+      ],
+      "init": "none"
+    },
+    "statAt": {
+      "type": "time",
+      "init": null
+    },
+    "test": {
+      "type": "enum",
+      "values": [
+        "none",
+        "addTest",
+        "demo",
+        "assume"
+      ],
+      "init": "none"
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "rtmAt": {
+      "type": "time",
+      "init": null
+    },
+    "coverAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), biz)"
+    },
+    "missCount": {
+      "expr": "((chg == \"justDo\") ? 1 : 0) + ((stat == \"hide\") ? 1 : 0) + ((test == \"assume\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(chg == \"none\" or (chg == \"justDo\") ? 1 : 0) + (stat == \"none\" or (stat == \"hide\") ? 1 : 0) + (test == \"none\" or (test == \"assume\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((chg == \"smallNow\") ? 0.04 : (chg == \"justDo\") ? 0.09 : 0) - ((stat == \"counts\") ? 0.04 : (stat == \"hide\") ? 0.09 : 0) - ((test == \"demo\") ? 0.04 : (test == \"assume\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((chg == \"smallNow\") ? 0.03 : (chg == \"justDo\") ? 0.08 : 0) - ((stat == \"counts\") ? 0.03 : (stat == \"hide\") ? 0.08 : 0) - ((test == \"demo\") ? 0.03 : (test == \"assume\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Requirements monitoring",
+      "clock": "turns",
+      "actions": [
+        "rtm",
+        "cover"
+      ]
+    },
+    "close": {
+      "label": "Requirements status record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "rtm": {
+      "label": "Trace the requested change through the matrix",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(rtmAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "rtmAt",
+          "to": "t"
+        },
+        {
+          "log": "Trace the requested change through the matrix.",
+          "kind": "act"
+        },
+        {
+          "finding": "The change (applicants upload plans as 3D models) touches 9 requirements, the document store, two test suites and a data-retention rule."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "cover": {
+      "label": "Check the matrix for requirements without tests",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(coverAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "coverAt",
+          "to": "t"
+        },
+        {
+          "log": "Check the matrix for requirements without tests.",
+          "kind": "act"
+        },
+        {
+          "finding": "Requirement R-41 (accessible fee calculator) has no linked test case."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The change assessed and taken to the board, status with conflicts reported, and R-41 tested and traced"
+                },
+                {
+                  "value": "summary",
+                  "label": "Requirements on track"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "chg == \"justDo\"",
+              "then": [
+                {
+                  "log": "Week 2: the 3D upload breaks the document store's retention rule; the release fails its records audit.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "stat == \"hide\"",
+              "then": [
+                {
+                  "log": "Week 3: the release date is announced; the four blocked requirements surface in testing and the date slips.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "test == \"assume\"",
+              "then": [
+                {
+                  "log": "Week 4: after release, screen-reader users can't use the fee calculator; a complaint goes to the council.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_chg",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the change request.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "chgPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_stat",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: requirements status.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "statPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_test",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: R-41.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "testPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "chgPrompt": {
+      "title": "An urgent change",
+      "context": "The planning director wants 3D model uploads in this release.",
+      "choices": [
+        {
+          "id": "impact",
+          "label": "Trace its impact (9 requirements, storage, tests, retention, 3 weeks, 40 thousand dollars), assess the risk, and take it to the change board with options",
+          "effects": [
+            {
+              "set": "chg",
+              "to": "\"impact\""
+            },
+            {
+              "set": "chgAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "10"
+            },
+            {
+              "log": "The board defers it to release 2 with the impact on record.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Changes to a baselined set go through impact analysis and change control."
+        },
+        {
+          "id": "smallNow",
+          "label": "Add a simplified version without the board",
+          "effects": [
+            {
+              "set": "chg",
+              "to": "\"smallNow\""
+            },
+            {
+              "set": "chgAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-15"
+            },
+            {
+              "log": "A simplified version is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Even a small change to the baseline needs control and traced impact."
+        },
+        {
+          "id": "justDo",
+          "label": "Add it to the build because the director asked",
+          "effects": [
+            {
+              "set": "chg",
+              "to": "\"justDo\""
+            },
+            {
+              "set": "chgAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-25"
+            },
+            {
+              "log": "It's added.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Untraced, the change breaks dependent requirements and the retention rule."
+        }
+      ]
+    },
+    "statPrompt": {
+      "title": "Reporting status",
+      "context": "Four requirements are blocked by a design conflict.",
+      "choices": [
+        {
+          "id": "report",
+          "label": "Report status by requirement state, the four blocked by the conflict with options, the deferred change, and the risks, to the PM and stakeholders",
+          "effects": [
+            {
+              "set": "stat",
+              "to": "\"report\""
+            },
+            {
+              "set": "statAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Stakeholders see the real status.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Requirements status includes issues, conflicts, changes and risks, not just counts."
+        },
+        {
+          "id": "counts",
+          "label": "Report '60 of 64 on track'",
+          "effects": [
+            {
+              "set": "stat",
+              "to": "\"counts\""
+            },
+            {
+              "set": "statAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "Counts are reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The four blocked ones are the important part."
+        },
+        {
+          "id": "hide",
+          "label": "Leave the conflict out until it's solved",
+          "effects": [
+            {
+              "set": "stat",
+              "to": "\"hide\""
+            },
+            {
+              "set": "statAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "The conflict isn't reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The PM plans the release without knowing four requirements are blocked."
+        }
+      ]
+    },
+    "testPrompt": {
+      "title": "A requirement with no test",
+      "context": "The accessible fee calculator has no linked test case.",
+      "choices": [
+        {
+          "id": "addTest",
+          "label": "Get acceptance tests written and linked for R-41, run them, and record the evidence in the matrix",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"addTest\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "R-41 is tested and traced.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Traceability provides evidence that each requirement was delivered."
+        },
+        {
+          "id": "demo",
+          "label": "Ask the developer to demo it",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"demo\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "A demo is held.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A demo is not repeatable evidence."
+        },
+        {
+          "id": "assume",
+          "label": "Mark it delivered: the screen exists",
+          "effects": [
+            {
+              "set": "test",
+              "to": "\"assume\""
+            },
+            {
+              "set": "testAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "It's marked delivered.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Untested, the calculator's accessibility is unknown."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the requirements status record for the project manager.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Change and status",
+          "criteria": "Impact traced; board deferred; conflicts and risks reported.",
+          "modelAnswer": "The 3D upload change touched 9 requirements, storage, tests and retention; the board deferred it. Four requirements are blocked by a design conflict, with options."
+        },
+        {
+          "label": "Evidence",
+          "criteria": "R-41 tested and linked.",
+          "modelAnswer": "R-41 had no test; it now has linked acceptance tests that passed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (chg == \"smallNow\") and (stat == \"counts\") and (test == \"demo\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+        "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "chgHarm": {
+      "label": "A failed audit",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and chg == \"justDo\"",
+      "narrative": "The uncontrolled change broke the retention rule and the release failed its audit."
+    },
+    "statHarm": {
+      "label": "A slipped date",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and stat == \"hide\"",
+      "narrative": "Unreported blocked requirements surfaced in testing and the announced date slipped."
+    },
+    "testHarm": {
+      "label": "An untested requirement failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and test == \"assume\"",
+      "narrative": "The untested calculator failed screen-reader users after release."
+    },
+    "target": {
+      "label": "Requirements controlled and evidenced",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (chg == \"impact\") and (stat == \"report\") and (test == \"addTest\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "Changes were controlled, status was honest, and every requirement has evidence."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "chgHarm",
+    "statHarm",
+    "testHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "chgCrit",
+        "label": "Assessed the change's impact against the baseline and took it to change control",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "chg == \"impact\"",
+            "score": "met",
+            "why": "Controlled."
+          },
+          {
+            "when": "chg == \"smallNow\"",
+            "score": "partial",
+            "why": "Uncontrolled, partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uncontrolled."
+          }
+        ]
+      },
+      {
+        "id": "statCrit",
+        "label": "Communicated requirements status, conflicts and risks openly",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "stat == \"report\"",
+            "score": "met",
+            "why": "Transparent."
+          },
+          {
+            "when": "stat == \"counts\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Hidden."
+          }
+        ]
+      },
+      {
+        "id": "testCrit",
+        "label": "Closed the traceability gap with evidence of delivery",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "test == \"addTest\"",
+            "score": "met",
+            "why": "Evidence."
+          },
+          {
+            "when": "test == \"demo\"",
+            "score": "partial",
+            "why": "Weak evidence."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No evidence."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(rtmAt) and not isNull(coverAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(rtmAt) or not isNull(coverAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Trace the change and check test coverage before deciding."
+      },
+      {
+        "at": "Week 1",
+        "text": "Trace the impact and take it to the change board."
+      },
+      {
+        "at": "Week 2",
+        "text": "Report states, conflicts, changes and risks."
+      },
+      {
+        "at": "Week 3",
+        "text": "Add and run linked tests for R-41."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "chgHarm": {
+        "headline": "Trace and control changes",
+        "body": "Impact analysis against the baseline, then change control."
+      },
+      "statHarm": {
+        "headline": "Report conflicts",
+        "body": "Status includes issues and conflicts."
+      },
+      "testHarm": {
+        "headline": "Trace to tests",
+        "body": "Each requirement needs evidence of delivery."
+      },
+      "target": {
+        "headline": "Good: requirements controlled and evidenced",
+        "body": "Impact analysis, transparent status, and full traceability."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Once requirements are baselined, changes are traced for impact on dependent requirements, design, tests and rules, and decided through change control. Requirements status reports states, conflicts, changes and risks. Traceability links each requirement to tests, so delivery is evidenced rather than assumed."
+  }
+}

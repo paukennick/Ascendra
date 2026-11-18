@@ -1,0 +1,1146 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "mshi-flag-mapping-interprofessional-tabletop",
+  "title": "The abnormal flags vanished at 15:00",
+  "screen": {
+    "type": "tabletop",
+    "level": 1,
+    "tabletop": {
+      "injects": [
+        {
+          "id": "i1",
+          "title": "19:00 The flags are gone",
+          "text": "A night nurse on 4 East asks why no lab result has shown a high or low flag since mid-afternoon. The interface log shows a change to the result feed was deployed at 15:00. About 600 results have been filed without abnormal flags across three units.",
+          "when": "t >= i1At",
+          "at": "i1At",
+          "open": "huddle == \"unset\""
+        },
+        {
+          "id": "i2",
+          "title": "19:30 Shift change",
+          "text": "Your shift ends. The night informatics on-call, Sam, takes over the problem. Sam was not in the huddle.",
+          "when": "t >= i2At",
+          "at": "i2At",
+          "open": "handoff == \"unset\""
+        },
+        {
+          "id": "i3",
+          "title": "20:30 Friction at the table",
+          "text": "The 4 East nurse manager says the lab should have caught it; the lab supervisor says nurses should read the values, not the flags. Two people have stopped talking.",
+          "when": "t >= i3At",
+          "at": "i3At",
+          "open": "team == \"unset\""
+        },
+        {
+          "id": "i4",
+          "title": "22:00 A fix is ready",
+          "text": "The interface analyst has a corrected mapping and wants to deploy it now and go home.",
+          "when": "t >= i4At",
+          "at": "i4At",
+          "open": "deploy == \"unset\""
+        }
+      ],
+      "roles": [
+        {
+          "id": "you",
+          "label": "Clinical informatics analyst (you)",
+          "spokenLabel": "Clinical informatics analyst, you",
+          "status": "{huddle == \"unset\" ? \"Investigating the interface log\" : \"Coordinating the response\"}",
+          "tone": "\"engaged\""
+        },
+        {
+          "id": "lab",
+          "label": "Lab supervisor",
+          "spokenLabel": "Lab supervisor",
+          "status": "{huddle == \"team\" ? (team == \"roles\" ? \"Phoning abnormal results from the 15:00 list, with read-back\" : \"In the huddle\") : \"Not told\"}",
+          "tone": "huddle == \"team\" ? \"engaged\" : \"waiting\""
+        },
+        {
+          "id": "nurse",
+          "label": "Nursing house supervisor and 4 East manager",
+          "spokenLabel": "Nursing house supervisor and 4 East manager",
+          "status": "{huddle == \"team\" ? (team == \"blame\" ? \"Defending the unit\" : \"Reviewing results on each unit\") : \"Finding out from the night nurse\"}",
+          "tone": "huddle == \"team\" ? \"engaged\" : \"waiting\""
+        },
+        {
+          "id": "rx",
+          "label": "Pharmacist on duty",
+          "spokenLabel": "Pharmacist on duty",
+          "status": "{huddle == \"team\" ? \"Checking orders that depend on flagged results\" : \"Not told\"}",
+          "tone": "huddle == \"team\" ? \"engaged\" : \"waiting\""
+        },
+        {
+          "id": "md",
+          "label": "Hospitalist lead",
+          "spokenLabel": "Hospitalist lead",
+          "status": "{huddle == \"team\" ? \"Deciding which patients need review tonight\" : \"Not told\"}",
+          "tone": "huddle == \"team\" ? \"engaged\" : \"waiting\""
+        },
+        {
+          "id": "oncall",
+          "label": "Night informatics on-call (Sam)",
+          "spokenLabel": "Night informatics on-call, Sam",
+          "status": "{handoff == \"sbar\" ? \"Took over: read back the plan and asked two questions\" : handoff == \"chat\" ? \"Has a chat message and a ticket number\" : \"Not yet on\"}",
+          "tone": "handoff == \"sbar\" ? \"engaged\" : (handoff == \"chat\" ? \"gap\" : \"waiting\")"
+        }
+      ],
+      "comms": [
+        {
+          "id": "cHuddle",
+          "label": "Huddle",
+          "spokenLabel": "Interprofessional huddle",
+          "status": "{huddle == \"team\" ? \"Lab, nursing, pharmacy, hospitalist lead and informatics, SBAR\" : huddle == \"it\" ? \"None: informatics working alone\" : \"\"}",
+          "tone": "huddle == \"team\" ? \"sent\" : (huddle == \"it\" ? \"late\" : \"none\")"
+        },
+        {
+          "id": "cHand",
+          "label": "Handoff to on-call",
+          "spokenLabel": "Handoff to the night on-call",
+          "status": "{handoff == \"sbar\" ? \"SBAR by phone; read-back and questions\" : handoff == \"chat\" ? \"Chat: interface issue, see ticket\" : \"\"}",
+          "tone": "handoff == \"sbar\" ? \"sent\" : (handoff == \"chat\" ? \"late\" : \"none\")"
+        }
+      ],
+      "decisions": {
+        "label": "Decision log",
+        "items": [
+          {
+            "label": "{huddle == \"team\" ? \"Huddle called: lab, nursing, pharmacy, hospitalist lead, informatics; SBAR\" : \"Informatics fixes the mapping alone; clinical teams not told\"}",
+            "when": "huddle != \"unset\""
+          },
+          {
+            "label": "{handoff == \"sbar\" ? \"Handoff to on-call by SBAR, with read-back and questions\" : \"Handoff to on-call by chat message\"}",
+            "when": "handoff != \"unset\""
+          },
+          {
+            "label": "{team == \"roles\" ? \"Shared goal restated; each profession's role named\" : \"Incident report naming the unit and the lab\"}",
+            "when": "team != \"unset\""
+          },
+          {
+            "label": "{deploy == \"validate\" ? \"Fix deployed after the lab verifies flags on test patients\" : \"Fix deployed at once\"}",
+            "when": "deploy != \"unset\""
+          }
+        ]
+      },
+      "meters": [
+        {
+          "id": "mResults",
+          "label": "Results filed without flags",
+          "value": "{huddle == \"team\" ? \"About 600; review list with the lab\" : \"About 600; nobody reviewing\"}"
+        },
+        {
+          "id": "mGaps",
+          "label": "Plan gaps found",
+          "value": "{gapsFound} of 3"
+        }
+      ]
+    }
+  },
+  "objective": "Structured communication and handoff tools such as SBAR, and why a handoff needs acknowledgment and a chance to ask questions",
+  "secondaryObjectives": [
+    "TeamSTEPPS as an evidence-based framework for team communication, role clarity and safety",
+    "Scope of practice and roles of the health professions and other stakeholders, including patients",
+    "Team dynamics in solving complex health and health information problems"
+  ],
+  "sources": [
+    {
+      "cite": "AHRQ, TeamSTEPPS, Tool: SBAR",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.ahrq.gov/teamstepps-program/curriculum/communication/tools/sbar.html",
+      "note": "Read 2026-11-17 through a summarizing fetch: SBAR 'stands for Situation, Background, Assessment, and Recommendation (or Request)', a structured way to share information about a condition or an issue that needs attention; the Recommendation step includes a repeat-back that 'repeats back the stated response ... to ensure accuracy'; starter phrases include 'Is there something I missed?'"
+    },
+    {
+      "cite": "AHRQ, CUSP Toolkit, Implement Teamwork and Communication",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.ahrq.gov/hai/cusp/modules/implement/teamwork.html",
+      "note": "Read 2026-11-17 through a summarizing fetch: a handoff is the 'Transfer of information, along with authority and responsibility', and each handoff 'includes an opportunity to ask questions, clarify, and confirm'; check-back is 'A strategy that ensures messages are received' (closed loop); a huddle 'Can be requested by any team member at any time'; briefings identify 'each team member's role and responsibilities'; TeamSTEPPS components are leadership, situation monitoring, mutual support and communication."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and time is invented teaching data; no real patient data is used. The case teaches the communication pattern, not lab values or treatment."
+    }
+  ],
+  "brief": {
+    "situation": "Tabletop exercise at Fairmount General Hospital (fictional). You are the clinical informatics analyst. At 19:00 a night nurse reports that lab results have stopped showing abnormal flags. You run the scenario with lab, nursing, pharmacy, a hospitalist lead and the night informatics on-call at the table.",
+    "handover": [
+      "Change log: a result-feed mapping change was deployed at 15:00.",
+      "The hospital's interface-incident procedure says who fixes the interface; it says nothing about who tells the clinical teams."
+    ],
+    "howItWorks": [
+      "Each inject arrives at its scenario time. Choose what you and the table do; each discussion takes scenario minutes.",
+      "Ask the table questions to find gaps in the procedure.",
+      "When you end the exercise, write the after-action report and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-04T19:00",
+    "tick": "10min",
+    "maxDuration": "6h",
+    "calendar": "date"
+  },
+  "params": {
+    "i1At": {
+      "value": 0,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "First inject at 19:00."
+      }
+    },
+    "i2At": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Shift change at 19:30."
+      }
+    },
+    "i3At": {
+      "value": 5400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Friction at 20:30."
+      }
+    },
+    "i4At": {
+      "value": 10800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The fix is ready at 22:00."
+      }
+    },
+    "exerciseEnd": {
+      "value": 14400,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The facilitator ends the scenario at 23:00."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "huddle": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "team",
+        "it"
+      ],
+      "init": "unset"
+    },
+    "huddleAt": {
+      "type": "time",
+      "init": null
+    },
+    "handoff": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sbar",
+        "chat"
+      ],
+      "init": "unset"
+    },
+    "handoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "team": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "roles",
+        "blame"
+      ],
+      "init": "unset"
+    },
+    "teamAt": {
+      "type": "time",
+      "init": null
+    },
+    "deploy": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "validate",
+        "now"
+      ],
+      "init": "unset"
+    },
+    "deployAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapNotifyAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapRosterAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapKitAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "aar": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "owned",
+        "listed",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "gapsFound": {
+      "expr": "(isNull(gapNotifyAt) ? 0 : 1) + (isNull(gapRosterAt) ? 0 : 1) + (isNull(gapKitAt) ? 0 : 1)"
+    },
+    "unowned": {
+      "expr": "aar == \"owned\" ? 0 : gapsFound"
+    },
+    "onTime": {
+      "expr": "(not isNull(huddleAt) and timeAt(huddleAt) - i1At <= decisionWindow ? 1 : 0) + (not isNull(handoffAt) and timeAt(handoffAt) - i2At <= decisionWindow ? 1 : 0) + (not isNull(teamAt) and timeAt(teamAt) - i3At <= decisionWindow ? 1 : 0) + (not isNull(deployAt) and timeAt(deployAt) - i4At <= decisionWindow ? 1 : 0)"
+    },
+    "unreviewed": {
+      "expr": "huddle == \"it\""
+    },
+    "droppedHandoff": {
+      "expr": "handoff == \"chat\""
+    },
+    "unvalidated": {
+      "expr": "deploy == \"now\""
+    }
+  },
+  "processes": [],
+  "phases": {
+    "exercise": {
+      "label": "Exercise in progress",
+      "clock": "turns",
+      "actions": [
+        "huddle",
+        "handoff",
+        "team",
+        "deploy",
+        "askNotify",
+        "askRoster",
+        "askKit",
+        "watch",
+        "endEx"
+      ]
+    },
+    "report": {
+      "label": "Hot wash and after-action",
+      "clock": "stopped",
+      "actions": [
+        "afterAction"
+      ]
+    }
+  },
+  "initialPhase": "exercise",
+  "actions": {
+    "huddle": {
+      "label": "Decide who works the problem",
+      "group": "Decide",
+      "available": "not busy and huddle == \"unset\"",
+      "why": "Decided, or finish the discussion in progress first.",
+      "params": [
+        {
+          "id": "h",
+          "kind": "choice",
+          "label": "Who",
+          "options": [
+            {
+              "value": "team",
+              "label": "Call a huddle now with the lab supervisor, nursing house supervisor, pharmacist and hospitalist lead; give an SBAR and agree who reviews the 600 results"
+            },
+            {
+              "value": "it",
+              "label": "Keep it inside informatics: fix the mapping first, then tell the units"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "huddle",
+          "to": "h"
+        },
+        {
+          "set": "huddleAt",
+          "to": "t"
+        },
+        {
+          "if": "h == \"it\"",
+          "then": [
+            {
+              "log": "In the scenario, nobody outside informatics reviews the 600 unflagged results for three hours.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Each profession hears the same SBAR. The lab will phone abnormal results filed since 15:00 to each unit with read-back; the hospitalist lead decides which patients need review tonight.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "20min"
+        }
+      ]
+    },
+    "handoff": {
+      "label": "Hand the problem to the night on-call",
+      "group": "Communicate",
+      "available": "not busy and handoff == \"unset\" and t >= i2At",
+      "why": "Done, not yet shift change, or finish the discussion in progress first.",
+      "params": [
+        {
+          "id": "m",
+          "kind": "choice",
+          "label": "Handoff",
+          "options": [
+            {
+              "value": "sbar",
+              "label": "Call Sam: SBAR (situation, background, assessment, request), Sam reads back the plan, and you ask 'What questions do you have?'"
+            },
+            {
+              "value": "chat",
+              "label": "Send Sam a chat message: 'Lab interface issue, see ticket'"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "handoff",
+          "to": "m"
+        },
+        {
+          "set": "handoffAt",
+          "to": "t"
+        },
+        {
+          "if": "m == \"chat\"",
+          "then": [
+            {
+              "log": "In the scenario, Sam reads the ticket at 21:40 and does not know the lab is phoning results or who is waiting for an update.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "Sam reads back: lab phoning results since 15:00, hospitalist reviewing the list, fix to be verified by the lab before deploy. Sam asks who to call if the lab list runs late, and you answer.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "team": {
+      "label": "Respond to the friction at the table",
+      "group": "Decide",
+      "available": "not busy and team == \"unset\" and t >= i3At",
+      "why": "Done, not yet raised, or finish the discussion in progress first.",
+      "params": [
+        {
+          "id": "r",
+          "kind": "choice",
+          "label": "Response",
+          "options": [
+            {
+              "value": "roles",
+              "label": "Restate the shared goal (every abnormal result seen tonight), name each profession's part, and leave cause for the after-action"
+            },
+            {
+              "value": "blame",
+              "label": "File an incident report tonight naming the unit and the lab, so it is on record"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "team",
+          "to": "r"
+        },
+        {
+          "set": "teamAt",
+          "to": "t"
+        },
+        {
+          "if": "r == \"blame\"",
+          "then": [
+            {
+              "log": "The two leads stop sharing information; the review list stalls for an hour.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "The table goes back to the list. The lab phones, nursing confirms each patient, pharmacy checks orders that depended on a flag.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "deploy": {
+      "label": "Decide when the fix goes in",
+      "group": "Decide",
+      "available": "not busy and deploy == \"unset\" and t >= i4At",
+      "why": "Decided, not ready, or finish the discussion in progress first.",
+      "params": [
+        {
+          "id": "d",
+          "kind": "choice",
+          "label": "Deploy",
+          "options": [
+            {
+              "value": "validate",
+              "label": "Deploy after the lab verifies flags on test patients, and announce it to the units and the on-call"
+            },
+            {
+              "value": "now",
+              "label": "Deploy now; the analyst tested the mapping file"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "deploy",
+          "to": "d"
+        },
+        {
+          "set": "deployAt",
+          "to": "t"
+        },
+        {
+          "if": "d == \"now\"",
+          "then": [
+            {
+              "log": "In the scenario, the new mapping flags normal results as critical on one analyzer; the lab finds it at 23:30.",
+              "kind": "bad"
+            }
+          ],
+          "else": [
+            {
+              "log": "The lab verifies high, low and critical flags on test patients; the fix goes in at 22:40 and every unit hears it.",
+              "kind": "good"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "askNotify": {
+      "label": "Ask the table: whose job is it to tell clinical teams when an interface fails?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapNotifyAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapNotifyAt",
+          "to": "t"
+        },
+        {
+          "finding": "The interface-incident procedure names who fixes interfaces, not who tells the clinical teams. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askRoster": {
+      "label": "Ask the table: who on the clinical side is on call for informatics problems overnight?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapRosterAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapRosterAt",
+          "to": "t"
+        },
+        {
+          "finding": "There is no named clinical contact for informatics problems overnight; tonight it was whoever answered. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "askKit": {
+      "label": "Ask Sam: does the on-call kit include a handoff template?",
+      "group": "Ask the table",
+      "available": "not busy and isNull(gapKitAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "gapKitAt",
+          "to": "t"
+        },
+        {
+          "finding": "The on-call kit has passwords and phone numbers but no SBAR handoff template. Gap found."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Move the scenario on (30 minutes)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "log": "The facilitator moves the scenario on 30 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "30min"
+        }
+      ]
+    },
+    "endEx": {
+      "label": "Call the end of the exercise and hold the hot wash",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish the discussion in progress first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "You call the end of the exercise and start the hot wash.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "afterAction": {
+      "label": "Write the after-action report",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "plan",
+              "label": "The gaps the exercise found",
+              "options": [
+                {
+                  "value": "owned",
+                  "label": "Each gap with an owner and a date in the improvement plan"
+                },
+                {
+                  "value": "listed",
+                  "label": "Listed; owners to be decided later"
+                },
+                {
+                  "value": "none",
+                  "label": "No report: the exercise went well"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "aar",
+          "to": "plan"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "After-action: {plan}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Discussion in progress",
+      "wait": {
+        "skipLabel": "Let the discussion finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each discussion takes in scenario minutes is an invented teaching value."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "inject2",
+      "when": "t >= i2At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: shift change. The night on-call takes over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject3",
+      "when": "t >= i3At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: nursing and lab leads disagree about whose fault it is.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "inject4",
+      "when": "t >= i4At and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Inject: a corrected mapping is ready.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "exEnd",
+      "when": "t >= exerciseEnd and phase == \"exercise\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "23:00: the facilitator ends the scenario. Hold the hot wash.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the hot wash: how did the professions at the table work the problem, what nearly went wrong, and what changes before the next interface fault?",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Working across professions",
+          "criteria": "A huddle with every profession that owns part of the risk (lab, nursing, pharmacy, a physician lead, informatics), an SBAR so each hears the same picture, named roles for the review, and a shared goal restated when friction rose, with cause left for the after-action.",
+          "modelAnswer": "At 19:00 we huddled with the lab, nursing, pharmacy and the hospitalist lead and gave an SBAR. The lab phoned abnormal results since 15:00 with read-back, nursing confirmed each patient, pharmacy checked dependent orders, the hospitalist decided who needed review. When leads clashed we restated the goal and left blame for later."
+        },
+        {
+          "label": "The handoff",
+          "criteria": "A handoff transfers responsibility, so it needs structure (SBAR), acknowledgment (read-back) and a chance to ask questions; a chat message with a ticket number transfers none of that.",
+          "modelAnswer": "I called Sam with an SBAR; Sam read back the plan and asked who to call if the lab list ran late. A chat message would have left Sam not knowing who was doing what."
+        },
+        {
+          "label": "What changes",
+          "criteria": "Gaps found by asking the table, each with an owner and date: who notifies clinical teams of interface faults, a named overnight clinical contact, and an SBAR template in the on-call kit; the fix deployed only after lab verification.",
+          "modelAnswer": "Three gaps, each owned with a date: notification duty added to the procedure, an overnight clinical contact named, and an SBAR template in the kit. The fix went in after the lab verified flags."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "exercise",
+    "thresholds": {
+      "decisionWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Each inject's decision within an hour of scenario time."
+        }
+      },
+      "unownedGaps": {
+        "value": 0,
+        "source": {
+          "cite": "Exercise outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "Every gap found has an owner and a date in the improvement plan."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and huddle == \"unset\"",
+      "class": "recovered",
+      "rationale": "The exercise ended before anyone decided who works the problem; nothing was tested.",
+      "source": {
+        "cite": "AHRQ, CUSP Toolkit, Implement Teamwork and Communication",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.ahrq.gov/hai/cusp/modules/implement/teamwork.html",
+        "note": "Read 2026-11-17 through a summarizing fetch: a handoff is the 'Transfer of information, along with authority and responsibility', and each handoff 'includes an opportunity to ask questions, clarify, and confirm'; check-back is 'A strategy that ensures messages are received' (closed loop); a huddle 'Can be requested by any team member at any time'; briefings identify 'each team member's role and responsibilities'; TeamSTEPPS components are leadership, situation monitoring, mutual support and communication."
+      }
+    }
+  },
+  "endings": {
+    "unreviewed": {
+      "label": "Results went unreviewed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and unreviewed",
+      "narrative": "In the scenario, informatics fixed the feed alone and no clinical team reviewed 600 results filed without flags."
+    },
+    "droppedHandoff": {
+      "label": "The handoff dropped the plan",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and droppedHandoff",
+      "narrative": "In the scenario, the night on-call took over from a chat message and did not know who was reviewing results or waiting for news."
+    },
+    "unvalidated": {
+      "label": "An unverified fix made new errors",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and unvalidated",
+      "narrative": "In the scenario, the fix went in untested by the lab and flagged normal results as critical."
+    },
+    "noReport": {
+      "label": "No after-action",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and aar == \"none\"",
+      "narrative": "The exercise found gaps, and none of them will be fixed."
+    },
+    "exercised": {
+      "label": "Worked as one team, gaps owned",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and onTime >= 4 and team == \"roles\" and gapsFound >= 3 and unowned <= unownedGaps",
+      "narrative": "Every profession heard the same SBAR, the handoff was read back with questions, friction became roles, the fix was verified before it went in, and every gap has an owner."
+    },
+    "partly": {
+      "label": "Partly tested",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The exercise ran, but a decision came late, friction turned into blame, or a gap went unfound or unowned."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no after-action report."
+    }
+  },
+  "endingOrder": [
+    "unreviewed",
+    "droppedHandoff",
+    "unvalidated",
+    "noReport",
+    "exercised",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "huddled",
+        "label": "Brought every profession that owns part of the risk together, with an SBAR",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "huddle == \"team\" and timeAt(huddleAt) - i1At <= decisionWindow",
+            "score": "met",
+            "why": "Huddle at {timeAt(huddleAt) / 60|0dp} minutes."
+          },
+          {
+            "when": "huddle == \"team\"",
+            "score": "partial",
+            "why": "Huddled, but late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{huddle == \"it\" ? \"Informatics alone; no clinical review.\" : \"Not decided.\"}"
+          }
+        ]
+      },
+      {
+        "id": "handed",
+        "label": "Handed off with SBAR, read-back and a chance to ask questions",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "handoff == \"sbar\"",
+            "score": "met",
+            "why": "Read back, questions answered."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{handoff == \"chat\" ? \"A chat message is not a handoff.\" : \"No handoff.\"}"
+          }
+        ]
+      },
+      {
+        "id": "verified",
+        "label": "Deployed the fix only after the lab verified it",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "deploy == \"validate\"",
+            "score": "met",
+            "why": "Verified on test patients first."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{deploy == \"now\" ? \"Deployed unverified.\" : \"Not decided.\"}"
+          }
+        ]
+      },
+      {
+        "id": "roles",
+        "label": "Turned friction into shared goal and named roles",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "team == \"roles\"",
+            "score": "met",
+            "why": "Goal restated; roles named."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{team == \"blame\" ? \"Blame tonight stalled the review.\" : \"Not addressed.\"}"
+          }
+        ]
+      },
+      {
+        "id": "gaps",
+        "label": "Found the procedure's gaps and gave each an owner",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gapsFound >= 3 and unowned <= unownedGaps",
+            "score": "met",
+            "why": "Three gaps, each owned."
+          },
+          {
+            "when": "gapsFound >= 1",
+            "score": "partial",
+            "why": "{gapsFound} of 3 found{aar == \"owned\" ? \"\" : \", not owned\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No gap found."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Hot wash write-up",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "huddleMin",
+        "label": "Minutes to the huddle",
+        "value": "isNull(huddleAt) ? 0 : timeAt(huddleAt) / 60",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "onTimeK",
+        "label": "Injects decided within the hour",
+        "value": "onTime",
+        "format": "number",
+        "expert": "4"
+      },
+      {
+        "id": "gapsK",
+        "label": "Procedure gaps found",
+        "value": "gapsFound",
+        "format": "number",
+        "expert": "3"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "19:00",
+        "text": "Huddle with lab, nursing, pharmacy and the hospitalist lead; SBAR; agree who reviews the 600 results."
+      },
+      {
+        "at": "19:30",
+        "text": "Hand off to Sam by SBAR; Sam reads back and asks questions."
+      },
+      {
+        "at": "20:30",
+        "text": "Restate the shared goal and each profession's part; cause goes to the after-action."
+      },
+      {
+        "at": "22:00",
+        "text": "Deploy after the lab verifies flags; announce it."
+      },
+      {
+        "at": "Hot wash",
+        "text": "Three gaps, each with an owner and a date."
+      }
+    ],
+    "debrief": {
+      "exercised": {
+        "headline": "Good: one team, one picture",
+        "body": "Every profession heard the same SBAR and owned a part, the handoff carried responsibility with read-back and questions, friction became roles, and the fix was verified before it went in."
+      },
+      "partly": {
+        "headline": "Partly tested",
+        "body": "The results were reviewed and the handoff held, but a decision came late, blame cost time, or gaps were left without owners."
+      },
+      "unreviewed": {
+        "headline": "Results went unreviewed",
+        "body": "An interface fault is a clinical problem: the people who act on results must hear about it, not only the people who fix the feed."
+      },
+      "droppedHandoff": {
+        "headline": "The handoff dropped the plan",
+        "body": "A handoff transfers responsibility. Without structure, read-back and a chance to ask questions, the next person starts from a ticket number."
+      },
+      "unvalidated": {
+        "headline": "An unverified fix",
+        "body": "The lab owns what a flag means. A mapping fix goes in after the lab verifies it on test patients."
+      },
+      "noReport": {
+        "headline": "No after-action",
+        "body": "The table found gaps; without owners and dates they will be found again next time, for real."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No after-action was written before the limit."
+      }
+    },
+    "modelReasoning": "An interface fault that strips abnormal flags is a clinical risk that crosses professions: the lab produces results, nurses and physicians act on them, pharmacy checks orders that depend on them, and informatics owns the feed. So huddle at once with all of them and give one SBAR, and agree who reviews the 600 unflagged results. At shift change, hand off by SBAR with read-back and a chance to ask questions, because a handoff transfers responsibility. When leads clash, restate the shared goal and name each role; cause belongs in the after-action. Deploy the fix only after the lab verifies flags on test patients. Then give each gap the table found an owner and a date."
+  }
+}

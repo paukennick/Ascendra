@@ -1,0 +1,1405 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cscs-first-day-back-collapse-in-heat",
+  "title": "Day one back, 32 degrees",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Eli Brooks, 20, midfielder",
+        "presentation": "{not isNull(handAt) ? \"With the paramedics.\" : not isNull(outAt) ? \"Out of the tub, wrapped, answering questions.\" : method == \"tub\" ? \"In the ice tub, groaning, starting to make sense.\" : not isNull(collapseAt) ? \"On the grass, confused, trying to get up and run the wrong way.\" : not isNull(startAt) ? \"Running shuttles with the squad.\" : \"Back from five weeks off; it is 32 C and humid.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gRisk",
+          "label": "Heat stress",
+          "spokenLabel": "Heat stress on the field",
+          "value": "plan == \"full\" ? 9 : plan == \"transition\" ? 6 : 7",
+          "max": 10,
+          "bands": [
+            4,
+            7
+          ],
+          "words": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "env",
+          "label": "Heat",
+          "spokenLabel": "Heat on the field",
+          "value": "32 C, humid; the heat policy's high category",
+          "when": "not isNull(heatAt)",
+          "flag": "true"
+        },
+        {
+          "id": "core",
+          "label": "Core temperature",
+          "spokenLabel": "Core temperature, measured rectally by the athletic trainer",
+          "value": "{tc|1dp} C",
+          "when": "not isNull(tempAt)",
+          "flag": "tc > 38.9"
+        },
+        {
+          "id": "ms",
+          "label": "Mental status",
+          "spokenLabel": "His mental status",
+          "value": "{tc > 40 ? \"confused, combative\" : tc > 39 ? \"drowsy, slow answers\" : \"oriented\"}",
+          "when": "not isNull(collapseAt)",
+          "flag": "tc > 39"
+        }
+      ],
+      "intake": {
+        "label": "Day-one roster notes",
+        "items": [
+          {
+            "id": "r1",
+            "question": "Off-season",
+            "answer": "Five weeks without team training; first day back.",
+            "when": "true"
+          },
+          {
+            "id": "r2",
+            "question": "Eli Brooks",
+            "answer": "Did little over the break; slept badly after travel yesterday.",
+            "when": "true"
+          },
+          {
+            "id": "r3",
+            "question": "Emergency action plan",
+            "answer": "Athletic trainer on the next field (radio); 911 for any collapse; cold-water tub at the field 'when conditions require'.",
+            "when": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "col",
+          "label": "Collapse",
+          "result": "Stumbled off the line, confused, trying to run the wrong way; hot, flushed, still sweating.",
+          "when": "not isNull(collapseAt)",
+          "flag": "true"
+        },
+        {
+          "id": "out",
+          "label": "Out of the tub",
+          "result": "Out at {outTc|1dp} C, {timeAt(outAt) - timeAt(collapseAt) <= 1800 ? \"inside\" : \"after\"} 30 minutes from collapse.",
+          "when": "not isNull(outAt)"
+        }
+      ],
+      "program": {
+        "label": "Today's session",
+        "items": [
+          {
+            "label": "Transition day: about half the normal conditioning volume, work-to-rest 1:4, water breaks every 15 minutes, the heat policy's modifications",
+            "when": "plan == \"transition\""
+          },
+          {
+            "label": "The full conditioning test to see who kept fit",
+            "when": "plan == \"full\""
+          },
+          {
+            "label": "Ice-water tub filled and set up in the shade before the session",
+            "when": "not isNull(tubAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jCol",
+          "text": "Eli collapsed, confused.",
+          "when": "not isNull(collapseAt)",
+          "at": "timeAt(collapseAt)"
+        },
+        {
+          "id": "jCall",
+          "text": "911 called; athletic trainer radioed.",
+          "when": "not isNull(calledAt)",
+          "at": "timeAt(calledAt)"
+        },
+        {
+          "id": "jCool",
+          "text": "Cooling started.",
+          "when": "not isNull(coolAt)",
+          "at": "timeAt(coolAt)"
+        },
+        {
+          "id": "jHand",
+          "text": "Handed over to the paramedics.",
+          "when": "not isNull(handAt)",
+          "at": "timeAt(handAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rBack",
+          "label": "First days back",
+          "text": "Phase conditioning in: about half the volume in week 1, work-to-rest at least 1:4, acclimatize to heat over 7-14 days.",
+          "met": "plan == \"full\""
+        },
+        {
+          "id": "rCns",
+          "label": "Confusion while exercising in heat",
+          "text": "Treat as exertional heat stroke: stop, 911, cold-water immersion now; cool first, transport second.",
+          "met": "not isNull(collapseAt) and isNull(coolAt)"
+        },
+        {
+          "id": "rGoal",
+          "label": "Cooling goal",
+          "text": "38.9 C or less within 30 minutes of collapse, then out of the tub and to hospital.",
+          "met": "method == \"tub\" and isNull(outAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Recognizing and responding to unsafe training: overuse, overtraining and temperature-induced illness",
+  "secondaryObjectives": [
+    "Training volume, work-to-rest periods, recovery and unloading across the microcycle and macrocycle",
+    "Facility operation policies: cleaning, maintenance, rules, staffing, scheduling and emergency procedures"
+  ],
+  "sources": [
+    {
+      "cite": "NSCA Certification Handbook: CSCS detailed content outline (Scientific Foundations; Practical/Applied: program design, exercise technique, program implementation, organization and administration)",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+    },
+    {
+      "cite": "NSCA. Inter-Association Task Force for Preventing Sudden Death in Collegiate Conditioning Sessions (introduction page, May 2017; citing Casa DJ, et al. J Athl Train. 2012;47(4))",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nsca.com/education/articles/inter-association-task-force-for-preventing-sudden-death-in-collegiate-conditioning-sessions",
+      "note": "Read 2026-11-17 through a summarizing fetch; only the introduction was on the page: the leading causes of conditioning deaths are exertional sickling with sickle cell trait, exertional heat stroke and cardiac conditions; workouts 'too novel, too much, too soon, or too intense' are linked to exertional rhabdomyolysis; 11 of 21 deaths were on day 1 or 2. The full recommendations were not read."
+    },
+    {
+      "cite": "NASEMSO. National Model EMS Clinical Guidelines, Version 3.0 (March 2022): Hyperthermia/Heat Exposure",
+      "checkedAt": "2026-11-17",
+      "url": "https://nasemso.org/?p=223",
+      "note": "Read 2026-11-17 in the full text Iowa HHS hosts (https://hhs.iowa.gov/media/198/download) through summarizing fetches with quotes; NASEMSO's own page, read the same day, still presents Version 3 (2022) as current and names no later version. Heat stroke is told from heat exhaustion by altered consciousness, seizures or coma when no thermometer is available; rapid cooling takes priority over other interventions such as monitoring or IV access; 'Ice bath immersion provides the most rapid cooling mechanism'; cool until below 39 C (102.2 F), or until mental status improves when temperature cannot be measured; truncal ice packs are less effective than evaporation; do not use wet cloths that 'may trap heat'; every patient with life-threatening heat illness is transported."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "His core temperature at collapse (41.2 C), how fast it climbs untreated in the sun and how fast each method cools him (cold-water immersion about 0.2 C a minute, wet ice towels 0.06, shade and a fan 0.03) are authored FLAG figures in the order the sources give: immersion is the fastest method, and the goal is 38.9 C or less within 30 minutes of collapse. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra strength and conditioning course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are the strength and conditioning coach for a college soccer team. Today is the first team conditioning session after five weeks off, at 4 pm, 32 C and humid.",
+    "handover": [
+      "The athletic trainer is on the next field with a radio and measures core temperature; the coach starts first aid and runs the emergency action plan.",
+      "An ice-water tub is in the equipment shed."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "16:00",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "cwi": {
+      "value": 0.2,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Cold-water immersion lowers his core temperature about 0.2 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "towelRate": {
+      "value": 0.06,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Rotating wet ice towels: about 0.06 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "shadeRate": {
+      "value": 0.03,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Shade, a fan and water to sip: about 0.03 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "rise": {
+      "value": 0.04,
+      "unit": "C/min",
+      "source": {
+        "cite": "Ascendra teaching model (REQ-338, authored)",
+        "checkedAt": "2026-11-17",
+        "note": "FLAG: stands in for a number no guideline gives. Uncooled in the sun his temperature keeps climbing about 0.04 C a minute. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "goal": {
+      "value": 38.9,
+      "unit": "C",
+      "source": {
+        "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+        "checkedAt": "2026-11-17",
+        "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+      }
+    },
+    "window": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+        "checkedAt": "2026-11-17",
+        "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+      }
+    },
+    "atDelay": {
+      "value": 120,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Two minutes for the athletic trainer to come from the next field."
+      }
+    },
+    "emsDelay": {
+      "value": 720,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Twelve minutes for the ambulance is the author's figure."
+      }
+    },
+    "fillDelay": {
+      "value": 480,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes to drag out, fill and ice a tub that was not set up beforehand."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "transition",
+        "full"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "tubAt": {
+      "type": "time",
+      "init": null
+    },
+    "heatAt": {
+      "type": "time",
+      "init": null
+    },
+    "startAt": {
+      "type": "time",
+      "init": null
+    },
+    "collapseAt": {
+      "type": "time",
+      "init": null
+    },
+    "stoppedAt": {
+      "type": "time",
+      "init": null
+    },
+    "calledAt": {
+      "type": "time",
+      "init": null
+    },
+    "atHere": {
+      "type": "time",
+      "init": null
+    },
+    "emsAt": {
+      "type": "time",
+      "init": null
+    },
+    "method": {
+      "type": "enum",
+      "values": [
+        "none",
+        "shade",
+        "towels",
+        "tub"
+      ],
+      "init": "none"
+    },
+    "coolAt": {
+      "type": "time",
+      "init": null
+    },
+    "outAt": {
+      "type": "time",
+      "init": null
+    },
+    "outTc": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 45,
+      "unit": "C"
+    },
+    "tempAt": {
+      "type": "time",
+      "init": null
+    },
+    "carAt": {
+      "type": "time",
+      "init": null
+    },
+    "handAt": {
+      "type": "time",
+      "init": null
+    },
+    "injured": {
+      "type": "bool",
+      "init": false
+    },
+    "cooledAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "tc": {
+      "type": "number",
+      "init": 37.5,
+      "min": 35,
+      "max": 44,
+      "unit": "C"
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "core",
+      "when": "not isNull(collapseAt)",
+      "update": {
+        "tc": "clamp(tc + ((isNull(outAt) and not isNull(collapseAt) and isNull(handAt)) ? (method == \"tub\" ? -cwi : method == \"towels\" ? -towelRate : method == \"shade\" ? -shadeRate : rise) : 0) * dt / 60, 35, 44)"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "Session",
+      "clock": "turns",
+      "actions": [
+        "heatCheck",
+        "program",
+        "tub",
+        "start",
+        "stop",
+        "call",
+        "immerse",
+        "towels",
+        "shade",
+        "keep",
+        "temp",
+        "out",
+        "car",
+        "hand",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "heatCheck": {
+      "label": "Check the heat reading against the department's heat policy",
+      "group": "Plan",
+      "available": "not busy and (isNull(heatAt) and isNull(startAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(heatAt)",
+          "then": [
+            {
+              "set": "heatAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "High-risk heat category: the policy asks for longer rest, more water breaks and a cooling tub on site.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Set today's conditioning session",
+      "group": "Plan",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Already set.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Session",
+          "options": [
+            {
+              "value": "transition",
+              "label": "Transition day: half volume, work-to-rest 1:4, water every 15 minutes"
+            },
+            {
+              "value": "full",
+              "label": "The full conditioning test, to see who kept fit"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "p"
+        },
+        {
+          "log": "Session set.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "tub": {
+      "label": "Have the ice-water tub filled and set up in the shade before the session",
+      "group": "Plan",
+      "available": "not busy and (isNull(tubAt) and isNull(startAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(tubAt)",
+          "then": [
+            {
+              "set": "tubAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Tub filled with ice water by the field.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "start": {
+      "label": "Start the session",
+      "group": "Train",
+      "available": "not busy and (isNull(startAt) and not isNull(planAt))",
+      "why": "Set the session first.",
+      "effects": [
+        {
+          "if": "isNull(startAt)",
+          "then": [
+            {
+              "set": "startAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The squad starts.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "40min"
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop Eli (and the drill), keep him still and get the squad back from him",
+      "group": "Respond",
+      "available": "not isNull(collapseAt) and isNull(stoppedAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(stoppedAt)",
+          "then": [
+            {
+              "set": "stoppedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You stop the drill and hold Eli down on the grass.",
+          "kind": "act"
+        }
+      ]
+    },
+    "call": {
+      "label": "Activate the emergency action plan: 911 and radio the athletic trainer",
+      "group": "Respond",
+      "available": "not isNull(collapseAt) and isNull(calledAt)",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(calledAt)",
+          "then": [
+            {
+              "set": "calledAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "911 called; the athletic trainer is on the way.",
+          "kind": "good"
+        },
+        {
+          "schedule": "at",
+          "after": "atDelay"
+        },
+        {
+          "schedule": "ems",
+          "after": "emsDelay"
+        }
+      ]
+    },
+    "immerse": {
+      "label": "Into the ice-water tub, up to the chest, someone holding his head out",
+      "group": "Cool",
+      "available": "not isNull(collapseAt) and method != \"tub\" and isNull(outAt) and isNull(handAt) and not busy",
+      "why": "Not now.",
+      "effects": [
+        {
+          "if": "not isNull(tubAt)",
+          "then": [
+            {
+              "set": "method",
+              "to": "\"tub\""
+            },
+            {
+              "if": "isNull(coolAt)",
+              "then": [
+                {
+                  "set": "coolAt",
+                  "to": "t"
+                }
+              ]
+            },
+            {
+              "log": "Into the tub within a minute.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "busy",
+              "to": "true"
+            },
+            {
+              "schedule": "fill",
+              "after": "fillDelay"
+            },
+            {
+              "log": "No tub set up: the staff drag one out and fill it.",
+              "kind": "act"
+            }
+          ]
+        }
+      ]
+    },
+    "towels": {
+      "label": "Rotate wet ice towels over his head, neck and body",
+      "group": "Cool",
+      "available": "not isNull(collapseAt) and method == \"none\" and isNull(handAt)",
+      "why": "Already cooling.",
+      "effects": [
+        {
+          "set": "method",
+          "to": "\"towels\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Wet ice towels, rotated.",
+          "kind": "act"
+        }
+      ]
+    },
+    "shade": {
+      "label": "Move him to the shade with a fan and water to sip",
+      "group": "Cool",
+      "available": "not isNull(collapseAt) and method == \"none\" and isNull(handAt)",
+      "why": "Already cooling.",
+      "effects": [
+        {
+          "set": "method",
+          "to": "\"shade\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Shade, a fan, a water bottle.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "keep": {
+      "label": "Keep cooling and recheck in 5 minutes",
+      "group": "Cool",
+      "available": "not busy and (not isNull(collapseAt) and method != \"none\" and isNull(outAt) and isNull(handAt))",
+      "why": "Start cooling first.",
+      "effects": [
+        {
+          "log": "You keep cooling him.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "temp": {
+      "label": "Ask the athletic trainer for his rectal temperature",
+      "group": "Assess",
+      "available": "not isNull(atHere) and isNull(handAt)",
+      "why": "The athletic trainer measures it, once here.",
+      "effects": [
+        {
+          "if": "isNull(tempAt)",
+          "then": [
+            {
+              "set": "tempAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Rectal temperature: {tc|1dp} C.",
+          "kind": "find"
+        }
+      ]
+    },
+    "out": {
+      "label": "Take him out of the tub now",
+      "group": "Cool",
+      "available": "method == \"tub\" and isNull(outAt)",
+      "why": "Only from the tub.",
+      "effects": [
+        {
+          "if": "isNull(outAt)",
+          "then": [
+            {
+              "set": "outAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "outTc",
+          "to": "tc"
+        },
+        {
+          "log": "Out of the tub at {tc|1dp} C.",
+          "kind": "act"
+        }
+      ]
+    },
+    "car": {
+      "label": "Put him in a staff car and drive him to the hospital now",
+      "group": "Transport",
+      "available": "not isNull(collapseAt) and isNull(handAt)",
+      "why": "Already gone.",
+      "effects": [
+        {
+          "if": "isNull(carAt)",
+          "then": [
+            {
+              "set": "carAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "isNull(handAt)",
+          "then": [
+            {
+              "set": "handAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "He is driven away hot, uncooled.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "hand": {
+      "label": "Hand him to the paramedics with the times and temperatures",
+      "group": "Transport",
+      "available": "not isNull(emsAt) and isNull(handAt)",
+      "why": "When the paramedics are here.",
+      "effects": [
+        {
+          "if": "isNull(handAt)",
+          "then": [
+            {
+              "set": "handAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Handed over: collapse time, cooling start, temperatures, time out of the tub.",
+          "kind": "act"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy and (isNull(collapseAt) or not isNull(handAt))",
+      "why": "Finish what you are doing first; an athlete in trouble is handed over before anything is written.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "Heat reading, session plan, collapse time, EAP times, cooling method and times, temperatures, handover"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Athlete collapsed, sent to hospital'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each task takes and when the fictional events happen are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "at": {
+      "label": "Athletic trainer on the way",
+      "wait": {
+        "skipLabel": "Wait for the athletic trainer"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Two minutes for the athletic trainer to come from the next field."
+      },
+      "effects": [
+        {
+          "if": "isNull(atHere)",
+          "then": [
+            {
+              "set": "atHere",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The athletic trainer arrives with the rectal thermometer.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "ems": {
+      "label": "Ambulance on the way",
+      "wait": {
+        "skipLabel": "Wait for the ambulance"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Twelve minutes for the ambulance is the author's figure."
+      },
+      "effects": [
+        {
+          "if": "isNull(emsAt)",
+          "then": [
+            {
+              "set": "emsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Paramedics arrive.",
+          "kind": "sys"
+        }
+      ]
+    },
+    "fill": {
+      "label": "Filling a tub",
+      "wait": {
+        "skipLabel": "Wait for the tub"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "Eight minutes to drag out, fill and ice a tub that was not set up beforehand."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "method",
+          "to": "\"tub\""
+        },
+        {
+          "if": "isNull(coolAt)",
+          "then": [
+            {
+              "set": "coolAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The tub is ready; he goes in.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "collapse",
+      "when": "not isNull(startAt) and isNull(collapseAt) and t - timeAt(startAt) >= (plan == \"full\" ? 900 : 1500)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "isNull(collapseAt)",
+          "then": [
+            {
+              "set": "collapseAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "tc",
+          "to": "41.2"
+        },
+        {
+          "log": "Eli stumbles off the line, confused, and tries to run the wrong way; he is hot, flushed and slurring.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "cooled",
+      "when": "isNull(cooledAt) and not isNull(collapseAt) and tc <= goal",
+      "mode": "once",
+      "effects": [
+        {
+          "if": "isNull(cooledAt)",
+          "then": [
+            {
+              "set": "cooledAt",
+              "to": "t"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "injury",
+      "when": "not isNull(collapseAt) and not injured and t - timeAt(collapseAt) >= window and isNull(cooledAt)",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "injured",
+          "to": "true"
+        },
+        {
+          "log": "Thirty minutes since collapse and he is still above 38.9 C.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the incident record: what you planned and why, what you saw, and how he was cooled and handed over.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Planning",
+          "criteria": "First day back after five weeks in high heat: about half volume, work-to-rest 1:4, water breaks, heat-policy changes, and a cold-water tub set up before the session.",
+          "modelAnswer": "After five weeks off, in the policy's high heat category, I ran a transition day: half volume, 1:4 work-to-rest, water every 15 minutes, with the ice tub ready by the field."
+        },
+        {
+          "label": "Recognition",
+          "criteria": "Confusion or odd behavior while exercising in heat is exertional heat stroke until proven otherwise; sweating does not rule it out.",
+          "modelAnswer": "He became confused and ran the wrong way in the heat: exertional heat stroke until shown otherwise, even though he was still sweating."
+        },
+        {
+          "label": "Cool first, transport second",
+          "criteria": "911 and the athletic trainer at once; cold-water immersion within minutes; out at about 38.9 C (the athletic trainer's rectal reading) within 30 minutes of collapse; then hand over to EMS; never drive him away hot.",
+          "modelAnswer": "911 and the athletic trainer at once; into the ice tub within a minute; out at 38.9 C on the athletic trainer's rectal reading, inside 30 minutes; then to the paramedics with the times."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(startAt)",
+      "class": "recovered",
+      "rationale": "Closing without running the session leaves the team untrained but unharmed; nothing was learned about the plan.",
+      "source": {
+        "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+        "checkedAt": "2026-11-17",
+        "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+      }
+    }
+  },
+  "endings": {
+    "hotTransport": {
+      "label": "Transported before cooling",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and (not isNull(carAt) or (not isNull(handAt) and isNull(cooledAt)))",
+      "narrative": "He left the field still above 38.9 C. Every minute hot on the way added to the damage; cooling had to come first."
+    },
+    "organInjury": {
+      "label": "Cooled too late",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and injured",
+      "narrative": "He was above 38.9 C for more than 30 minutes after collapse; he spent a week in intensive care with kidney and liver injury."
+    },
+    "cooledFirst": {
+      "label": "Cooled first, transported second",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and plan == \"transition\" and not isNull(tubAt) and method == \"tub\" and timeAt(coolAt) - timeAt(collapseAt) <= 300 and not injured and not isNull(outAt) and outTc <= 39.0 and outTc >= 38.3 and timeAt(calledAt) - timeAt(collapseAt) <= 120 and isNull(carAt)",
+      "narrative": "A transition-day session, a tub waiting, immersion within a minute, out at {outTc|1dp} C inside 30 minutes, and a clean handover. He is home in two days."
+    },
+    "cooledLate": {
+      "label": "Cooled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{plan == \"full\" ? \"The full test on day one set up the collapse\" : isNull(tubAt) ? \"No tub was ready, so cooling started late\" : method != \"tub\" ? \"Slower cooling methods were used\" : \"He was cooled in time, but the record, timing or removal had gaps\"}. He recovers."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out."
+    }
+  },
+  "endingOrder": [
+    "hotTransport",
+    "organInjury",
+    "cooledFirst",
+    "cooledLate"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "phase",
+        "label": "A transition-day session in the heat",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"transition\" and not isNull(heatAt)",
+            "score": "met",
+            "why": "Half volume, 1:4, heat policy checked."
+          },
+          {
+            "when": "plan == \"transition\"",
+            "score": "partial",
+            "why": "Transition volume, but the heat policy was not checked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The full test on day one."
+          }
+        ]
+      },
+      {
+        "id": "recognize",
+        "label": "Stopped him and activated the EAP within 2 minutes of the confusion",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(calledAt) and timeAt(calledAt) - timeAt(collapseAt) <= 120 and not isNull(stoppedAt)",
+            "score": "met",
+            "why": "Stopped and called."
+          },
+          {
+            "when": "not isNull(calledAt)",
+            "score": "partial",
+            "why": "Called late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No 911 call."
+          }
+        ]
+      },
+      {
+        "id": "cool",
+        "label": "Cold-water immersion within 5 minutes; 38.9 C or less inside 30 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "method == \"tub\" and timeAt(coolAt) - timeAt(collapseAt) <= 300 and not injured",
+            "score": "met",
+            "why": "Immersed at once and cooled in time."
+          },
+          {
+            "when": "not isNull(cooledAt) and not injured",
+            "score": "partial",
+            "why": "Cooled in time, but slowly or late."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not cooled in time."
+          }
+        ]
+      },
+      {
+        "id": "order",
+        "label": "Cool first, transport second",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(carAt) and not isNull(cooledAt) and (isNull(handAt) or timeAt(handAt) >= timeAt(cooledAt))",
+            "score": "met",
+            "why": "Cooled before he left."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Moved before cooling."
+          }
+        ]
+      },
+      {
+        "id": "tubReady",
+        "label": "Tub set up before the session",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(tubAt)",
+            "score": "met",
+            "why": "Ready."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not ready."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Incident record",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written plan, recognition and cooling",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toCool",
+        "label": "Minutes from collapse to cooling",
+        "value": "isNull(coolAt) or isNull(collapseAt) ? -1 : (timeAt(coolAt) - timeAt(collapseAt)) / 60",
+        "format": "number",
+        "expert": "1-2"
+      },
+      {
+        "id": "outTemp",
+        "label": "Temperature out of the tub (C)",
+        "value": "outTc",
+        "format": "number",
+        "expert": "about 38.9"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before",
+        "text": "Check the heat policy; a transition day at half volume, 1:4 work-to-rest, water breaks; the ice tub filled and set up."
+      },
+      {
+        "at": "Collapse",
+        "text": "Confused in the heat: stop him, 911 and the athletic trainer, into the tub within a minute."
+      },
+      {
+        "at": "Cooling",
+        "text": "The athletic trainer's rectal readings; out at about 38.9 C, inside 30 minutes; hand over to the paramedics with the times."
+      }
+    ],
+    "debrief": {
+      "cooledFirst": {
+        "headline": "Cool first, transport second",
+        "body": "A day-one plan that respects five weeks off and the heat, a tub ready before anyone ran, and immersion within a minute of the confusion. That is how heat stroke ends with a full recovery."
+      },
+      "cooledLate": {
+        "headline": "He recovered, with gaps",
+        "body": "Check the day-one plan (half volume, 1:4), whether the tub was ready, and how fast immersion started."
+      },
+      "hotTransport": {
+        "headline": "Never drive heat stroke away hot",
+        "body": "Cooling on site comes first; immersion to about 38.9 C, then transport."
+      },
+      "organInjury": {
+        "headline": "Thirty minutes is the window",
+        "body": "Shade, a fan and towels cool far too slowly. Immersion is the fastest method, and the tub should be waiting before the session starts."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "First day back after five weeks, in high heat: phase in conditioning (about half volume, work-to-rest 1:4, water breaks, heat-policy changes) and set up the ice tub beforehand. Confusion while exercising in heat is exertional heat stroke until shown otherwise: stop him, activate the emergency plan (911 and the athletic trainer), and immerse him in ice water within minutes; cool to about 38.9 C on the athletic trainer's rectal reading within 30 minutes of collapse, then hand over to EMS. Cool first, transport second; never drive him away hot."
+  }
+}

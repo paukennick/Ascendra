@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "consent-through-the-twelve-year-old",
+  "title": "Consent through the twelve-year-old",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Dr. Patel, the neonatology fellow",
+        "presentation": "{pressure >= 8 ? \"Arms crossed, voice raised\" : pressure >= 6 ? \"Holding the consent form, talking fast\" : pressure >= 3 ? \"Standing at the bedside, checking her pager\" : \"Sitting down, calmer\"}; {relation >= 6 ? \"she is listening to you\" : relation >= 3 ? \"she wants this over with\" : \"she has stopped looking at you\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Get the parents' consent for a PICC line through their 12-year-old daughter; sign the form as witness.",
+          "when": "true"
+        },
+        {
+          "id": "policy",
+          "label": "Policy",
+          "text": "Qualified interpreters 24/7 by video in under 5 minutes, free. No minor interpreters except in an emergency. The nurse witnesses the signature, not understanding the content; ethics concerns to the charge nurse or ethics consult.",
+          "when": "not isNull(policyAt)"
+        },
+        {
+          "id": "scope",
+          "label": "What you found out",
+          "text": "{not isNull(scopeAt) ? \"The line is not urgent; the infant is stable on peripheral access until tomorrow.\" : \"\"} {not isNull(whyAt) ? \"The video interpreter cart is in the next pod and connects in a few minutes.\" : \"\"} {not isNull(acctAt) ? \"The sister is upset and says she does not know the medical words.\" : \"\"}",
+          "when": "not isNull(scopeAt) or not isNull(whyAt) or not isNull(acctAt)"
+        },
+        {
+          "id": "logs",
+          "label": "Second request",
+          "text": "Tell the parents 'it's routine' and skip explaining the risks, so the conversation is short.",
+          "when": "not isNull(logsAskAt)",
+          "alert": "not isNull(logsAskAt) and logs == \"unset\""
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Asked for the video interpreter for the consent conversation tonight",
+            "when": "not isNull(routeAt)"
+          },
+          {
+            "label": "Kept the full risks and benefits in the conversation",
+            "when": "logs == \"kept\""
+          },
+          {
+            "label": "Asked the charge nurse to support the interpreter plan",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Advocacy and moral agency: act on behalf of critically ill neonates, their families and colleagues, and help identify and resolve ethical and clinical concerns, within and outside the clinical setting",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "AACN Certification Corporation. CCRN Exam Handbook - Direct Care (July 2026), Neonatal test plan",
+      "checkedAt": "2026-10-31",
+      "url": "https://www.aacn.org/certification/get-certified/ccrn-neonatal",
+      "note": "Relayed from the CCRN Neonatal course seed (backend/supabase/seed/tracks/ccrn-peds-neo.ts), which read the handbook 2026-10-31, not re-read: the objective titles are the course's own. Scope only."
+    },
+    {
+      "cite": "Ascendra CCRN Neonatal course catalog (backend/supabase/seed/tracks/ccrn-peds-neo.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurses Service Organization: Breaking Down the ANA Code of Ethics for Nurses: A Simplified Summary (2025 edition; no article date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nso.com/Learning/Artifacts/Articles/Breaking-Down-the-ANA-Code-of-Ethics-for-Nurses-A-Simplified-Summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the 2025 edition (released January 2025, ten provisions): 'A nurse's primary commitment is to the recipient(s) of nursing care'; 'The nurse establishes a trusting relationship and advocates for the rights, health, and safety of recipient(s)', including protecting privacy and confidentiality; 'Nurses have authority over nursing practice and are responsible and accountable for their practice'; respect, transparency and civility with coworkers, and 'bullying behaviors should never be tolerated'. A secondary summary; the code itself was not opened. Learner text names 'your professional code', not the association."
+    },
+    {
+      "cite": "American Dental Association: Section 1557 and individuals with limited English proficiency (no date shown; summarizing the HHS rule)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.ada.org/resources/practice/legal-and-regulatory/section-1557-individuals-with-lep",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: a covered entity must not 'Rely on a minor child to interpret or facilitate communication, except in an emergency' (an imminent threat with no qualified interpreter immediately available); limits on relying on accompanying adults; language assistance 'must be provided free of charge'. A secondary summary of the federal rule; the rule's text was not opened."
+    }
+  ],
+  "brief": {
+    "situation": "16:00 in the NICU. You are the bedside nurse for Baby Nguyen, a stable 30-week infant who needs a non-urgent PICC line placed this evening. The parents speak Vietnamese and limited English. The fellow wants to get consent now using the infant's 12-year-old sister, who speaks English, so the line can go in before the night shift, and asks you to sign as witness. Work out what is being asked, advocate for the infant and family, and keep the working relationship where you can.",
+    "handover": [
+      "Your professional code makes the patient your primary commitment and asks you to advocate for the rights, health and safety of the people in your care, including their family's right to understand.",
+      "Hospital policy: qualified medical interpreters (in person, video or phone) are available around the clock at no cost; minors and family members do not interpret except in an emergency; ethics concerns can go to the charge nurse and the ethics consult service."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes of the conversation; Dr. Patel answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Dr. Patel, how hard she is pushing, your working relationship, what you know so far, and your note.",
+      "When the conversation ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "logsDelay": {
+      "value": 480,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Dr. Patel's second request comes eight minutes in."
+      },
+      "unit": "s"
+    },
+    "insistDelay": {
+      "value": 720,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Dr. Patel insists twelve minutes in if nothing else has been offered."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Dr. Patel leaves after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "shared": {
+      "type": "bool",
+      "init": false
+    },
+    "threatened": {
+      "type": "bool",
+      "init": false
+    },
+    "posted": {
+      "type": "bool",
+      "init": false
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "declineAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "insistAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "logs": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "kept",
+        "off"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(shared ? 1 : 0) + (logs == \"off\" ? 1 : 0)"
+    },
+    "routeInTime": {
+      "expr": "not isNull(routeAt) and timeAt(routeAt) <= actWindow"
+    },
+    "properChannel": {
+      "expr": "not threatened and not posted"
+    },
+    "escalatedIfNeeded": {
+      "expr": "isNull(insistAt) or not isNull(escalateAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Conversation",
+      "clock": "turns",
+      "actions": [
+        "askScope",
+        "askWhy",
+        "askAcct",
+        "checkPolicy",
+        "ack",
+        "route",
+        "refuse",
+        "share",
+        "keepLogs",
+        "logsOff",
+        "escalate",
+        "threaten",
+        "post",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askScope": {
+      "label": "Ask how urgent the line is",
+      "group": "Ask",
+      "available": "not talking and (isNull(scopeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"Not urgent. Peripheral access is holding. I'd just like it done before nights.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWhy": {
+      "label": "Ask whether the video interpreter has been tried",
+      "group": "Ask",
+      "available": "not talking and (isNull(whyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "add": "pressure",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"No... the cart's in the next pod, I suppose. It takes a few minutes.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAcct": {
+      "label": "Ask the sister, gently, whether she's comfortable interpreting",
+      "group": "Ask",
+      "available": "not talking and (isNull(acctAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acctAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "The sister, quietly: \"I don't know the hospital words. I don't want to say it wrong.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkPolicy": {
+      "label": "Check the language access policy",
+      "group": "Ask",
+      "available": "not talking and (isNull(policyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Sam waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge the fellow's evening: 'You've got a lot to get done before nights'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"I do. Three procedures and an admission coming.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "Decline to witness consent through the child; offer to bring the video interpreter now so consent takes ten minutes and the line still goes in tonight",
+      "group": "Respond",
+      "available": "not talking and (isNull(routeAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "\"Fine. Bring the cart; I'll do it properly.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Refuse flatly: 'No. That's against policy.'",
+      "group": "Respond",
+      "available": "not talking and (isNull(declineAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "3"
+        },
+        {
+          "add": "relation",
+          "by": "-3"
+        },
+        {
+          "finding": "\"Great. Then the line waits.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Witness the consent with the sister interpreting",
+      "group": "Respond",
+      "available": "not talking and (not shared and isNull(routeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "shared",
+          "to": "true"
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "log": "You sign as witness to a consent the parents heard through their 12-year-old.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Thanks. Done.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepLogs": {
+      "label": "Keep the risks and benefits in the conversation: the parents need them to decide",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"kept\""
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "finding": "\"Okay. Full consent.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsOff": {
+      "label": "Agree to call it routine and skip the risks",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"off\""
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "log": "The parents agree without hearing the risks.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Ask the charge nurse to support the interpreter plan and the timing",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "The charge nurse: \"Right call. I'll cover your other baby while you're with the interpreter.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "threaten": {
+      "label": "Tell Dr. Patel you'll report her unless she backs down",
+      "group": "Escalate",
+      "available": "not talking and (not threatened)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "threatened",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "finding": "\"Seriously? Go ahead.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "post": {
+      "label": "Complain about Dr. Patel in the unit group chat",
+      "group": "Escalate",
+      "available": "not talking and (not posted)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "posted",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "The post names Dr. Patel in front of the whole unit.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let Dr. Patel talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the conversation and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let Dr. Patel finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The conversation ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note: the interpreter used, who was present, what was explained and the parents' questions"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: it worked out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each exchange takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "logsAsk",
+      "when": "isNull(logsAskAt) and t >= logsDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "logsAskAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "log": "Dr. Patel: \"When the interpreter connects, just say it's routine and skip the risks so we're quick.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "insist",
+      "when": "isNull(insistAt) and t >= insistDelay and isNull(routeAt) and not shared and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "insistAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Dr. Patel: \"It's fine, the sister understands. Just sign as witness.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Dr. Patel is paged to a delivery and leaves. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the ethical concern was, how you advocated for the infant and family, and how you worked with the fellow.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The concern",
+          "criteria": "Names that consent through a 12-year-old is not informed consent: a minor interpreter is not allowed except in an emergency, the child doesn't know the terms, and the parents' right to understand the risks is the infant's protection.",
+          "modelAnswer": "Using the 12-year-old means the parents can't really give informed consent. It isn't an emergency, she doesn't know the words, and they have a right to hear the risks in their language."
+        },
+        {
+          "label": "Ask, then act",
+          "criteria": "Asks how urgent the line is and whether the interpreter was tried before answering; declines and offers a route that meets the fellow's goal (the video interpreter now).",
+          "modelAnswer": "I asked whether it was urgent and whether the interpreter was tried, then offered to bring the video cart so it still gets done tonight."
+        },
+        {
+          "label": "The relationship and the channel",
+          "criteria": "Acknowledges the fellow's workload; involves the charge nurse, not threats or posts; writes a factual note.",
+          "modelAnswer": "I acknowledged her evening, got the charge nurse to cover, and documented the consent conversation."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Declined and offered the interpreter within 20 minutes, before the fellow leaves (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No consent through a minor interpreter and no risks left out."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declineAt) and not shared and logs != \"off\"",
+      "class": "recovered",
+      "rationale": "Nothing improper happened, but the consent question was never answered.",
+      "source": {
+        "cite": "American Dental Association: Section 1557 and individuals with limited English proficiency (no date shown; summarizing the HHS rule)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.ada.org/resources/practice/legal-and-regulatory/section-1557-individuals-with-lep",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: a covered entity must not 'Rely on a minor child to interpret or facilitate communication, except in an emergency' (an imminent threat with no qualified interpreter immediately available); limits on relying on accompanying adults; language assistance 'must be provided free of charge'. A secondary summary of the federal rule; the rule's text was not opened."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Consent without understanding",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "The parents agreed through their child, or without hearing the risks. The consent is not informed."
+    },
+    "upheld": {
+      "label": "Family's voice protected",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and routeInTime and logs == \"kept\" and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "You asked first, declined consent through a child, brought a qualified interpreter, kept the risks in, and kept the fellow with you."
+    },
+    "costly": {
+      "label": "Protected, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Consent was protected, but late, with a flat refusal, a threat or a post, or the relationship suffered."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noShare",
+        "label": "Did not witness consent through a minor",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not shared",
+            "score": "met",
+            "why": "No consent through the child."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Consent was given through a 12-year-old."
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Kept the risks in the consent conversation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "logs == \"kept\"",
+            "score": "met",
+            "why": "Declined, with the reason."
+          },
+          {
+            "when": "logs == \"unset\"",
+            "score": "partial",
+            "why": "Never answered the second request."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The risks were left out."
+          }
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Declined and offered a qualified interpreter within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeInTime",
+            "score": "met",
+            "why": "Offered at {timeAt(routeAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(routeAt) or not isNull(declineAt)",
+            "score": "partial",
+            "why": "{isNull(routeAt) ? \"Refused with no way forward.\" : \"Offered late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer, or a yes."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Escalated, if needed, through the documented route, not threats or a public post",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The charge nurse is supporting the interpreter plan.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "The fellow kept pushing and the charge nurse was never involved."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{posted ? \"A public post naming her.\" : \"A threat instead of a channel.\"}"
+          }
+        ]
+      },
+      {
+        "id": "diligence",
+        "label": "Found out how urgent it was and whether an interpreter was tried before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt) and not isNull(whyAt) and (isNull(declineAt) or timeAt(whyAt) <= timeAt(declineAt))",
+            "score": "met",
+            "why": "Due diligence first."
+          },
+          {
+            "when": "not isNull(scopeAt) or not isNull(whyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without knowing what it touched."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with the fellow",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written concern, advocacy, and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minRoute",
+        "label": "Minutes until the proper route was offered",
+        "value": "isNull(routeAt) ? -1 : timeAt(routeAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Consent breaches agreed to",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship with Dr. Patel at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "Ask how urgent the line is and whether the interpreter was tried; check with the sister; acknowledge the fellow's workload."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Decline; bring the video interpreter now."
+      },
+      {
+        "at": "8-14 min",
+        "text": "Keep the risks in the conversation."
+      },
+      {
+        "at": "After",
+        "text": "Document the interpreter and the conversation; involve the charge nurse if pressed."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Family's voice protected",
+        "body": "You advocated for the infant through the parents' right to understand, brought a qualified interpreter, kept the risks in, and kept the relationship. That is the expert path."
+      },
+      "costly": {
+        "headline": "Protected, at a cost",
+        "body": "The criteria show the cost: a late answer, a refusal with no way forward, a threat or a post, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "Consent without understanding",
+        "body": "Consent through a child interpreter, or without the risks, is not informed consent."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Advocacy means acting for the infant through the family who decides for him. Outside an emergency, a minor child must not interpret, and qualified language assistance must be offered free of charge. Ask first: the line is not urgent and the video interpreter is minutes away. Acknowledge the fellow's workload, decline to witness consent through the sister, bring the interpreter now so the line still goes in tonight, keep the risks in the conversation, involve the charge nurse rather than threats or posts, and document."
+  },
+  "safetyNote": "Teaching case for exam practice; fictional people. Not legal or clinical advice."
+}

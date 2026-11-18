@@ -1,0 +1,1008 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "shared-repo-revert-semver-hotfix",
+  "title": "A broken commit on main, a breaking change to a shared module, and a hotfix during feature work",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "auto@granby:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "CI: firewall playbook failing on main since commit a3f9",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "lineUndo",
+          "text": "{undo == \"revert\" ? \"Reverted with a new commit\" : undo == \"localFix\" ? \"Fix forward\" : undo == \"forcePush\" ? \"History rewritten on main\" : \"\"}",
+          "when": "undo != \"none\"",
+          "at": "timeAt(undoAt)",
+          "error": "undo == \"forcePush\""
+        },
+        {
+          "id": "lineVersion",
+          "text": "{version == \"major\" ? \"Major version for a breaking change\" : version == \"minor\" ? \"Minor version\" : version == \"retag\" ? \"Released tag rewritten\" : \"\"}",
+          "when": "version != \"none\"",
+          "at": "timeAt(versionAt)",
+          "error": "version == \"retag\""
+        },
+        {
+          "id": "lineHotfix",
+          "text": "{hotfix == \"hotfixBranch\" ? \"Hotfix branch from the tag\" : hotfix == \"fromMain\" ? \"Patch from main\" : hotfix == \"featureBranch\" ? \"Deploy from a feature branch\" : \"\"}",
+          "when": "hotfix != \"none\"",
+          "at": "timeAt(hotfixAt)",
+          "error": "hotfix == \"featureBranch\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nUndo",
+          "label": "main branch",
+          "spokenLabel": "main branch",
+          "kind": "Git",
+          "status": "{undo == \"revert\" ? \"Reverted with a new commit\" : undo == \"localFix\" ? \"Fix forward\" : undo == \"forcePush\" ? \"History rewritten on main\" : \"Waiting\"}",
+          "tone": "undo == \"revert\" ? \"up\" : undo == \"localFix\" ? \"degraded\" : undo == \"forcePush\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nVersion",
+          "label": "network module",
+          "spokenLabel": "network module",
+          "kind": "module",
+          "status": "{version == \"major\" ? \"Major version for a breaking change\" : version == \"minor\" ? \"Minor version\" : version == \"retag\" ? \"Released tag rewritten\" : \"Waiting\"}",
+          "tone": "version == \"major\" ? \"up\" : version == \"minor\" ? \"degraded\" : version == \"retag\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nHotfix",
+          "label": "hotfix branch",
+          "spokenLabel": "hotfix branch",
+          "kind": "Git",
+          "status": "{hotfix == \"hotfixBranch\" ? \"Hotfix branch from the tag\" : hotfix == \"fromMain\" ? \"Patch from main\" : hotfix == \"featureBranch\" ? \"Deploy from a feature branch\" : \"Waiting\"}",
+          "tone": "hotfix == \"hotfixBranch\" ? \"up\" : hotfix == \"fromMain\" ? \"degraded\" : hotfix == \"featureBranch\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nUndo",
+          "to": "nVersion",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nVersion",
+          "to": "nHotfix",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Source control practices: Git remote/local operations, branching strategies, and semantic versioning",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Git documentation, git-revert",
+      "checkedAt": "2026-11-17",
+      "url": "https://git-scm.com/docs/git-revert",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: git revert records new commits that reverse the effect of earlier commits, leaving existing history in place; reset --hard discards work and must be used with care."
+    },
+    {
+      "cite": "Semantic Versioning 2.0.0 (semver.org)",
+      "checkedAt": "2026-11-17",
+      "url": "https://semver.org/",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: MAJOR for incompatible API changes, MINOR for backward compatible functionality, PATCH for backward compatible fixes; a released version's contents must not be modified."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You maintain the automation repository at Granby Utilities, a fictional water utility. Twelve engineers use its modules to provision servers and network gear.",
+    "handover": [
+      "main is shared and protected; releases are tagged.",
+      "The network module is at v2.3.1."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-26T10:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "undo": {
+      "type": "enum",
+      "values": [
+        "none",
+        "revert",
+        "localFix",
+        "forcePush"
+      ],
+      "init": "none"
+    },
+    "undoAt": {
+      "type": "time",
+      "init": null
+    },
+    "version": {
+      "type": "enum",
+      "values": [
+        "none",
+        "major",
+        "minor",
+        "retag"
+      ],
+      "init": "none"
+    },
+    "versionAt": {
+      "type": "time",
+      "init": null
+    },
+    "hotfix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "hotfixBranch",
+        "fromMain",
+        "featureBranch"
+      ],
+      "init": "none"
+    },
+    "hotfixAt": {
+      "type": "time",
+      "init": null
+    },
+    "logAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((undo == \"forcePush\") ? 1 : 0) + ((version == \"retag\") ? 1 : 0) + ((hotfix == \"featureBranch\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(undo == \"none\" or (undo == \"forcePush\") ? 1 : 0) + (version == \"none\" or (version == \"retag\") ? 1 : 0) + (hotfix == \"none\" or (hotfix == \"featureBranch\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Release review",
+      "clock": "turns",
+      "actions": [
+        "log",
+        "diff"
+      ]
+    },
+    "close": {
+      "label": "Release record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "log": {
+      "label": "git log --oneline -5 origin/main",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(logAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "logAt",
+          "to": "t"
+        },
+        {
+          "output": "The top commit (a3f9) broke the firewall playbook; four engineers have already pulled main."
+        },
+        {
+          "log": "git log --oneline -5 origin/main.",
+          "kind": "act"
+        },
+        {
+          "finding": "The top commit (a3f9) broke the firewall playbook; four engineers have already pulled main."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "diff": {
+      "label": "git diff v2.3.1..HEAD -- modules/network",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(diffAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "diffAt",
+          "to": "t"
+        },
+        {
+          "output": "A variable was renamed from vlan_id to vlan; callers using vlan_id will break."
+        },
+        {
+          "log": "git diff v2.3.1..HEAD -- modules/network.",
+          "kind": "act"
+        },
+        {
+          "finding": "A variable was renamed from vlan_id to vlan; callers using vlan_id will break."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A revert commit on main, a major version for the breaking change, and a patch from a hotfix branch merged back"
+                },
+                {
+                  "value": "summary",
+                  "label": "Release handled"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "undo == \"forcePush\"",
+              "then": [
+                {
+                  "log": "Check-in 2: two engineers' pushes reintroduce a3f9 and drop a teammate's commit; an afternoon goes to untangling main.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "version == \"retag\"",
+              "then": [
+                {
+                  "log": "Check-in 3: overnight runs pinned to v2.3.1 fail on the renamed variable; two sites lose network provisioning.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "hotfix == \"featureBranch\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the feature branch's half-built change misconfigures a pump station's network.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The release review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_undo",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the broken commit.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "undoPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_version",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: the release.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "versionPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_hotfix",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: an urgent fix.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "hotfixPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "undoPrompt": {
+      "title": "Undo a pushed commit",
+      "context": "a3f9 is on the shared main branch.",
+      "choices": [
+        {
+          "id": "revert",
+          "label": "git revert a3f9, push the new commit through a pull request, and tell the team",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"revert\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "A revert commit undoes a3f9; history stays intact.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "git revert records a new commit that reverses an earlier one, so others' clones stay consistent."
+        },
+        {
+          "id": "localFix",
+          "label": "Fix the playbook in a new commit on top",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"localFix\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "A fix is pushed.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works if the fix is right, but takes longer while main stays broken."
+        },
+        {
+          "id": "forcePush",
+          "label": "git reset --hard to the previous commit and force-push main",
+          "effects": [
+            {
+              "set": "undo",
+              "to": "\"forcePush\""
+            },
+            {
+              "set": "undoAt",
+              "to": "t"
+            },
+            {
+              "log": "main is rewritten.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Four engineers' clones now diverge from main; their next pushes resurrect or lose work."
+        }
+      ]
+    },
+    "versionPrompt": {
+      "title": "A renamed variable",
+      "context": "vlan_id became vlan; callers break.",
+      "choices": [
+        {
+          "id": "major",
+          "label": "Release v3.0.0 with a changelog noting the rename and how to migrate",
+          "effects": [
+            {
+              "set": "version",
+              "to": "\"major\""
+            },
+            {
+              "set": "versionAt",
+              "to": "t"
+            },
+            {
+              "log": "v3.0.0 is tagged.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Semantic versioning raises MAJOR for incompatible changes so callers can pin and plan."
+        },
+        {
+          "id": "minor",
+          "label": "Release v2.4.0",
+          "effects": [
+            {
+              "set": "version",
+              "to": "\"minor\""
+            },
+            {
+              "set": "versionAt",
+              "to": "t"
+            },
+            {
+              "log": "v2.4.0 is tagged.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Callers expecting compatible changes break on upgrade."
+        },
+        {
+          "id": "retag",
+          "label": "Move the v2.3.1 tag to the new commit",
+          "effects": [
+            {
+              "set": "version",
+              "to": "\"retag\""
+            },
+            {
+              "set": "versionAt",
+              "to": "t"
+            },
+            {
+              "log": "v2.3.1 now points elsewhere.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "A released version must not change; pinned callers get breaking code silently."
+        }
+      ]
+    },
+    "hotfixPrompt": {
+      "title": "A fix during feature work",
+      "context": "v3.0.0 needs a one-line fix; main has half-finished feature work.",
+      "choices": [
+        {
+          "id": "hotfixBranch",
+          "label": "Branch from v3.0.0, fix, release v3.0.1, and merge the fix back into main",
+          "effects": [
+            {
+              "set": "hotfix",
+              "to": "\"hotfixBranch\""
+            },
+            {
+              "set": "hotfixAt",
+              "to": "t"
+            },
+            {
+              "log": "v3.0.1 ships only the fix.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A short-lived branch from the release isolates the fix from unfinished work, and merging back keeps main current."
+        },
+        {
+          "id": "fromMain",
+          "label": "Release v3.0.1 from main",
+          "effects": [
+            {
+              "set": "hotfix",
+              "to": "\"fromMain\""
+            },
+            {
+              "set": "hotfixAt",
+              "to": "t"
+            },
+            {
+              "log": "v3.0.1 includes the feature work.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The patch carries untested feature changes."
+        },
+        {
+          "id": "featureBranch",
+          "label": "Commit the fix to a feature branch and deploy from it",
+          "effects": [
+            {
+              "set": "hotfix",
+              "to": "\"featureBranch\""
+            },
+            {
+              "set": "hotfixAt",
+              "to": "t"
+            },
+            {
+              "log": "A feature branch is deployed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Production runs unreviewed, unreleased code nobody can reproduce from a tag."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the release record for the twelve engineers.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "History and versions",
+          "criteria": "a3f9 reverted; v3.0.0 for the rename.",
+          "modelAnswer": "We reverted a3f9 with a new commit. The vlan rename is a breaking change, released as v3.0.0 with migration notes."
+        },
+        {
+          "label": "Hotfix",
+          "criteria": "v3.0.1 from a branch off v3.0.0, merged back.",
+          "modelAnswer": "The urgent fix shipped as v3.0.1 from the v3.0.0 tag and is merged into main."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (undo == \"localFix\") and (version == \"minor\") and (hotfix == \"fromMain\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA AutoOps+ AT0-001 V1 Exam Objectives, document version 1.2: Automation Coding Concepts 31%, System Configuration 25%, Continuous Integration 24%, Continuous Delivery 20%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/8ef85dd4c6f611f0af744a719477d0a7",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 1.4 'Given a scenario, troubleshoot common issues with the code life cycle' (syntax errors, runtime errors); 2.4 'Given a scenario, troubleshoot common issues with system configuration' (syntax errors specific to configuration files); 3.2 'Explain workflow management concepts in CI' (automated rollbacks). The objective wording here is the course seed's. Reused for REQ-336 from this course's py-import-crash-traceback-autoopsplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "undoHarm": {
+      "label": "Main tangled",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and undo == \"forcePush\"",
+      "narrative": "Rewriting shared history made clones diverge and lost a commit."
+    },
+    "versionHarm": {
+      "label": "Pinned callers broken",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and version == \"retag\"",
+      "narrative": "Moving a released tag broke every pinned caller overnight."
+    },
+    "hotfixHarm": {
+      "label": "Unfinished code in production",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and hotfix == \"featureBranch\"",
+      "narrative": "Deploying from a feature branch shipped unfinished work."
+    },
+    "target": {
+      "label": "Clean history, honest versions",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (undo == \"revert\") and (version == \"major\") and (hotfix == \"hotfixBranch\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "Everyone's clones agree, callers know what breaks, and the hotfix shipped alone."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "undoHarm",
+    "versionHarm",
+    "hotfixHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "undoCrit",
+        "label": "Undid a shared commit with git revert",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "undo == \"revert\"",
+            "score": "met",
+            "why": "Safe undo."
+          },
+          {
+            "when": "undo == \"localFix\"",
+            "score": "partial",
+            "why": "Slower."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Rewrote shared history."
+          }
+        ]
+      },
+      {
+        "id": "versionCrit",
+        "label": "Released a breaking change as a new major version",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "version == \"major\"",
+            "score": "met",
+            "why": "Clear contract."
+          },
+          {
+            "when": "version == \"minor\"",
+            "score": "partial",
+            "why": "Mislabeled."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Broke the contract."
+          }
+        ]
+      },
+      {
+        "id": "hotfixCrit",
+        "label": "Released the hotfix from a short-lived branch off the release tag",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hotfix == \"hotfixBranch\"",
+            "score": "met",
+            "why": "Isolated."
+          },
+          {
+            "when": "hotfix == \"fromMain\"",
+            "score": "partial",
+            "why": "Mixed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Untraceable."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(logAt) and not isNull(diffAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(logAt) or not isNull(diffAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the shared history and the module's changes first."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Revert the commit and push the revert."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Tag a major version with migration notes."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Branch from the tag, release a patch, merge back."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "undoHarm": {
+        "headline": "Revert, don't rewrite",
+        "body": "Undo shared commits with git revert."
+      },
+      "versionHarm": {
+        "headline": "Never change a release",
+        "body": "Breaking changes get a new major version."
+      },
+      "hotfixHarm": {
+        "headline": "Patch from the release",
+        "body": "Hotfix from a tag, merge back."
+      },
+      "target": {
+        "headline": "Good: clean history, honest versions",
+        "body": "Revert, semantic versioning and hotfix branches."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Undo pushed commits with git revert, which records a new commit and keeps shared history intact. Version by semantic versioning: incompatible changes raise MAJOR, and a released version is never changed. Ship urgent fixes from a short-lived branch off the release and merge them back."
+  }
+}

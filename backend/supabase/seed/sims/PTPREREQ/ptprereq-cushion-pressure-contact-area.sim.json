@@ -1,0 +1,913 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "ptprereq-cushion-pressure-contact-area",
+  "title": "The thickest cushion isn't the one that spreads the load",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "cushion comparison sheet, community equipment loan closet, Riverbend Mobility Library (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Coordinator, Paul Weston",
+          "text": "The loan catalog goes to print at 13:00. Which of the three donated cushions do we list as 'spreads seated pressure best'? The thickest one, right?",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "The sheet ranks cushions by thickness, not by contact area or measured pressure.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Catalog",
+          "text": "13:00: the catalog went to print.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "comparison sheet",
+          "language": "text",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "Rank by thickness: foam 10 cm > air-cell 8 cm > gel 5 cm",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "F = 0.75 x 80 kg x 9.8 = 588 N; P = F / A with A in m2",
+              "when": "fix == \"pa\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "foam 588 / 0.041 = 14.3 kPa; gel 588 / 0.069 = 8.5 kPa; air-cell 588 / 0.102 = 5.8 kPa",
+              "when": "fix == \"pa\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c3",
+              "text": "P = 588 / 410 = 1.43 (A left in cm2)",
+              "when": "fix == \"units\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "Rank by mat peak reading only, ignoring area",
+              "when": "fix == \"peak\"",
+              "mark": "\"warning\""
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Catalog",
+          "value": "13:00"
+        }
+      ]
+    }
+  },
+  "objective": "Calculate pressure as force divided by area, and apply it to explain why a larger contact area lowers pressure on skin",
+  "secondaryObjectives": [
+    "Calculate work, gravitational potential energy, kinetic energy and power for a lifted load or a person climbing stairs"
+  ],
+  "sources": [
+    {
+      "cite": "OpenStax, College Physics 2e, 11.3 Pressure",
+      "checkedAt": "2026-11-17",
+      "url": "https://openstax.org/books/college-physics-2e/pages/11-3-pressure",
+      "note": "Read 2026-11-17 through a summarizing fetch. 'Pressure is defined as the force divided by the area perpendicular to the force over which the force is applied', P = F/A, in pascals (1 Pa = 1 N/m2); 'A given force can have a significantly different effect depending on the area over which the force is exerted'."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You volunteer at Riverbend Mobility Library (fictional), which lends donated equipment. A pressure-mapping mat measured each of three cushions under the same 80 kg test manikin. The coordinator wants to list the thickest as the best at spreading seated pressure. The catalog prints at 13:00. It is 12:05.",
+    "handover": [
+      "Contact areas from the mat: foam 10 cm thick, 410 cm2; gel 5 cm, 690 cm2; air-cell 8 cm, 1,020 cm2.",
+      "Use g = 9.8 m/s2; about 75% of the manikin's weight rests on the seat."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "pa",
+        "peak",
+        "units"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"pa\")"
+    },
+    "correct": {
+      "expr": "(fix == \"pa\" or fix == \"peak\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Compute the seated force and each cushion's average pressure",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "ranking by average pressure: air-cell, gel, foam"
+            }
+          ],
+          "else": [
+            {
+              "output": "seated force: 588 N\naverage pressure: foam 14.3 kPa, gel 8.5 kPa, air-cell 5.8 kPa"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "The sheet ranks by pressure."
+            }
+          ],
+          "else": [
+            {
+              "finding": "The same force over a larger contact area gives lower pressure; thickness does not enter P = F/A."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change how the sheet ranks the cushions",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "pa",
+              "label": "Rank by average pressure, P = F/A, with the area in square meters"
+            },
+            {
+              "value": "peak",
+              "label": "Rank by the mat's single highest reading"
+            },
+            {
+              "value": "units",
+              "label": "Divide the force by the area in cm2"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Recheck the arithmetic and units, and compare with the mat's average reading for each cushion",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"pa\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "air-cell 5.8 kPa lowest; units checked\n2 passed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"peak\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "same order today; one-sensor ranking unstable across 3 trials\n1 passed, 1 failed"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"units\"",
+              "then": [
+                {
+                  "output": "foam 1.43 'kPa' (should be 14.3)\n1 failed"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "thickness ranking disagrees with the mat\n1 failed"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Send the listing to the catalog",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Sent: air-cell listed as spreading pressure best."
+            }
+          ],
+          "else": [
+            {
+              "output": "Sent: the wrong cushion listed."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why thickness was the wrong measure",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Pressure is force divided by contact area; a cushion that spreads the same force over more area lowers pressure"
+                },
+                {
+                  "value": "c1",
+                  "label": "Thicker foam is softer"
+                },
+                {
+                  "value": "c2",
+                  "label": "The mat was miscalibrated"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the ranking is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "Calculated pressures agree with the mat's averages, units checked"
+                },
+                {
+                  "value": "k1",
+                  "label": "The air-cell looks comfiest"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "13:00: the catalog went to print.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the coordinator: which cushion, why, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "P = F/A: the seated force (about 588 N) is the same on every cushion, so the one with the largest contact area has the lowest average pressure.",
+          "modelAnswer": "Same force, more area, less pressure."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Rank by average pressure with area in square meters; a single peak sensor is noisy; dividing by cm2 is off by 10,000.",
+          "modelAnswer": "Air-cell 5.8 kPa, gel 8.5, foam 14.3."
+        },
+        {
+          "label": "How you know",
+          "criteria": "Calculated values agree with the mat's averages.",
+          "modelAnswer": "Matches the mat."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-333)",
+          "checkedAt": "2026-11-17",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-333)",
+        "checkedAt": "2026-11-17",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong listing printed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "Borrowers choose a cushion on a claim the measurements don't support."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "The catalog printed without the cushion listing."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "The catalog's claim matches the measurements."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Computed force and pressure before ranking",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Ranked by pressure, force divided by area",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Pressure from force over area, in consistent units."
+          },
+          {
+            "when": "fix == \"peak\"",
+            "score": "partial",
+            "why": "Peak readings matter, but one sensor cell is noisy; the claim in the catalog is about spreading load, which is area."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"units\" ? \"N per cm2 mislabeled as kPa: values off by a factor of 10,000.\" : \"The sheet still ranks by thickness.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Ranking matched the mat averages after the last change, before printing",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "588 N; pressures 14.3, 8.5, 5.8 kPa."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Rank by P = F/A."
+      },
+      {
+        "at": "9-12 min",
+        "text": "Matches the mat."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Send."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: pressure is about area",
+        "body": "The same weight over twice the area is half the pressure."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong listing",
+        "body": "Units matter: N/cm2 is 10,000 times N/m2."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The catalog claim is about spreading pressure, and pressure is force divided by area. The seated force is the same on each cushion: 0.75 x 80 kg x 9.8 m/s2 = 588 N. Over 0.041, 0.069 and 0.102 m2 that is 14.3, 8.5 and 5.8 kPa, so the air-cell cushion spreads the load best, whatever the thickness. Keep area in square meters; a single peak sensor is too noisy for this claim."
+  }
+}

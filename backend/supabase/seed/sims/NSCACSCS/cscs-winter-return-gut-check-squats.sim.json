@@ -1,0 +1,1009 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "cscs-winter-return-gut-check-squats",
+  "title": "A gut check on day one",
+  "screen": {
+    "type": "trainer",
+    "level": 1,
+    "trainer": {
+      "client": {
+        "name": "Men's basketball, 15 players",
+        "presentation": "{not isNull(darkAt) and isNull(sentAt) ? \"Three players at your door: swollen thighs, can't squat to sit, dark urine.\" : not isNull(doneAt) ? \"A week back: sore but moving well.\" : \"Back from four weeks of winter break; the head coach wants a 'gut check' after a losing streak.\"}"
+      },
+      "gauges": [
+        {
+          "id": "gTrust",
+          "label": "Head coach",
+          "spokenLabel": "The head coach's trust in you",
+          "value": "trust",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "doubtful",
+            "listening",
+            "on board"
+          ]
+        }
+      ],
+      "readings": [
+        {
+          "id": "vol",
+          "label": "Week-1 volume",
+          "spokenLabel": "Week one volume against the last block",
+          "value": "{plan == \"transition\" ? \"about 50%\" : plan == \"fullOld\" ? \"100%\" : plan == \"gutcheck\" ? \"a novel 100-rep squat set\" : \"not set\"}",
+          "flag": "(plan == \"gutcheck\" or plan == \"fullOld\")"
+        },
+        {
+          "id": "wr",
+          "label": "Work to rest",
+          "spokenLabel": "Work-to-rest ratio in week one",
+          "value": "{plan == \"transition\" ? \"1:4\" : plan == \"none\" ? \"not set\" : \"minimal rest\"}",
+          "flag": "(plan == \"gutcheck\" or plan == \"fullOld\")"
+        },
+        {
+          "id": "sym",
+          "label": "Day 2",
+          "spokenLabel": "Day two reports",
+          "value": "{not isNull(darkAt) ? \"three players: severe pain, swelling, dark urine\" : \"normal soreness\"}",
+          "when": "not isNull(weekAt)",
+          "flag": "not isNull(darkAt)"
+        }
+      ],
+      "intake": {
+        "label": "Team file",
+        "items": [
+          {
+            "id": "f1",
+            "question": "Last training block",
+            "answer": "In-season maintenance lifting twice a week until the break.",
+            "when": "true"
+          },
+          {
+            "id": "f2",
+            "question": "Break",
+            "answer": "Four weeks off, no supervised training.",
+            "when": "true",
+            "flag": "true"
+          },
+          {
+            "id": "f3",
+            "question": "Head coach's request",
+            "answer": "'Day one: 100 back squats with a bar they can barely handle. Find out who wants it.'",
+            "when": "true",
+            "flag": "true"
+          },
+          {
+            "id": "f4",
+            "question": "Staff and space",
+            "answer": "One strength coach, one graduate assistant, 8 racks; the athletic trainer on call.",
+            "when": "true"
+          }
+        ]
+      },
+      "findings": [
+        {
+          "id": "d2",
+          "label": "Day 2",
+          "result": "Three players: thighs swollen and hard, can't squat to sit, urine like cola.",
+          "when": "not isNull(darkAt)",
+          "flag": "true"
+        },
+        {
+          "id": "w1",
+          "label": "Week 1",
+          "result": "All 15 trained 3 days at reduced volume; normal soreness only; squat technique back by day 3.",
+          "when": "not isNull(doneAt)"
+        }
+      ],
+      "program": {
+        "label": "Week 1 plan",
+        "items": [
+          {
+            "label": "Transition: about 50% of the last block's volume, work-to-rest 1:4, no more than 3 lifting days, loads chosen by the strength staff, squats in 3-4 sets of 5-8",
+            "when": "plan == \"transition\""
+          },
+          {
+            "label": "Gut check: 100 back squats, minimal rest",
+            "when": "plan == \"gutcheck\""
+          },
+          {
+            "label": "The last block at full volume from day one",
+            "when": "plan == \"fullOld\""
+          },
+          {
+            "label": "Athletic trainer briefed; players told the warning signs to report",
+            "when": "not isNull(monitorAt)"
+          }
+        ]
+      },
+      "journal": [
+        {
+          "id": "jWeek",
+          "text": "Week 1 began.",
+          "when": "not isNull(weekAt)",
+          "at": "timeAt(weekAt)"
+        },
+        {
+          "id": "jDark",
+          "text": "Three players reported dark urine.",
+          "when": "not isNull(darkAt)",
+          "at": "timeAt(darkAt)"
+        },
+        {
+          "id": "jSent",
+          "text": "Sent to the emergency department with the athletic trainer.",
+          "when": "not isNull(sentAt)",
+          "at": "timeAt(sentAt)"
+        }
+      ],
+      "rules": [
+        {
+          "id": "rTrans",
+          "label": "Back from a break of 2 weeks or more",
+          "text": "About 50% volume in week 1 and 70% in week 2, work-to-rest at least 1:4, no more than 3 lifting days; no novel or punishment workouts.",
+          "met": "(plan == \"gutcheck\" or plan == \"fullOld\")"
+        },
+        {
+          "id": "rER",
+          "label": "Severe muscle pain, swelling or dark urine",
+          "text": "To hospital now with the athletic trainer; no more training.",
+          "met": "not isNull(darkAt) and isNull(sentAt)"
+        }
+      ]
+    }
+  },
+  "objective": "Exercise selection for the training period, injury-risk reduction and available facility and staff",
+  "secondaryObjectives": [
+    "Training volume, work-to-rest periods, recovery and unloading across the microcycle and macrocycle",
+    "Recognizing and responding to unsafe training: overuse, overtraining and temperature-induced illness"
+  ],
+  "sources": [
+    {
+      "cite": "NSCA Certification Handbook: CSCS detailed content outline (Scientific Foundations; Practical/Applied: program design, exercise technique, program implementation, organization and administration)",
+      "checkedAt": "2026-10-08",
+      "url": "https://www.nsca.com/globalassets/certification/certification-pdfs/nsca-certification-handbook.pdf",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/fitness.ts, read 2026-10-08), not re-read for this case. The objective titles are the course's own words."
+    },
+    {
+      "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+      "checkedAt": "2026-11-17",
+      "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+    },
+    {
+      "cite": "NSCA. Inter-Association Task Force for Preventing Sudden Death in Collegiate Conditioning Sessions (introduction page, May 2017; citing Casa DJ, et al. J Athl Train. 2012;47(4))",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nsca.com/education/articles/inter-association-task-force-for-preventing-sudden-death-in-collegiate-conditioning-sessions",
+      "note": "Read 2026-11-17 through a summarizing fetch; only the introduction was on the page: the leading causes of conditioning deaths are exertional sickling with sickle cell trait, exertional heat stroke and cardiac conditions; workouts 'too novel, too much, too soon, or too intense' are linked to exertional rhabdomyolysis; 11 of 21 deaths were on day 1 or 2. The full recommendations were not read."
+    },
+    {
+      "cite": "Ascendra teaching model (REQ-338, authored)",
+      "checkedAt": "2026-11-17",
+      "note": "That the head coach's day-one 'gut check' (100 back squats at a load he picks) puts three players in hospital with exertional rhabdomyolysis on day 2, and that the transition plan does not, are authored to the direction the sources give: most exertional rhabdomyolysis follows a novel workload, especially after detraining, and day 1 and 2 sessions after a break carry the risk. Simplified teaching model written for exam practice; not a validated physiological model."
+    },
+    {
+      "cite": "Ascendra strength and conditioning course catalog (backend/supabase/seed/tracks/fitness.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are the strength and conditioning coach for a college men's basketball team, back from four weeks of winter break. After a losing streak the head coach wants a day-one 'gut check': 100 back squats.",
+    "handover": [
+      "You write and run the strength program; the athletic trainer handles injuries and illness.",
+      "Eight racks, one graduate assistant, 15 players."
+    ],
+    "howItWorks": [
+      "Each task takes time: choose it, then let it finish, which moves the clock by the minutes it takes.",
+      "The screen shows the client, your read-outs and findings, the plan and the rules that apply now.",
+      "When you end the session you write the record and explain your reasoning."
+    ]
+  },
+  "safetyNote": "Teaching case for exam practice; fictional client. Not medical advice.",
+  "clock": {
+    "start": "2027-01-04T08:00",
+    "tick": "1min",
+    "maxDuration": "12d",
+    "calendar": "date"
+  },
+  "params": {
+    "day2": {
+      "value": 129600,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "The morning of day 2 after the first lift."
+      }
+    },
+    "week": {
+      "value": 604800,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "One week of the plan."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "trust": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "plan": {
+      "type": "enum",
+      "values": [
+        "none",
+        "transition",
+        "gutcheck",
+        "fullOld"
+      ],
+      "init": "none"
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "explainAt": {
+      "type": "time",
+      "init": null
+    },
+    "atAt": {
+      "type": "time",
+      "init": null
+    },
+    "fitAt": {
+      "type": "time",
+      "init": null
+    },
+    "monitorAt": {
+      "type": "time",
+      "init": null
+    },
+    "weekAt": {
+      "type": "time",
+      "init": null
+    },
+    "darkAt": {
+      "type": "time",
+      "init": null
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "practiceAt": {
+      "type": "time",
+      "init": null
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "enum",
+      "values": [
+        "none",
+        "nothing",
+        "brief",
+        "full"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "session": {
+      "label": "Week 1",
+      "clock": "turns",
+      "actions": [
+        "explain",
+        "at",
+        "program",
+        "monitor",
+        "week",
+        "send",
+        "practice",
+        "closeSession"
+      ]
+    },
+    "close": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "explain": {
+      "label": "Meet the head coach: explain the transition-period guidelines and why day-one punishment workouts put players in hospital",
+      "group": "Talk",
+      "available": "not busy and (isNull(explainAt) and isNull(weekAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(explainAt)",
+          "then": [
+            {
+              "set": "explainAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "add": "trust",
+          "by": "2"
+        },
+        {
+          "log": "You walk the head coach through the guidelines and the cases behind them.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "at": {
+      "label": "Brief the athletic trainer on the plan and the warning signs",
+      "group": "Talk",
+      "available": "not busy and (isNull(atAt) and isNull(weekAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(atAt)",
+          "then": [
+            {
+              "set": "atAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "The athletic trainer has the plan and the signs.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "program": {
+      "label": "Write week 1",
+      "group": "Plan",
+      "available": "not busy and (isNull(planAt))",
+      "why": "Already written.",
+      "params": [
+        {
+          "id": "p",
+          "kind": "choice",
+          "label": "Week 1",
+          "options": [
+            {
+              "value": "transition",
+              "label": "Transition: about 50% volume, 1:4 work-to-rest, 3 days, loads by the staff"
+            },
+            {
+              "value": "gutcheck",
+              "label": "The head coach's gut check: 100 back squats, minimal rest"
+            },
+            {
+              "value": "fullOld",
+              "label": "Pick up the last block at full volume"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(planAt)",
+          "then": [
+            {
+              "set": "planAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "plan",
+          "to": "p"
+        },
+        {
+          "if": "p == \"gutcheck\"",
+          "then": [
+            {
+              "add": "trust",
+              "by": "2"
+            }
+          ]
+        },
+        {
+          "log": "Week 1 written.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "monitor": {
+      "label": "Tell the players which signs to report at once: severe pain or swelling, weakness, dark urine",
+      "group": "Talk",
+      "available": "not busy and (isNull(monitorAt) and isNull(weekAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "if": "isNull(monitorAt)",
+          "then": [
+            {
+              "set": "monitorAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "Players know what to report.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "week": {
+      "label": "Run week 1",
+      "group": "Plan",
+      "available": "not busy and not isNull(planAt) and isNull(weekAt)",
+      "why": "Write the plan first.",
+      "effects": [
+        {
+          "if": "isNull(weekAt)",
+          "then": [
+            {
+              "set": "weekAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "if": "(plan == \"gutcheck\" or plan == \"fullOld\")",
+          "then": [
+            {
+              "schedule": "day2",
+              "after": "day2"
+            }
+          ],
+          "else": [
+            {
+              "schedule": "wk",
+              "after": "week"
+            }
+          ]
+        },
+        {
+          "log": "Week 1 under way.",
+          "kind": "act"
+        }
+      ]
+    },
+    "send": {
+      "label": "Stop their training and send all three to the emergency department now with the athletic trainer",
+      "group": "Respond",
+      "available": "not isNull(darkAt) and isNull(sentAt) and isNull(practiceAt)",
+      "why": "Only for the day-2 reports.",
+      "effects": [
+        {
+          "if": "isNull(sentAt)",
+          "then": [
+            {
+              "set": "sentAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "All three go to the emergency department with the athletic trainer.",
+          "kind": "good"
+        }
+      ]
+    },
+    "practice": {
+      "label": "Tell them it is normal soreness: light practice, fluids, and they'll loosen up",
+      "group": "Respond",
+      "available": "not isNull(darkAt) and isNull(sentAt) and isNull(practiceAt)",
+      "why": "Only for the day-2 reports.",
+      "effects": [
+        {
+          "if": "isNull(practiceAt)",
+          "then": [
+            {
+              "set": "practiceAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "They go to practice.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "closeSession": {
+      "label": "End the session and write it up",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Finish what you are doing first.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "if": "isNull(closedAt)",
+          "then": [
+            {
+              "set": "closedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "log": "You end the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "close"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the record",
+      "group": "Record",
+      "available": "documented == \"none\"",
+      "why": "Written.",
+      "params": [
+        {
+          "id": "what",
+          "kind": "choice",
+          "label": "Record",
+          "options": [
+            {
+              "value": "full",
+              "label": "The plan and its basis, the conversation with the head coach, who was briefed, what happened and the actions"
+            },
+            {
+              "value": "brief",
+              "label": "One line: 'Week 1 done'"
+            },
+            {
+              "value": "nothing",
+              "label": "Nothing written"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "documented",
+          "to": "what"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Work in progress",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "How many sim minutes each meeting and session takes, and when the fictional days pass, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "day2": {
+      "label": "Day 2",
+      "wait": {
+        "skipLabel": "Skip to day 2"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "The morning of day 2 after the first lift."
+      },
+      "effects": [
+        {
+          "if": "isNull(darkAt)",
+          "then": [
+            {
+              "set": "darkAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "log": "Day 2, 7 am: three players at your door, thighs swollen and hard, can't squat to sit, urine like cola.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    "wk": {
+      "label": "Week 1",
+      "wait": {
+        "skipLabel": "Skip to the end of week 1"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-338)",
+        "checkedAt": "2026-11-17",
+        "note": "One week of the plan."
+      },
+      "effects": [
+        {
+          "if": "isNull(doneAt)",
+          "then": [
+            {
+              "set": "doneAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "add": "trust",
+          "by": "1"
+        },
+        {
+          "log": "Week 1 done: normal soreness only; technique back by day 3.",
+          "kind": "find"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "writeUp",
+      "when": "not isNull(closedAt)",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the program file: what you chose for week 1 and why, how you handled the head coach's request, and what you would do with dark urine.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Week 1",
+          "criteria": "After four weeks off: about 50% of the last block's volume, work-to-rest at least 1:4, no more than 3 lifting days, loads set by the strength staff; no novel or punishment workouts.",
+          "modelAnswer": "Four weeks off means a transition week: about half the last block's volume, 1:4 work-to-rest, three lifting days, loads set by us. No gut-check set."
+        },
+        {
+          "label": "The head coach",
+          "criteria": "Explains the guidelines and the risk (exertional rhabdomyolysis after novel, high-volume work early in a return) and offers a safe way to test commitment; does not run the punishment set.",
+          "modelAnswer": "I explained the joint guidelines and why day-one punishment sets have put teams in hospital, and offered a competitive but phased week instead."
+        },
+        {
+          "label": "Warning signs",
+          "criteria": "Severe pain or swelling, weakness or dark urine after training: no more training, to hospital now with the athletic trainer.",
+          "modelAnswer": "Anyone with those signs stops and goes to the emergency department with the athletic trainer the same morning."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "fitness",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Fitness outcome profile (docs/sims.md 9.2, 22.27)",
+          "checkedAt": "2026-11-16",
+          "note": "Exercise stopped within 2 minutes of a warning sign; a teaching figure, as for the physical therapy profile."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "not isNull(closedAt) and isNull(planAt)",
+      "class": "recovered",
+      "rationale": "Closing without a week-1 plan harms no one, but the team returns with no program.",
+      "source": {
+        "cite": "Caterisano A, Decker D, Snyder B, et al. CSCCa and NSCA Joint Consensus Guidelines for Transition Periods: Safe Return to Training Following Inactivity. Strength Cond J. 2019;41(3)",
+        "checkedAt": "2026-11-17",
+        "url": "https://dxpprod.nsca.com/contentassets/202023e9d6c440dab582d9d87c0f3729/cscca_and_nsca_joint_consensus_guidelines_for.1.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes (first 100,000 of 127,339 characters): after 2 weeks or more of inactivity, conditioning 'phased in gradually and progressively'; the 50/30/20/10 rule (returning athletes at least 50% less volume in week 1 and 30% less in week 2; new athletes 50, 30, 20, 10% over four weeks); weight training work-to-rest 1:4 or more in week 1, 1:3 in week 2, at least 1:2 after; no more than 3 days of weight training in the first week; heat acclimatization over 7-14 days, exertional heat stroke cooled to 38.9 C (102 F) or less within 30 minutes of collapse, cold-water immersion fastest; sickle cell trait raises the risk of collapse and sudden death; exertional rhabdomyolysis mostly follows 'a novel workout regimen', especially after detraining, and 'Athletes who develop the symptoms associated with ER need to be quickly admitted to the hospital'."
+      }
+    }
+  },
+  "endings": {
+    "practiced": {
+      "label": "Sent to practice with dark urine",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(practiceAt)",
+      "narrative": "Three players practiced with dark urine; two needed dialysis."
+    },
+    "unanswered": {
+      "label": "Day-2 reports with no action",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(darkAt) and isNull(sentAt)",
+      "narrative": "The day-2 reports went nowhere."
+    },
+    "phased": {
+      "label": "Phased back, everyone training",
+      "class": "target",
+      "terminal": true,
+      "when": "documented == \"full\" and plan == \"transition\" and not isNull(explainAt) and not isNull(atAt) and not isNull(monitorAt) and not isNull(doneAt)",
+      "narrative": "A transition week the head coach understood, an athletic trainer who knew what to look for, and fifteen players training by the end of it."
+    },
+    "sent": {
+      "label": "Caught on day 2",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\" and not isNull(sentAt)",
+      "narrative": "Three players were admitted with exertional rhabdomyolysis; sent in at once, they recovered. The week-1 plan caused it."
+    },
+    "gaps": {
+      "label": "Phased, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented != \"none\"",
+      "narrative": "{isNull(explainAt) ? \"The plan was right, but the head coach was never brought on board\" : isNull(monitorAt) ? \"The plan was right, but nobody knew the signs to report\" : \"The plan was right, but the briefings or the record have gaps\"}."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "Time ran out."
+    }
+  },
+  "endingOrder": [
+    "practiced",
+    "unanswered",
+    "phased",
+    "sent",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "plan",
+        "label": "A transition week: about 50% volume, 1:4, 3 days",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "plan == \"transition\"",
+            "score": "met",
+            "why": "Transition week."
+          },
+          {
+            "when": "plan == \"fullOld\"",
+            "score": "partial",
+            "why": "The old block at full volume."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A novel punishment set, or no plan."
+          }
+        ]
+      },
+      {
+        "id": "coach",
+        "label": "Explained the guidelines to the head coach",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(explainAt)",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not explained."
+          }
+        ]
+      },
+      {
+        "id": "red",
+        "label": "Dark urine and swelling: to hospital now",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "isNull(darkAt)",
+            "score": "na",
+            "why": "No warning signs."
+          },
+          {
+            "when": "not isNull(sentAt)",
+            "score": "met",
+            "why": "Sent at once."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Practice, or no action."
+          }
+        ]
+      },
+      {
+        "id": "brief",
+        "label": "Athletic trainer and players briefed on the warning signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(atAt) and not isNull(monitorAt)",
+            "score": "met",
+            "why": "Both."
+          },
+          {
+            "when": "not isNull(atAt) or not isNull(monitorAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Program file",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "documented == \"full\"",
+            "score": "met",
+            "why": "A full record."
+          },
+          {
+            "when": "documented == \"brief\"",
+            "score": "partial",
+            "why": "One line."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written plan, head coach and warning signs",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "trustEnd",
+        "label": "Head coach's trust at the end (0-10)",
+        "value": "trust",
+        "format": "number",
+        "expert": "8 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Day 0",
+        "text": "Meet the head coach: the guidelines and the risk. Write a transition week (50%, 1:4, 3 days). Brief the athletic trainer and the players on the warning signs."
+      },
+      {
+        "at": "Week 1",
+        "text": "Run it; record it."
+      }
+    ],
+    "debrief": {
+      "phased": {
+        "headline": "Phased back, everyone training",
+        "body": "Four weeks off means a transition week. Bringing the head coach and the athletic trainer along is part of the job."
+      },
+      "sent": {
+        "headline": "Caught, but caused",
+        "body": "Sending the players straight to hospital was right. A novel high-volume set on day one after a break is how exertional rhabdomyolysis happens."
+      },
+      "gaps": {
+        "headline": "Phased, with gaps",
+        "body": "Check who knew the plan and the warning signs, and the record."
+      },
+      "practiced": {
+        "headline": "Dark urine is not soreness",
+        "body": "Severe pain, swelling and dark urine after a hard return need hospital now, not practice."
+      },
+      "unanswered": {
+        "headline": "Act on the reports",
+        "body": "Day-2 reports of dark urine need the athletic trainer and the emergency department at once."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Time ran out."
+      }
+    },
+    "modelReasoning": "After a break of two weeks or more, phase the return: about 50% of the last block's volume in week 1 (70% in week 2), work-to-rest at least 1:4, no more than three lifting days, loads chosen by the strength staff. A novel or punishment workout on day one is the classic setting for exertional rhabdomyolysis, so explain this to the head coach and do not run it. Brief the athletic trainer and the players on the warning signs; severe pain, swelling or dark urine means no more training and the emergency department now."
+  }
+}

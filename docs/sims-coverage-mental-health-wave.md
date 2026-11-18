@@ -106,3 +106,15 @@ Sims before this work: none on any of the three courses.
 - Every built session cites only sources read on 2026-11-14 (or, for the EPPP
   band, 2026-11-10) in full or through a summarizing fetch made before the
   WebFetch stop, and says which.
+
+## Update, 2026-11-17: depth round (REQ-337, docs/sims.md 22.41)
+
+Nick's round rule (2026-11-17): every unit with an objective that fits the selection rule gets a sim whose main objective is in that unit; at least 4 sims under 60 objectives and 8 at 60 or more. This round added six authored sessions and four bands on these three courses (and more on EPPP, NCE and NCMHCE; see 22.41).
+
+| Course | Before | After | New main objectives |
+|---|---|---|---|
+| ASWBCLINICAL | 4 | 8 | III crisis intervention (authored); I self-determination (authored); I confidentiality and HIPAA (authored, a subpoena); II capacity and age of consent (band of the Masters case) |
+| ASWBMASTERS | 5 | 9 | II capacity and age of consent (authored); III crisis, I self-determination, I confidentiality (bands of the Clinical cases) |
+| WAPSYCHJP | 1 | 4 | III multiple relationships (authored); V mandated child abuse report (authored; the keyword screen misses it, kept as an override); VI unprofessional conduct under the UDA (authored) |
+
+Units now covered: every unit of all three courses except WAPSYCHJP I (licensure, scope and the board) and II (continuing education and renewal), which have no objective that plays out as a client session (no fit: desk and licensing rules, labs instead).

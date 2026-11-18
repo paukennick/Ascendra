@@ -1,0 +1,1090 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "stadium-roof-qualitative-analysis",
+  "title": "Ninety risks on a stadium roof project: an RBS, a matrix the team agrees on, and urgency",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRbs",
+          "label": "Register unstructured",
+          "spokenLabel": "Register unstructured",
+          "owner": "\"Risk manager\"",
+          "rating": "rbs == \"rbsClass\" ? \"low\" : rbs == \"alpha\" ? \"medium\" : rbs == \"trim\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "rbs == \"rbsClass\" ? \"within\" : rbs == \"alpha\" ? \"within\" : rbs == \"trim\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{rbs == \"rbsClass\" ? \"Classified in an RBS\" : rbs == \"alpha\" ? \"Sorted only\" : rbs == \"trim\" ? \"Register trimmed by inconsistent scores\" : \"Open\"}"
+        },
+        {
+          "id": "rMatrix",
+          "label": "Scores not comparable",
+          "spokenLabel": "Scores not comparable",
+          "owner": "\"Risk manager\"",
+          "rating": "matrix == \"agreedMatrix\" ? \"low\" : matrix == \"average\" ? \"medium\" : matrix == \"gutFeel\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "matrix == \"agreedMatrix\" ? \"within\" : matrix == \"average\" ? \"within\" : matrix == \"gutFeel\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{matrix == \"agreedMatrix\" ? \"Agreed matrix, calibrated\" : matrix == \"average\" ? \"Averaged scales\" : matrix == \"gutFeel\" ? \"Ranked by feel\" : \"Open\"}"
+        },
+        {
+          "id": "rUrgency",
+          "label": "No clear priorities",
+          "spokenLabel": "No clear priorities",
+          "owner": "\"Risk manager\"",
+          "rating": "urgency == \"urgent\" ? \"low\" : urgency == \"scoreOnly\" ? \"medium\" : urgency == \"allHigh\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "urgency == \"urgent\" ? \"within\" : urgency == \"scoreOnly\" ? \"within\" : urgency == \"allHigh\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{urgency == \"urgent\" ? \"Prioritized by score and urgency\" : urgency == \"scoreOnly\" ? \"Score only\" : urgency == \"allHigh\" ? \"Everything top priority\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOwners",
+          "label": "Risk owners",
+          "spokenLabel": "the risk owners' support",
+          "value": "owners",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the project team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRbs",
+          "kind": "Classification",
+          "label": "Week 1: RBS",
+          "status": "{rbs == \"rbsClass\" ? \"Classified in an RBS\" : rbs == \"alpha\" ? \"Sorted only\" : rbs == \"trim\" ? \"Register trimmed by inconsistent scores\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and rbs == \"none\""
+        },
+        {
+          "id": "dMatrix",
+          "kind": "Scoring",
+          "label": "Week 2: risk matrix",
+          "status": "{matrix == \"agreedMatrix\" ? \"Agreed matrix, calibrated\" : matrix == \"average\" ? \"Averaged scales\" : matrix == \"gutFeel\" ? \"Ranked by feel\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and matrix == \"none\""
+        },
+        {
+          "id": "dUrgency",
+          "kind": "Prioritization",
+          "label": "Week 3: priorities",
+          "status": "{urgency == \"urgent\" ? \"Prioritized by score and urgency\" : urgency == \"scoreOnly\" ? \"Score only\" : urgency == \"allHigh\" ? \"Everything top priority\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and urgency == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Performing qualitative analysis: classifying risks in an RBS, applying risk matrices, and prioritizing by impact/urgency",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the risk manager for a fictional stadium roof replacement for Harbor City. The register has 90 risks, each scored differently by whoever raised it.",
+    "handover": [
+      "Scores range from 'high-ish' to '7/10'; there is no shared scale.",
+      "The roof must be weathertight before the season opens in 30 weeks."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-01T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owners": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "rbs": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rbsClass",
+        "alpha",
+        "trim"
+      ],
+      "init": "none"
+    },
+    "rbsAt": {
+      "type": "time",
+      "init": null
+    },
+    "matrix": {
+      "type": "enum",
+      "values": [
+        "none",
+        "agreedMatrix",
+        "average",
+        "gutFeel"
+      ],
+      "init": "none"
+    },
+    "matrixAt": {
+      "type": "time",
+      "init": null
+    },
+    "urgency": {
+      "type": "enum",
+      "values": [
+        "none",
+        "urgent",
+        "scoreOnly",
+        "allHigh"
+      ],
+      "init": "none"
+    },
+    "urgencyAt": {
+      "type": "time",
+      "init": null
+    },
+    "registerAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, owners), team)"
+    },
+    "missCount": {
+      "expr": "((rbs == \"trim\") ? 1 : 0) + ((matrix == \"gutFeel\") ? 1 : 0) + ((urgency == \"allHigh\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(rbs == \"none\" or (rbs == \"trim\") ? 1 : 0) + (matrix == \"none\" or (matrix == \"gutFeel\") ? 1 : 0) + (urgency == \"none\" or (urgency == \"allHigh\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Risk reviews",
+      "clock": "turns",
+      "actions": [
+        "register",
+        "plan"
+      ]
+    },
+    "close": {
+      "label": "Risk analysis record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "register": {
+      "label": "Read the risk register",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(registerAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "registerAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the risk register.",
+          "kind": "act"
+        },
+        {
+          "finding": "90 risks, many duplicates; scores use four different scales; no categories."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Read the risk management plan",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(planAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the risk management plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "It defines a 5x5 probability and impact matrix and an appetite, but nobody has used them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Risks classified in an RBS, scored on the agreed matrix, and prioritized by score and urgency"
+                },
+                {
+                  "value": "summary",
+                  "label": "Analysis complete"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "rbs == \"trim\"",
+              "then": [
+                {
+                  "log": "Week 2: a deleted crane-access risk materializes; the lift is delayed two weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "matrix == \"gutFeel\"",
+              "then": [
+                {
+                  "log": "Week 3: the sponsor's ranking skips the roofing membrane supply risk; the supplier's delay hits.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "urgency == \"allHigh\"",
+              "then": [
+                {
+                  "log": "Week 4: the steel order deadline passes unnoticed among thirty 'top' risks; fabrication slips five weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The risk review closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_rbs",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: ninety risks.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "rbsPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_matrix",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: scoring.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "matrixPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_urgency",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: priorities.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "urgencyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "rbsPrompt": {
+      "title": "An unstructured register",
+      "context": "Duplicates and gaps are hard to see.",
+      "choices": [
+        {
+          "id": "rbsClass",
+          "label": "Classify every risk in a risk breakdown structure (technical, external, organizational, project management), merge duplicates and look for empty branches",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"rbsClass\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "62 risks remain; weather and permitting gaps surface.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "An RBS groups risks by source, exposing duplicates, concentrations and gaps."
+        },
+        {
+          "id": "alpha",
+          "label": "Sort the register alphabetically",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"alpha\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "The register is sorted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Order without structure; duplicates and gaps remain."
+        },
+        {
+          "id": "trim",
+          "label": "Keep the 20 risks with the highest scores and delete the rest",
+          "effects": [
+            {
+              "set": "rbs",
+              "to": "\"trim\""
+            },
+            {
+              "set": "rbsAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "70 risks are deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The scores use four scales; real risks are deleted."
+        }
+      ]
+    },
+    "matrixPrompt": {
+      "title": "Four scoring scales",
+      "context": "Owners score risks their own way.",
+      "choices": [
+        {
+          "id": "agreedMatrix",
+          "label": "Re-score all 62 risks in a workshop on the plan's 5x5 matrix with its definitions of probability and impact, calibrated with two worked examples",
+          "effects": [
+            {
+              "set": "matrix",
+              "to": "\"agreedMatrix\""
+            },
+            {
+              "set": "matrixAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "1"
+            },
+            {
+              "log": "All risks share one scale.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A risk matrix with agreed definitions makes scores comparable across owners."
+        },
+        {
+          "id": "average",
+          "label": "Average the four scales into one number",
+          "effects": [
+            {
+              "set": "matrix",
+              "to": "\"average\""
+            },
+            {
+              "set": "matrixAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-1"
+            },
+            {
+              "log": "Scores are averaged.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Mixing scales produces numbers that mean nothing."
+        },
+        {
+          "id": "gutFeel",
+          "label": "Let the sponsor rank them by feel",
+          "effects": [
+            {
+              "set": "matrix",
+              "to": "\"gutFeel\""
+            },
+            {
+              "set": "matrixAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-2"
+            },
+            {
+              "log": "The sponsor ranks risks.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "One person's view replaces the team's analysis."
+        }
+      ]
+    },
+    "urgencyPrompt": {
+      "title": "Equal scores, different timing",
+      "context": "Several risks score the same; some must be acted on this month.",
+      "choices": [
+        {
+          "id": "urgent",
+          "label": "Add urgency (time until a response must start) and put high-score risks needing action within six weeks at the top, with owners and response dates",
+          "effects": [
+            {
+              "set": "urgency",
+              "to": "\"urgent\""
+            },
+            {
+              "set": "urgencyAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The top ten are clear, with dates.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Urgency separates equal scores: risks whose response window is closing come first."
+        },
+        {
+          "id": "scoreOnly",
+          "label": "Prioritize by score alone",
+          "effects": [
+            {
+              "set": "urgency",
+              "to": "\"scoreOnly\""
+            },
+            {
+              "set": "urgencyAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Score sets priority.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A late-season risk outranks one whose window closes next week."
+        },
+        {
+          "id": "allHigh",
+          "label": "Mark every red risk as top priority",
+          "effects": [
+            {
+              "set": "urgency",
+              "to": "\"allHigh\""
+            },
+            {
+              "set": "urgencyAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Thirty risks are top priority.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "With thirty top priorities, none gets attention."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the qualitative risk analysis record for the sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Structure and scores",
+          "criteria": "RBS; 62 risks on the agreed 5x5 matrix.",
+          "modelAnswer": "We classified the register in an RBS, merged 28 duplicates and re-scored the remaining 62 on the plan's matrix."
+        },
+        {
+          "label": "Priorities",
+          "criteria": "Top ten by score and urgency, with owners and dates.",
+          "modelAnswer": "The top ten combine high scores with response windows inside six weeks; each has an owner and a response date."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (rbs == \"alpha\") and (matrix == \"average\") and (urgency == \"scoreOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "rbsHarm": {
+      "label": "A deleted risk hit",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rbs == \"trim\"",
+      "narrative": "A risk deleted on a meaningless score delayed the crane lift."
+    },
+    "matrixHarm": {
+      "label": "A top risk missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and matrix == \"gutFeel\"",
+      "narrative": "Ranking by feel missed the membrane supply risk."
+    },
+    "urgencyHarm": {
+      "label": "A response window missed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and urgency == \"allHigh\"",
+      "narrative": "With everything top priority, the steel order deadline passed."
+    },
+    "target": {
+      "label": "Risks you can act on",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (rbs == \"rbsClass\") and (matrix == \"agreedMatrix\") and (urgency == \"urgent\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The team works the risks that matter, in the order the calendar demands."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "rbsHarm",
+    "matrixHarm",
+    "urgencyHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "rbsCrit",
+        "label": "Classified risks with a risk breakdown structure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rbs == \"rbsClass\"",
+            "score": "met",
+            "why": "Structured."
+          },
+          {
+            "when": "rbs == \"alpha\"",
+            "score": "partial",
+            "why": "Cosmetic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost risks."
+          }
+        ]
+      },
+      {
+        "id": "matrixCrit",
+        "label": "Scored risks on the plan's agreed probability and impact matrix",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "matrix == \"agreedMatrix\"",
+            "score": "met",
+            "why": "Comparable."
+          },
+          {
+            "when": "matrix == \"average\"",
+            "score": "partial",
+            "why": "Meaningless."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unanalyzed."
+          }
+        ]
+      },
+      {
+        "id": "urgencyCrit",
+        "label": "Prioritized by impact and urgency",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "urgency == \"urgent\"",
+            "score": "met",
+            "why": "Timed."
+          },
+          {
+            "when": "urgency == \"scoreOnly\"",
+            "score": "partial",
+            "why": "Untimed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Diluted."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(registerAt) and not isNull(planAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(registerAt) or not isNull(planAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the register and the risk plan first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Classify risks in an RBS."
+      },
+      {
+        "at": "Week 2",
+        "text": "Score on the plan's matrix with agreed definitions."
+      },
+      {
+        "at": "Week 3",
+        "text": "Prioritize by score and urgency."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "rbsHarm": {
+        "headline": "Classify, don't trim",
+        "body": "Use an RBS to merge and expose gaps."
+      },
+      "matrixHarm": {
+        "headline": "Use the agreed matrix",
+        "body": "Shared definitions make scores comparable."
+      },
+      "urgencyHarm": {
+        "headline": "Prioritize by urgency too",
+        "body": "Act first where windows close."
+      },
+      "target": {
+        "headline": "Good: risks you can act on",
+        "body": "RBS, matrix and urgency."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Qualitative risk analysis classifies risks by source in an RBS, scores them on an agreed probability and impact matrix so owners' scores are comparable, and prioritizes by both score and urgency so closing response windows come first."
+  }
+}
