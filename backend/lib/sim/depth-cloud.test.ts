@@ -390,4 +390,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ120 baseline-policy-denies-hana-vm-size: deleting the assignment removes the baseline everywhere; Owner cannot beat a policy deny; a narrow waiver makes the install", () => {
+    const d = docOf("baseline-policy-denies-hana-vm-size");
+    const h = driver(d);
+    h.act("unassign");
+    assert.equal(h.value("harmed"), true, "unassign causes harm");
+    until(h, 91);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("owner");
+    until(n, 91);
+    assert.notEqual(n.value("missAt"), null, "owner changes nothing");
+    const ok = driver(d);
+    ok.act("exempt");
+    until(ok, 91);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

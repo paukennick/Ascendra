@@ -557,6 +557,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AZ120", "migration-wave-blocked-by-vm-family-quota"),
   entry("AZ120", "hana-log-writes-slow-no-write-accelerator"),
   entry("AZ120", "hana-vip-unreachable-tcp-timestamps"),
+  entry("AZ120", "baseline-policy-denies-hana-vm-size"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
