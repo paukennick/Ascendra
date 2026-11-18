@@ -1,0 +1,1134 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "increment-goal-early-feedback-pilot",
+  "title": "Managing increments for a field-service app: an increment goal, early feedback from real technicians, and what the feedback changes",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "sprint",
+      "heading": "Increment 2 of the field-service app",
+      "commitments": [
+        {
+          "id": "goal",
+          "label": "Product goal",
+          "text": "Technicians close jobs on site without paperwork."
+        },
+        {
+          "id": "igoal",
+          "label": "Increment goal",
+          "text": "A technician can record parts used and get a customer signature."
+        }
+      ],
+      "columns": [
+        {
+          "id": "todo",
+          "label": "To do"
+        },
+        {
+          "id": "blocked",
+          "label": "Off course"
+        },
+        {
+          "id": "done",
+          "label": "Handled"
+        }
+      ],
+      "items": [
+        {
+          "id": "wGoal",
+          "label": "Increment goal",
+          "column": "goal == \"valueFirst\" ? \"done\" : goal == \"mixed\" ? \"blocked\" : goal == \"visible\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "goal == \"visible\""
+        },
+        {
+          "id": "wFeedback",
+          "label": "Pilot release",
+          "column": "feedback == \"pilot\" ? \"done\" : feedback == \"demo\" ? \"blocked\" : feedback == \"wait\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "feedback == \"wait\""
+        },
+        {
+          "id": "wAdapt",
+          "label": "Backlog adaptation",
+          "column": "adapt == \"adaptMeasure\" ? \"done\" : adapt == \"note\" ? \"blocked\" : adapt == \"dismiss\" ? \"blocked\" : \"todo\"",
+          "when": "true",
+          "flag": "adapt == \"dismiss\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iGoal",
+          "label": "Increment not aligned to value",
+          "when": "p >= 1",
+          "at": "86400",
+          "status": "{goal == \"valueFirst\" ? \"Goal on the biggest value\" : goal == \"mixed\" ? \"A slice of every area\" : goal == \"visible\" ? \"Scheduling first\" : \"Due\"}",
+          "open": "goal == \"none\""
+        },
+        {
+          "id": "iFeedback",
+          "label": "No real-world feedback",
+          "when": "p >= 2",
+          "at": "172800",
+          "status": "{feedback == \"pilot\" ? \"Pilot technicians using it now\" : feedback == \"demo\" ? \"Office demo\" : feedback == \"wait\" ? \"No feedback until the end\" : \"Due\"}",
+          "open": "feedback == \"none\""
+        },
+        {
+          "id": "iAdapt",
+          "label": "Feedback not acted on",
+          "when": "p >= 3",
+          "at": "259200",
+          "status": "{adapt == \"adaptMeasure\" ? \"Backlog adapted; value measured\" : adapt == \"note\" ? \"Feedback logged\" : adapt == \"dismiss\" ? \"Feedback dismissed\" : \"Due\"}",
+          "open": "adapt == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sCust",
+          "label": "Pilot customers",
+          "spokenLabel": "the pilot customers' trust",
+          "value": "cust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sSponsor",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's trust",
+          "value": "sponsor",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Team",
+          "spokenLabel": "the team's trust",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mGoal",
+          "label": "Increment planning",
+          "at": "86400",
+          "status": "{goal == \"valueFirst\" ? \"Goal on the biggest value\" : goal == \"mixed\" ? \"A slice of every area\" : goal == \"visible\" ? \"Scheduling first\" : \"Ahead\"}"
+        },
+        {
+          "id": "mFeedback",
+          "label": "Pilot release",
+          "at": "172800",
+          "status": "{feedback == \"pilot\" ? \"Pilot technicians using it now\" : feedback == \"demo\" ? \"Office demo\" : feedback == \"wait\" ? \"No feedback until the end\" : \"Ahead\"}"
+        },
+        {
+          "id": "mAdapt",
+          "label": "Increment review",
+          "at": "259200",
+          "status": "{adapt == \"adaptMeasure\" ? \"Backlog adapted; value measured\" : adapt == \"note\" ? \"Feedback logged\" : adapt == \"dismiss\" ? \"Feedback dismissed\" : \"Ahead\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Sprint day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Managing increments: aligning each increment to business priorities, defining increment goals, and demonstrating value through early feedback",
+  "secondaryObjectives": [
+    "Managing value delivery: defining what value looks like (success criteria, sustainability, security, compliance) and confirming targeted results were actually achieved"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the product, the team and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the agile project lead for Kestrel Boilers' field-service app, a fictional heating company. The sponsor wants everything delivered in one release in three months. Ten technicians have volunteered to pilot early versions.",
+    "handover": [
+      "Backlog: 60 items across parts, signatures, scheduling, invoicing and reporting.",
+      "The biggest cost today is paperwork errors in parts used, which delay invoices."
+    ],
+    "howItWorks": [
+      "The board shows the Sprint's commitments, the work, the impediments, the people's support and the Scrum events.",
+      "Move on a day at a time. A decision comes to you at each Daily Scrum; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-06-07T09:00",
+    "tick": "1h",
+    "maxDuration": "20d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "cust": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "sponsor": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "goal": {
+      "type": "enum",
+      "values": [
+        "none",
+        "valueFirst",
+        "mixed",
+        "visible"
+      ],
+      "init": "none"
+    },
+    "goalAt": {
+      "type": "time",
+      "init": null
+    },
+    "feedback": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pilot",
+        "demo",
+        "wait"
+      ],
+      "init": "none"
+    },
+    "feedbackAt": {
+      "type": "time",
+      "init": null
+    },
+    "adapt": {
+      "type": "enum",
+      "values": [
+        "none",
+        "adaptMeasure",
+        "note",
+        "dismiss"
+      ],
+      "init": "none"
+    },
+    "adaptAt": {
+      "type": "time",
+      "init": null
+    },
+    "painAt": {
+      "type": "time",
+      "init": null
+    },
+    "errorsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(cust, sponsor), team)"
+    },
+    "missCount": {
+      "expr": "((goal == \"visible\") ? 1 : 0) + ((feedback == \"wait\") ? 1 : 0) + ((adapt == \"dismiss\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(goal == \"none\" or (goal == \"visible\") ? 1 : 0) + (feedback == \"none\" or (feedback == \"wait\") ? 1 : 0) + (adapt == \"none\" or (adapt == \"dismiss\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The increment",
+      "clock": "turns",
+      "actions": [
+        "pain",
+        "errors"
+      ]
+    },
+    "close": {
+      "label": "Increment notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "pain": {
+      "label": "Ride along with two technicians",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(painAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "painAt",
+          "to": "t"
+        },
+        {
+          "log": "You ride along.",
+          "kind": "act"
+        },
+        {
+          "finding": "Technicians lose most time writing parts by hand and chasing signatures; scheduling works well enough today."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "errors": {
+      "label": "Read last quarter's invoice errors",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(errorsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "errorsAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the errors.",
+          "kind": "act"
+        },
+        {
+          "finding": "62% of invoice delays come from wrong or missing parts records; each costs about 9 days of cash flow."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the increment notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The increment goal on parts and signatures, early pilot feedback on real jobs, and the backlog adapted with invoice errors measured"
+                },
+                {
+                  "value": "summary",
+                  "label": "Increment delivered"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next working day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "goal == \"visible\"",
+              "then": [
+                {
+                  "log": "Day 2: the scheduling screen demos well, but invoice delays are unchanged and the CFO questions the project.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "feedback == \"wait\"",
+              "then": [
+                {
+                  "log": "Day 3 (at release): technicians find the parts screen unusable with gloves on in cold basements; the whole release needs rework.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "adapt == \"dismiss\"",
+              "then": [
+                {
+                  "log": "Day 4: technicians go back to paper; adoption in the pilot drops to two of ten.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The increment closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_goal",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: planning the increment.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "goalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_feedback",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the first usable version.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "feedbackPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_adapt",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the pilot feedback.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "adaptPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "goalPrompt": {
+      "title": "What should this increment deliver?",
+      "context": "The sponsor wants scheduling first because it's the most visible feature.",
+      "choices": [
+        {
+          "id": "valueFirst",
+          "label": "Set the increment goal on parts recording and signatures, the cause of 62% of invoice delays, with a measurable success criterion",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"valueFirst\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "sponsor",
+              "by": "10"
+            },
+            {
+              "log": "The increment targets parts and signatures.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Increments are ordered by business value and given a goal that makes value testable."
+        },
+        {
+          "id": "mixed",
+          "label": "Take a little of everything",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"mixed\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "sponsor",
+              "by": "-15"
+            },
+            {
+              "log": "A slice of each area.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Nothing useful is finished; feedback is shallow."
+        },
+        {
+          "id": "visible",
+          "label": "Build scheduling first because the sponsor finds it most visible",
+          "effects": [
+            {
+              "set": "goal",
+              "to": "\"visible\""
+            },
+            {
+              "set": "goalAt",
+              "to": "t"
+            },
+            {
+              "add": "sponsor",
+              "by": "-25"
+            },
+            {
+              "log": "Scheduling goes first.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The visible feature isn't the valuable one; invoice delays continue."
+        }
+      ]
+    },
+    "feedbackPrompt": {
+      "title": "When do technicians see it?",
+      "context": "Parts recording works on test phones; signatures are half done.",
+      "choices": [
+        {
+          "id": "pilot",
+          "label": "Put the working parts recording in the ten pilot technicians' hands this week and watch them use it on real jobs",
+          "effects": [
+            {
+              "set": "feedback",
+              "to": "\"pilot\""
+            },
+            {
+              "set": "feedbackAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "10"
+            },
+            {
+              "log": "Pilot technicians use it on jobs.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Early feedback from real use reveals what demos miss."
+        },
+        {
+          "id": "demo",
+          "label": "Demo it to technicians in the office",
+          "effects": [
+            {
+              "set": "feedback",
+              "to": "\"demo\""
+            },
+            {
+              "set": "feedbackAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-15"
+            },
+            {
+              "log": "An office demo.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Useful, but an office demo misses conditions on site."
+        },
+        {
+          "id": "wait",
+          "label": "Wait until everything is finished",
+          "effects": [
+            {
+              "set": "feedback",
+              "to": "\"wait\""
+            },
+            {
+              "set": "feedbackAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-25"
+            },
+            {
+              "log": "Feedback waits.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Feedback after three months means three months of guesses."
+        }
+      ]
+    },
+    "adaptPrompt": {
+      "title": "Technicians say gloves don't work on the small buttons",
+      "context": "They also want a barcode scan for parts.",
+      "choices": [
+        {
+          "id": "adaptMeasure",
+          "label": "Re-order the backlog: larger touch targets now, barcode scan next; measure invoice errors from pilot jobs against the baseline",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"adaptMeasure\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "The backlog adapts; errors fall from 12% to 3% on pilot jobs.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Feedback changes the plan, and the success criterion confirms the value."
+        },
+        {
+          "id": "note",
+          "label": "Log the feedback for later",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"note\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "Feedback is logged.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The feedback is kept but doesn't change the plan."
+        },
+        {
+          "id": "dismiss",
+          "label": "Dismiss it: the design was approved",
+          "effects": [
+            {
+              "set": "adapt",
+              "to": "\"dismiss\""
+            },
+            {
+              "set": "adaptAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "The feedback is dismissed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Ignoring users' feedback wastes the reason for early increments."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the increment notes for the sponsor: why this increment, what the pilot showed, and the value measured.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Goal and feedback",
+          "criteria": "Parts and signatures first by value; pilot on real jobs.",
+          "modelAnswer": "Parts errors caused 62% of invoice delays, so the increment targeted parts and signatures; ten technicians piloted it on real jobs."
+        },
+        {
+          "label": "Value",
+          "criteria": "Backlog adapted; invoice errors from 12% to 3% on pilot jobs.",
+          "modelAnswer": "We enlarged touch targets and queued barcode scanning; invoice errors on pilot jobs fell from 12% to 3%."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "scrum",
+    "thresholds": {
+      "undoneShown": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Nothing undone released or presented as done (Scrum Guide 2020)."
+        }
+      },
+      "trustTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every team and stakeholder gauge at 60 of 100 or more at the end."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (goal == \"mixed\") and (feedback == \"demo\") and (adapt == \"note\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Agile Certified Practitioner (PMI-ACP) Examination Content Outline (March 2026): Mindset 28%, Leadership 25%, Product 19%, Delivery 28%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.pmi.org/-/media/pmi/documents/public/pdf/certifications/agile-certified-exam-outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of PMI's PDF. Relevant text: Domain IV Task 1 'Seek early feedback' ('Deliver work in small increments'; 'Collect and incorporate stakeholders' feedback on a regular basis'); Task 3 'Manage impediments and risk' ('Proactively identify risks and impediments'; 'Prioritize impediment removal and risk mitigation activities'); Domain I Task 7 'Embrace Change' ('Embrace process adaptation by responding to changing requirements and priorities'; 'Adapt to product needs based on the learning and feedback'). The objective wording here is the course seed's. Reused for REQ-336 from this course's sprint-release-before-review-pmiacp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "goalHarm": {
+      "label": "Value delayed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and goal == \"visible\"",
+      "narrative": "Building the visible feature first left invoice delays unchanged; the CFO questioned the project."
+    },
+    "feedbackHarm": {
+      "label": "Rework at the end",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and feedback == \"wait\"",
+      "narrative": "Without early feedback, the parts screen proved unusable on site and the release needed rework."
+    },
+    "adaptHarm": {
+      "label": "Users went back to paper",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and adapt == \"dismiss\"",
+      "narrative": "With feedback dismissed, technicians returned to paper; adoption collapsed."
+    },
+    "target": {
+      "label": "Value delivered early and confirmed",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (goal == \"valueFirst\") and (feedback == \"pilot\") and (adapt == \"adaptMeasure\") and record == \"honest\" and missCount <= undoneShown and minSupport >= trustTarget",
+      "narrative": "The first increment cut invoice errors on pilot jobs, and the next is shaped by real use."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "goalHarm",
+    "feedbackHarm",
+    "adaptHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "goalCrit",
+        "label": "Aligned the increment goal with the highest business value",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "goal == \"valueFirst\"",
+            "score": "met",
+            "why": "Value first."
+          },
+          {
+            "when": "goal == \"mixed\"",
+            "score": "partial",
+            "why": "Diluted."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Visibility over value."
+          }
+        ]
+      },
+      {
+        "id": "feedbackCrit",
+        "label": "Got early feedback from real users on a usable slice",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "feedback == \"pilot\"",
+            "score": "met",
+            "why": "Early real feedback."
+          },
+          {
+            "when": "feedback == \"demo\"",
+            "score": "partial",
+            "why": "Demo only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Late feedback."
+          }
+        ]
+      },
+      {
+        "id": "adaptCrit",
+        "label": "Adapted the backlog and confirmed the value delivered",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "adapt == \"adaptMeasure\"",
+            "score": "met",
+            "why": "Adapted and confirmed."
+          },
+          {
+            "when": "adapt == \"note\"",
+            "score": "partial",
+            "why": "Logged, not used."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored feedback."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(painAt) and not isNull(errorsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(painAt) or not isNull(errorsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Ride along with technicians and read the invoice error data first."
+      },
+      {
+        "at": "Day 1",
+        "text": "Set the increment goal on parts and signatures with a success criterion."
+      },
+      {
+        "at": "Day 2",
+        "text": "Give the pilot technicians the working slice on real jobs."
+      },
+      {
+        "at": "Day 3",
+        "text": "Re-order on the feedback and measure invoice errors against the baseline."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "goalHarm": {
+        "headline": "Value first",
+        "body": "Order increments by business value."
+      },
+      "feedbackHarm": {
+        "headline": "Show value early",
+        "body": "Put usable increments in real users' hands."
+      },
+      "adaptHarm": {
+        "headline": "Inspect and adapt",
+        "body": "Use feedback to re-order work and confirm value."
+      },
+      "target": {
+        "headline": "Good: value delivered early and confirmed",
+        "body": "A value-aligned goal, early feedback and measured results."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Each increment is aligned to business priorities with a goal that makes its value testable. Early feedback from real users on a usable slice reveals what demos miss, and the backlog adapts to it. Value delivery is confirmed by measuring the targeted results against a baseline, not by shipping features."
+  }
+}
