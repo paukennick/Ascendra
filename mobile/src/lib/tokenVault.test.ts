@@ -231,7 +231,7 @@ describe("REQ-339 (FAIL-2550): a background seal that finishes after a rotation"
     store.prompt = null;
     assert.ok(await app.refresh()); // t2 -> t3, "latest" = t3
     if (answer === "confirm") prompt.resolve();
-    else prompt.reject(new Error("cancelled"));
+    else prompt.reject(new Error("canceled"));
     await sealing;
     await tick();
     store.kill(); // closed or reloaded before the next background
@@ -253,7 +253,7 @@ describe("REQ-339 (FAIL-2550): a background seal that finishes after a rotation"
     assert.equal(server.revoked, false);
     assert.equal(server.sent.at(-1), "t3");
   });
-  test("before: a cancelled stale prompt puts t2 on the plain key and the resume replays it", async () => {
+  test("before: a canceled stale prompt puts t2 on the plain key and the resume replays it", async () => {
     const { store, server } = await run(legacyApp, "cancel");
     assert.equal(store.data.get(K.plain), "t2");
     assert.equal(store.data.get(K.sessionFlag), "0");
@@ -262,7 +262,7 @@ describe("REQ-339 (FAIL-2550): a background seal that finishes after a rotation"
     assert.equal(res.ok, false);
     assert.equal(server.revoked, true);
   });
-  test("after: a cancelled stale prompt puts the newest token (t3) on the plain key", async () => {
+  test("after: a canceled stale prompt puts the newest token (t3) on the plain key", async () => {
     const { store, server } = await run(fixedApp, "cancel");
     assert.equal(store.data.get(K.plain), "t3");
     assert.equal(store.data.get(K.sessionFlag), "0");
