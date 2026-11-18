@@ -1,0 +1,1082 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "rolled-ankle-cant-take-four-steps",
+  "title": "Couldn't take four steps",
+  "objective": "Manage lateral ankle sprain: inversion loads the anterior talofibular ligament; high ankle (syndesmotic) sprains carry more morbidity; favor early functional rehab and progressive balance work",
+  "secondaryObjectives": [
+    "Clinical reasoning frameworks for orthopedic diagnosis and treatment selection"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: orthopaedics (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/orthopaedics/specialist-certification-examination-outline-orthopaedics",
+      "note": "Relayed from the orthopaedics specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient management: lower extremity (19%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra orthopaedics specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSOCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Bergman J, et al.. Acute Ankle Sprain. StatPearls (updated 2025-08-02), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-ANK; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: inversion loads the anterior talofibular ligament; high ankle (syndesmotic) sprains carry more morbidity; early functional rehabilitation and progressive balance training are favored (the course objective's wording)."
+    },
+    {
+      "cite": "Tiemstra JD. Update on Acute Ankle Sprains. Am Fam Physician 2012;85(12):1170-1176",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.aafp.org/pubs/afp/issues/2012/0615/p1170.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: Ottawa ankle rules: radiography for malleolar-zone pain with 'bone tenderness ... (namely the posterior edge or tip of the lateral or medial malleolus)' or 'an inability to bear weight for four steps immediately after the injury'; the squeeze test at midcalf elicits pain proximal to the ankle in syndesmotic injury; 'Early mobilization speeds healing and reduces pain more effectively than prolonged rest'; 'All athletes returning to sports after an ankle sprain should participate in a neuromuscular training program'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "09:00 in an outpatient orthopedic clinic (direct access). You are the physical therapist. Jordan, 27, rolled his right ankle inward in a basketball game last night and hopped off the court. He wants to 'get moving' and play Saturday.",
+    "handover": [
+      "He has not seen a physician or had imaging.",
+      "Clinic policy: a positive Ottawa ankle rule screen is sent for radiographs the same day through the clinic's referring physician before loading; functional rehabilitation starts once fracture is excluded."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "09:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.008,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Loading an unimaged, possibly fractured ankle risks displacement. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is protected on crutches. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of displaced fracture. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Radiographs arranged within 5 minutes of a positive Ottawa screen (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange the radiographs."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "ottawaAt": {
+      "type": "time",
+      "init": null
+    },
+    "squeezeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "ottawa",
+        "squeeze"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "xr",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ottawa",
+        "sprain",
+        "immob"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "nwbAt": {
+      "type": "time",
+      "init": null
+    },
+    "drillAt": {
+      "type": "time",
+      "init": null
+    },
+    "castAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(76 + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(5 + 5 * max(0, prog - 0.4), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(nwbAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Jordan, 27, recreational basketball player",
+        "presentation": "Rolled the right ankle in a game last night; hopped off the court. {not isNull(nwbAt) ? \"On crutches.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone for X-rays.\" : (not isNull(drillAt) ? \"Hobbling after the agility drill.\" : (not isNull(nwbAt) ? \"Seated with crutches.\" : \"Hopping on the left leg.\"))}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Inversion, a crack, could not walk four steps then or now.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "ottawaResult",
+          "label": "Ottawa screen",
+          "result": "Tender at the posterior edge of the lateral malleolus; cannot bear weight four steps.",
+          "when": "not isNull(ottawaAt)",
+          "flag": "true"
+        },
+        {
+          "id": "squeezeResult",
+          "label": "Syndesmosis",
+          "result": "Squeeze test negative.",
+          "when": "not isNull(squeezeAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Crutches, protected weight bearing",
+            "when": "not isNull(nwbAt)"
+          },
+          {
+            "label": "Agility or hop drills done",
+            "when": "not isNull(drillAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleXr",
+          "label": "Ottawa ankle rules positive",
+          "text": "Radiographs before loading or drills.",
+          "met": "not isNull(ottawaAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: mechanism, pop, ability to walk after",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ottawa": {
+      "label": "Ottawa screen: palpate the posterior edges and tips of both malleoli, base of the 5th metatarsal, navicular; four-step test",
+      "group": "Examine",
+      "available": "not testPending and isNull(ottawaAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ottawa\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "squeeze": {
+      "label": "Squeeze test and external rotation test for the syndesmosis",
+      "group": "Examine",
+      "available": "not testPending and isNull(squeezeAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"squeeze\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "nwb": {
+      "label": "Crutches and protected weight bearing until imaging",
+      "group": "Treat",
+      "available": "isNull(nwbAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "nwbAt",
+          "to": "t"
+        },
+        {
+          "log": "Crutches, protected weight bearing; compression and elevation.",
+          "kind": "act"
+        }
+      ]
+    },
+    "drill": {
+      "label": "Start agility and single-leg hop drills to keep him on track for Saturday",
+      "group": "Treat",
+      "available": "isNull(drillAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "drillAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.5, 2)"
+        },
+        {
+          "log": "He tries a hop and his ankle gives way with a crack.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "cast": {
+      "label": "Tell him to stay in a rigid boot for six weeks with no exercise",
+      "group": "Treat",
+      "available": "isNull(castAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "castAt",
+          "to": "t"
+        },
+        {
+          "log": "Six weeks of rigid immobilization advised.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is your working impression?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ottawa",
+              "label": "Lateral ankle sprain with a positive Ottawa screen: radiographs before loading; if no fracture, early functional rehab and progressive balance work"
+            },
+            {
+              "value": "sprain",
+              "label": "A simple sprain; start drills"
+            },
+            {
+              "value": "immob",
+              "label": "Severe sprain; rigid immobilization for six weeks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ottawa\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ottawa\""
+                },
+                {
+                  "log": "Sprain, Ottawa positive.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"sprain\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sprain\""
+                },
+                {
+                  "log": "Read as simple sprain.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"immob\""
+                },
+                {
+                  "log": "Read as needing immobilization.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "xr",
+              "label": "Send him for same-day radiographs through the referring physician: positive Ottawa screen (posterior lateral malleolus tenderness, unable to bear weight four steps)"
+            },
+            {
+              "value": "none",
+              "label": "No imaging; treat as a sprain"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"xr\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"xr\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Radiographs are booked for this morning; he goes on crutches.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "No imaging ordered.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain the plan: imaging first, then early functional rehab with balance training; no game Saturday",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "He understands: imaging first, then early mobilization and a neuromuscular training program before returning to basketball.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Outpatient clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "ottawa",
+        "squeeze",
+        "nwb",
+        "drill",
+        "cast",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Inversion injury with a 'crack'; he could not take four steps after it and still cannot.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"ottawa\"",
+              "then": [
+                {
+                  "set": "ottawaAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Bone tenderness at the posterior edge of the lateral malleolus and he cannot take four steps: the Ottawa ankle rules say radiograph.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "squeezeAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Squeeze test negative: no sign of a high ankle sprain.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "radiographs",
+      "wait": {
+        "skipLabel": "radiographs"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to arrange the radiographs."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "He leaves for radiographs on crutches.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is your plan for Jordan's ankle?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "An inversion injury loads the anterior talofibular ligament, but tenderness at the posterior lateral malleolus and inability to bear weight four steps make the Ottawa rules positive: a fracture must be excluded first.",
+          "modelAnswer": "It's an inversion sprain mechanism, but he's tender on the back edge of the lateral malleolus and can't take four steps, so Ottawa says X-ray before anything else."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Protected weight bearing and same-day radiographs; if no fracture, early functional rehab with progressive balance training instead of prolonged immobilization; no drills now.",
+          "modelAnswer": "Crutches and X-rays today. If it's clear, early functional rehab and balance work, not weeks in a boot. No drills now."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Radiographs arranged within 5 minutes of a positive Ottawa screen (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A positive Ottawa screen loaded and unimaged an hour on is harm here.",
+      "source": {
+        "cite": "Tiemstra JD. Update on Acute Ankle Sprains. Am Fam Physician 2012;85(12):1170-1176",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2012/0615/p1170.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Ottawa ankle rules: radiography for malleolar-zone pain with 'bone tenderness ... (namely the posterior edge or tip of the lateral or medial malleolus)' or 'an inability to bear weight for four steps immediately after the injury'; the squeeze test at midcalf elicits pain proximal to the ankle in syndesmotic injury; 'Early mobilization speeds healing and reduces pain more effectively than prolonged rest'; 'All athletes returning to sports after an ankle sprain should participate in a neuromuscular training program'."
+      }
+    }
+  },
+  "endings": {
+    "fracture": {
+      "label": "Displaced fracture",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "His ankle gives way during a hop; the X-ray now shows a displaced lateral malleolus fracture needing surgery."
+    },
+    "safe": {
+      "label": "Imaged, protected, planned",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"xr\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(ottawaAt)) and isNull(drillAt) and (not isNull(nwbAt)) and isNull(castAt)",
+      "narrative": "{timeAt(leftAt)|clock}: he goes for radiographs on crutches with a functional rehab plan to follow."
+    },
+    "safeGaps": {
+      "label": "Imaged, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: he is imaged, but late, after drills, or with a plan of prolonged rigid rest."
+    },
+    "time_up": {
+      "label": "Undecided at 10:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "10:00 and no decision."
+    }
+  },
+  "endingOrder": [
+    "fracture",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Radiographs arranged within 5 minutes of the positive screen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"xr\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"xr\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "ottC",
+        "label": "Screened with the Ottawa ankle rules",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ottawaAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "loadC",
+        "label": "No drills before imaging; protected weight bearing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(drillAt)",
+            "score": "missed",
+            "why": "Drilled an unimaged ankle."
+          },
+          {
+            "when": "not isNull(nwbAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not protected."
+          }
+        ]
+      },
+      {
+        "id": "funcC",
+        "label": "Planned early functional rehab, not prolonged rigid immobilization",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(castAt)",
+            "score": "missed",
+            "why": "Six weeks of rigid immobilization."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Functional plan."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took the history and tested the syndesmosis",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt) and not isNull(squeezeAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hxAt) or not isNull(squeezeAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Kept fracture on the list and planned functional rehab after",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ottawa\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"sprain\"",
+            "score": "missed",
+            "why": "The Ottawa rules say image first."
+          },
+          {
+            "when": "dxEnum == \"immob\"",
+            "score": "missed",
+            "why": "Early functional rehab is favored over prolonged rest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained the functional plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: Ottawa positive means image first; then early functional rehab",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Positive screen to imaging",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "09:00 to protected weight bearing",
+        "value": "isNull(nwbAt) ? -1 : timeAt(nwbAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:00",
+        "text": "History: inversion, crack, cannot take four steps."
+      },
+      {
+        "at": "~09:02",
+        "text": "Ottawa: posterior lateral malleolus tender."
+      },
+      {
+        "at": "~09:03",
+        "text": "Crutches; same-day radiographs."
+      },
+      {
+        "at": "~09:05",
+        "text": "Squeeze test; explain the functional plan."
+      }
+    ],
+    "debrief": {
+      "fracture": {
+        "headline": "Displaced fracture",
+        "body": "Bone tenderness at the posterior malleolus or inability to take four steps means radiographs before any loading."
+      },
+      "safe": {
+        "headline": "Imaged, protected, planned",
+        "body": "You applied the Ottawa ankle rules, protected the ankle, arranged imaging within minutes and planned early functional rehab. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Imaged, with gaps",
+        "body": "Check whether you screened before loading, how soon you referred, and whether the plan was functional."
+      },
+      "time_up": {
+        "headline": "Undecided at 10:00",
+        "body": "A positive Ottawa screen means same-day radiographs."
+      }
+    },
+    "modelReasoning": "Inversion injuries load the anterior talofibular ligament, and syndesmotic (high ankle) sprains carry more morbidity. Before treating a sprain, apply the Ottawa ankle rules: bone tenderness at the posterior edge or tip of a malleolus, or inability to bear weight four steps, means radiographs. Jordan's screen is positive, so protect the ankle and image the same day. If there is no fracture, early functional mobilization beats prolonged rest, and a neuromuscular and balance program reduces recurrence."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "ottQ": {
+      "during": "testT",
+      "ask": "While you examine: when do the Ottawa ankle rules call for radiographs?",
+      "choices": [
+        {
+          "id": "ott",
+          "label": "Posterior malleolar edge or tip tenderness, or unable to bear weight four steps"
+        },
+        {
+          "id": "swell",
+          "label": "Any swelling"
+        },
+        {
+          "id": "never",
+          "label": "Never for sprains"
+        }
+      ],
+      "expect": "ott",
+      "explain": "Bone tenderness at the posterior edge or tip of either malleolus, or inability to bear weight for four steps, means radiography.",
+      "source": {
+        "cite": "Tiemstra JD. Update on Acute Ankle Sprains. Am Fam Physician 2012;85(12):1170-1176",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2012/0615/p1170.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Ottawa ankle rules: radiography for malleolar-zone pain with 'bone tenderness ... (namely the posterior edge or tip of the lateral or medial malleolus)' or 'an inability to bear weight for four steps immediately after the injury'; the squeeze test at midcalf elicits pain proximal to the ankle in syndesmotic injury; 'Early mobilization speeds healing and reduces pain more effectively than prolonged rest'; 'All athletes returning to sports after an ankle sprain should participate in a neuromuscular training program'."
+      }
+    },
+    "rehabQ": {
+      "during": "leaveT",
+      "ask": "While he goes: if there's no fracture, what treatment is favored?",
+      "choices": [
+        {
+          "id": "func",
+          "label": "Early functional mobilization and progressive balance training"
+        },
+        {
+          "id": "cast",
+          "label": "Six weeks of rigid immobilization"
+        },
+        {
+          "id": "rest",
+          "label": "Bed rest"
+        }
+      ],
+      "expect": "func",
+      "explain": "Early mobilization speeds healing more than prolonged rest; returning athletes should do a neuromuscular training program.",
+      "source": {
+        "cite": "Tiemstra JD. Update on Acute Ankle Sprains. Am Fam Physician 2012;85(12):1170-1176",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.aafp.org/pubs/afp/issues/2012/0615/p1170.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: Ottawa ankle rules: radiography for malleolar-zone pain with 'bone tenderness ... (namely the posterior edge or tip of the lateral or medial malleolus)' or 'an inability to bear weight for four steps immediately after the injury'; the squeeze test at midcalf elicits pain proximal to the ankle in syndesmotic injury; 'Early mobilization speeds healing and reduces pain more effectively than prolonged rest'; 'All athletes returning to sports after an ankle sprain should participate in a neuromuscular training program'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
