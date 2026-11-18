@@ -89,10 +89,31 @@ export const REQ334_TREATMENT: readonly { course: string; slug: string }[] = [
   { course: "ABPTSWMS", slug: "braden-eleven-purple-heel" },
   { course: "ABPTSWMS", slug: "two-wounds-one-dressing-choice" },
   { course: "ABPTSWMS", slug: "walking-program-plantar-ulcer" },
+  // Unit coverage (every unit with a fitting objective):
+  { course: "ABPTSGCS", slug: "quiet-not-lazy-day-three-hip-fracture" },
+  { course: "ABPTSGCS", slug: "stronger-legs-same-fall-risk" },
+  { course: "ABPTSSCS", slug: "second-stress-fracture-no-period" },
+  { course: "ABPTSECS", slug: "too-early-to-test-day-four-weakness" },
+  { course: "ABPTSPCS", slug: "he-used-to-say-ball" },
+  { course: "ABPTSNCS", slug: "treadmill-ordered-freezing-in-doorways" },
+  { course: "ABPTSOCS", slug: "two-buses-and-a-copay-after-tka" },
+  { course: "ABPTSCCS", slug: "eighteen-meters-better-letter" },
+  { course: "ABPTSCCS", slug: "she-pulls-him-up-by-the-arms" },
+  { course: "ABPTSONC", slug: "twenty-percent-smaller-by-a-different-tape" },
+];
+
+// Professional-ethics conversations (session screen, level 2) for the nursing
+// professional units; screens are not profession-locked (lead decision, round 1117b).
+export const REQ334_SESSION: readonly { course: string; slug: string }[] = [
+  { course: "BSNRN", slug: "coworker-asks-for-your-login-famous-patient" },
+  { course: "BSNRN", slug: "handover-argument-skip-the-pump-check" },
+  { course: "BSNRN", slug: "quality-project-really-a-study" },
+  { course: "CCRNNEO", slug: "consent-through-the-twelve-year-old" },
+  { course: "CCRNPEDS", slug: "bed-manager-wants-unstable-child-moved" },
 ];
 
 // Sensitive topics behind the per-sim 18+ gate (REQ-327).
-const MATURE = new Set(["after-amputation-im-done-adn", "rehab-resident-no-use-to-anyone-lpn", "bruises-in-stages-son-wont-leave"]);
+const MATURE = new Set(["after-amputation-im-done-adn", "rehab-resident-no-use-to-anyone-lpn", "bruises-in-stages-son-wont-leave", "second-stress-fracture-no-period"]);
 
 // The robust target (round-1117b.md): 8 sims for 60 or more objectives, 4 otherwise.
 const TARGET: Readonly<Record<string, number>> = {
@@ -174,9 +195,11 @@ function checkCase(course: string, slug: string, screen: string, profile: string
   assert.equal(doc.screen.type, screen);
   assert.equal(doc.outcome.profile, profile);
   assert.deepEqual(doc.engine, { major: 1, minor: 2 });
-  assert.ok(Object.values(doc.phases).some((p) => p.clock === "running"), "a running phase");
+  const session = screen === "session";
+  if (!session) assert.ok(Object.values(doc.phases).some((p) => p.clock === "running"), "a running phase");
   const keys = Object.keys((doc as unknown as { teaching?: Record<string, unknown> }).teaching ?? {});
-  assert.ok(keys.length >= 2, "two sourced teaching prompts");
+  // The session template teaches through its conversation and debrief, not timed prompts.
+  if (!session) assert.ok(keys.length >= 2, "two sourced teaching prompts");
   assert.deepEqual(keys, [...keys].sort(jsonbOrder), "teaching keys in jsonb order (FAIL-1362)");
   const critical = doc.scoring.criteria.filter((c) => c.critical);
   assert.ok(critical.length >= 3 && critical.length <= 4, "three or four critical criteria");
@@ -221,6 +244,17 @@ for (const r of REQ334_BEDSIDE) {
 
 for (const r of REQ334_TREATMENT) {
   test(`${r.course}/${r.slug}: registered, valid, a running treatment session on engine 1.2`, () => checkCase(r.course, r.slug, "treatment-session", "physical-therapy"));
+  test(`${r.course}/${r.slug}: objective and secondary objectives are the course's own`, () => checkObjectives(r.course, r.slug));
+  test(`${r.course}/${r.slug}: sources are dated and say how they were read`, () => checkSources(r.course, r.slug));
+  test(`${r.course}/${r.slug}: learner text names no permission-only mark, no specialist letters, no dose, no review claim`, () => checkLearnerText(r.course, r.slug, true));
+  test(`${r.course}/${r.slug}: goldens cover Good, Mediocre and Bad, every ending but time_up, every criterion met and missed`, () => checkGoldens(r.course, r.slug, true));
+}
+
+for (const r of REQ334_SESSION) {
+  test(`${r.course}/${r.slug}: registered, valid, a level 2 professional-ethics conversation on engine 1.2`, () => {
+    checkCase(r.course, r.slug, "session", "professional-ethics");
+    assert.equal((loadDocument(entryOf(r.course, r.slug)!).screen as { level?: number }).level, 2);
+  });
   test(`${r.course}/${r.slug}: objective and secondary objectives are the course's own`, () => checkObjectives(r.course, r.slug));
   test(`${r.course}/${r.slug}: sources are dated and say how they were read`, () => checkSources(r.course, r.slug));
   test(`${r.course}/${r.slug}: learner text names no permission-only mark, no specialist letters, no dose, no review claim`, () => checkLearnerText(r.course, r.slug, true));

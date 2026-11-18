@@ -7681,9 +7681,12 @@ and fitness moved to depth-ems-fitness (REQ-338). Target: 8 sims for a
 course with 60 or more objectives, 4 for the rest, purpose-written cases for
 each course's top domains, bands only where the setting and the license
 level match. No engine, renderer, schema or migration change; engine 1.2;
-existing screens only (bedside, treatment session).
-`lib/sim/health-depth-1117.test.ts` pins every document by slug (317 tests)
-and checks the per-course targets.
+existing screens only (bedside, treatment session, and the level 2
+professional-ethics conversation).
+`lib/sim/health-depth-1117.test.ts` pins every document by slug and checks
+the per-course targets. The round's rule is every unit with a fitting
+objective, not only the count (lead, 2026-11-17): each such unit has a sim
+whose main objective is in it, or is listed below as no fit with a reason.
 
 **Shape.** Every new case is built in the round-2 shape of 22.32: tests share
 one timer and one pending slot, a red-flag finding sets `redFlagAt`, the
@@ -7781,6 +7784,41 @@ report window).
 | ABPTSWMS/two-wounds-one-dressing-choice | Interventions (20) | Dressings matched to two wounds; don't occlude infection | wms-dressing |
 | ABPTSWMS/walking-program-plantar-ulcer | Clinical inquiry (10) | Exercise that minimizes weight bearing with an ulcer | wms-dfu |
 
+**Unit-coverage treatment-session cases (10).** Same shape; written so every
+unit with a fitting objective has a main-objective sim.
+
+| Course / slug | Unit (weight) | Teaches | Steps |
+|---|---|---|---|
+| ABPTSGCS/quiet-not-lazy-day-three-hip-fracture | Knowledge (15) | Hypoactive delirium mislabeled as low motivation; polypharmacy | gcs-delirium |
+| ABPTSGCS/stronger-legs-same-fall-risk | Outcomes (5) | Measures across impairment, activity, participation; gait speed under 0.8 m/s | gcs-outcomes |
+| ABPTSSCS/second-stress-fracture-no-period (18+) | Knowledge (20) | Female athlete triad; hold load; team physician | scs-triad |
+| ABPTSECS/too-early-to-test-day-four-weakness | Examination (20) | Early electrodiagnosis in GBS (EAN/PNS 2023, REQ-310 wording); call it in | ecs-gbs |
+| ABPTSPCS/he-used-to-say-ball | Professional roles (16) | Loss of skills; connect the family to early intervention | pcs-ei |
+| ABPTSNCS/treadmill-ordered-freezing-in-doorways | Clinical reasoning (25) | Integrated PD care; cueing and cycling over treadmill; behavior change | ncs-pd |
+| ABPTSOCS/two-buses-and-a-copay-after-tka | Clinical reasoning (10) | Shared decision-making on setting and cost; a possible DVT first | ocs-tka |
+| ABPTSCCS/eighteen-meters-better-letter | EBP (10) | +18 m is below the 30 m MCID; accurate report; 88-92% target | ccs-mcid |
+| ABPTSCCS/she-pulls-him-up-by-the-arms | Professional behaviors (5) | Teach-back for patient and wife after sternotomy; wound signs first | ccs-teach |
+| ABPTSONC/twenty-percent-smaller-by-a-different-tape | Outcomes (5) | Same measurement method or no comparison; cellulitis signs | onc-lymph |
+
+**Professional-ethics conversations (5).** Lead decision (2026-11-17):
+screens are not profession-locked, so the nursing professional units use the
+level 2 session screen built from `ISC2CC/cc-ethics-shared-credentials` (the
+learner text, sources, criteria labels, endings and debrief replaced; the
+mechanics unchanged). A colleague, manager or bed manager asks for something
+that breaches the code or policy, then makes a second ask; the expert asks
+first, declines with a route that keeps the other person's goal, refuses the
+second ask, uses the channel (privacy officer, charge nurse, IRB office,
+house supervisor), keeps the relationship and writes a factual note.
+Endings: upheld, costly, breached.
+
+| Course / slug | Unit | Teaches | Steps |
+|---|---|---|---|
+| BSNRN/coworker-asks-for-your-login-famous-patient | Informatics | Shared login, minimum necessary, report a known access | bsn-privacy |
+| BSNRN/handover-argument-skip-the-pump-check | Teamwork | Constructive conflict; keep the two-nurse PCA check; no false co-signature | bsn-conflict |
+| BSNRN/quality-project-really-a-study | EBP | QI versus research; IRB determination; no identifiers on a shared drive | bsn-irb |
+| CCRNNEO/consent-through-the-twelve-year-old | Professional caring | Advocacy: no minor interpreter; a qualified interpreter now | neo-interpreter |
+| CCRNPEDS/bed-manager-wants-unstable-child-moved | Professional caring | Systems thinking: surge bed via the house supervisor; verbal handoff | peds-transfer |
+
 - **Scope.** The ICU nurse acts on unit policy and the intensivist's or
   nurse practitioner's orders; the RN on standing orders and protocols in
   the brief; the LPN collects data, holds and reports, and works under the
@@ -7788,7 +7826,8 @@ report window).
   named policy (911, the referring provider, the oncology triage line,
   Adult Protective Services) and tells the referrer.
 - **18+.** The two suicide-risk bands keep their base's `mature: true`; the
-  elder abuse case is marked `mature: true` (REQ-327).
+  elder abuse case and the female athlete triad case (disordered eating) are
+  marked `mature: true` (REQ-327).
 - **Sources**, read 2026-11-17 through summarizing fetches with quotes
   (URLs from searches): AFP 2000 on neonatal bilious vomiting; AFP 2023 on
   neonatal hyperbilirubinemia; OPQIC's posting of the AAP therapeutic
@@ -7810,6 +7849,21 @@ report window).
   Park on Pancoast tumors; AFP 2007 on long bone metastases; DOJ Elder
   Justice red flags (2023) and the Eldercare Locator abuse fact sheet; Emory
   on preterm infant behavior; Provider Magazine 2017 on NPUAP staging.
+  For the unit-coverage cases, read 2026-11-17 the same way: CDC Learn the
+  Signs. Act Early (reviewed 2026-02-17); MedlinePlus heart bypass surgery
+  discharge (reviewed 2024-07-14) and deep vein thrombosis (reviewed
+  2025-04-01); NCI Lymphedema and Cancer Treatment (updated 2024-03-06).
+  For the conversations: the NSO summary of the 2025 ANA Code; HHS OCR on
+  the minimum necessary requirement; the OHRP quality improvement FAQs; the
+  American Dental Association's summary of the HHS Section 1557 rule on
+  minor interpreters (a secondary summary); and the Medical Solutions summary
+  of Joint Commission Sentinel Event Alert 58 on hand-offs (secondary).
+  Relayed from pt-abpts.ts with its read dates: the EAN/PNS 2023 GBS
+  guideline (read 2026-11-17, REQ-310; European, no US guideline on timing
+  found), the APTA Parkinson (2022), TKA (2026) and lymphedema (2017, 2020)
+  guidelines, the World Falls Guidelines (2022), and StatPearls chapters on
+  delirium, polypharmacy, the triad, stress fractures, GBS, developmental
+  milestones, DVT, the 6-minute walk and oxygen therapy.
   Relayed with their dates, not re-read: the CCRN handbook and NCLEX test
   plans and AACN Essentials from the course seeds and earlier cases; the
   StatPearls chapters tagged in pt-abpts.ts (read 2026-11-04) for the ABPTS
@@ -7831,30 +7885,32 @@ counts units with a fitting objective that are some sim's main objective.
 | Course | Objectives | Sims before | Sims after | Target | Units with a fitting objective covered | Left (fits but no main sim) |
 |---|---|---|---|---|---|---|
 | ADNRN | 178 | 2 | 10 | 8 | 6 of 6 | none |
-| BSNRN | 179 | 2 | 8 | 8 | 7 of 10 | EBP, Teamwork, Informatics (need a non-bedside screen; see Open) |
+| BSNRN | 179 | 2 | 11 | 8 | 10 of 10 | none |
 | LPNVN | 176 | 2 | 10 | 8 | 5 of 5 | none (Anatomy has no fitting objective) |
-| CCRNNEO | 136 | 2 | 8 | 8 | 5 of 6 | Professional caring (no fit on bedside) |
-| CCRNPEDS | 135 | 2 | 8 | 8 | 5 of 6 | Professional caring (no fit on bedside) |
-| ABPTSCCS | 47 | 1 | 4 | 4 | 3 of 5 | EBP (10%), Professional behaviors (5%) |
-| ABPTSECS | 37 | 1 | 4 | 4 | 3 of 4 | Examination (20%): early electrodiagnosis in GBS |
-| ABPTSGCS | 48 | 1 | 5 | 4 | 4 of 6 | Knowledge (15%), Outcomes (5%) |
-| ABPTSONC | 47 | 1 | 4 | 4 | 3 of 4 | Outcomes (5%): lymphedema volume tracking |
-| ABPTSPCS | 44 | 1 | 4 | 4 | 3 of 4 | Professional roles (16%): early intervention, IDEA |
+| CCRNNEO | 136 | 2 | 9 | 8 | 6 of 6 | none |
+| CCRNPEDS | 135 | 2 | 9 | 8 | 6 of 6 | none |
+| ABPTSCCS | 47 | 1 | 6 | 4 | 5 of 5 | none |
+| ABPTSECS | 37 | 1 | 5 | 4 | 4 of 4 | none |
+| ABPTSGCS | 48 | 1 | 7 | 4 | 6 of 6 | none |
+| ABPTSONC | 47 | 1 | 5 | 4 | 4 of 4 | none |
+| ABPTSPCS | 44 | 1 | 5 | 4 | 4 of 4 | none |
 | ABPTSPWCS | 35 | 1 | 4 | 4 | 1 of 1 | none |
-| ABPTSSCS | 40 | 1 | 4 | 4 | 2 of 3 | Knowledge (20%): triad (secondary only) |
+| ABPTSSCS | 40 | 1 | 5 | 4 | 3 of 3 | none |
 | ABPTSWMS | 52 | 1 | 4 | 4 | 4 of 4 | none |
-| ABPTSNCS | 43 | 2 | 4 | 4 | 3 of 4 | Clinical reasoning (25%): integrated PD care |
-| ABPTSOCS | 50 | 2 | 4 | 4 | 3 of 4 | Clinical reasoning (10%): shared decision-making |
+| ABPTSNCS | 43 | 2 | 5 | 4 | 4 of 4 | none |
+| ABPTSOCS | 50 | 2 | 5 | 4 | 4 of 4 | none |
 
 **Open (for the next round or for Nick).**
-- BSN-RN EBP (research ethics and IRB), Teamwork (conflict) and Informatics
-  (a privacy breach) fit the professional-ethics conversation or the
-  governance board, not the bedside. A decision for Nick whether nursing
-  courses should use those screens.
-- CCRN Neonatal and Pediatric "Professional caring and ethical practice"
-  (advocacy, systems thinking) has no timed bedside fit; the same decision.
-- The PT units left above fit treatment-session cases and are the next
-  candidates (geriatric delirium and polypharmacy, the female athlete triad,
-  early GBS electrodiagnosis, early intervention referral, integrated PD
-  care, shared decision-making in arthroplasty, EBP and walk-test MCID, PT
-  education); outcomes units at 5% are low priority.
+- No fit (no objective in the unit passes the generator's selection screen,
+  so no main-objective sim; counted 2026-11-18 from the seed): BSN-RN Patient
+  safety and quality improvement; LPN/VN Anatomy, physiology and basic
+  pathophysiology; CCS Diagnosis and prognosis, Outcomes, and the diagnosis
+  frequency table; ECS Diagnosis, prognosis and interventions; ONC Knowledge
+  areas, Professional roles; PCS Knowledge areas, Outcomes; PWCS Knowledge
+  areas, Professional practice expectations; SCS Professional roles, Patient
+  outcomes; WMS Foundation sciences, Behavioral sciences, Diagnosis and
+  prognosis; OCS Upper extremity. Every other unit in scope (71 of 89, 15
+  courses) has a sim whose main objective is in it.
+- The five conversations reuse one template; a second ethics template (the
+  governance board or tabletop) would vary the mechanics if more nursing
+  professional-unit sims are wanted.
