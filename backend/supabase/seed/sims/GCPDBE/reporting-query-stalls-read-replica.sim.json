@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "reporting-query-stalls-read-replica",
+  "title": "Stale stock: the storefront's read replica is 25 minutes behind",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dbeng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "13:20 replica_lag orders-db-replica1 1,512 s and rising; storefront overselling; jacket drop at 14:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "14:00: drop oversold",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "14:00: drop, stock accurate",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "pri",
+          "label": "orders-db (primary)",
+          "spokenLabel": "the primary",
+          "kind": "writes",
+          "status": "{harmed ? \"standalone, split from the replica\" : fixed ? \"healthy\" : \"healthy\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "rep",
+          "label": "orders-db-replica1",
+          "spokenLabel": "the read replica",
+          "kind": "storefront stock reads",
+          "status": "{harmed ? \"promoted: no longer replicating\" : fixed ? \"streaming, lag under 1 s\" : \"replay waiting on a report query\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "rpt",
+          "label": "Finance month-end report",
+          "spokenLabel": "the finance report",
+          "kind": "3-hour query",
+          "status": "{fixed and not harmed ? \"moved to a reporting replica\" : \"on replica1, blocking replay\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "pri",
+          "to": "rep",
+          "label": "WAL",
+          "status": "{fixed and not harmed ? \"replayed\" : \"received, not replayed\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Deploying and scaling read replicas",
+  "secondaryObjectives": [
+    "Configuring monitoring for highly available databases",
+    "Investigating database resource contention"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Professional Cloud Database Engineer certification exam guide: 1. Design scalable and highly available cloud database solutions; 2. Manage a solution that can span multiple database solutions; 3. Migrate data solutions; 4. Deploy scalable and highly available databases",
+      "checkedAt": "2026-11-17",
+      "url": "https://cloud.google.com/certification/guides/cloud-database-engineer",
+      "note": "Read through a summarizing fetch on 2026-11-17. Under 1.3 'Determine how applications will connect to the database': 'Configure network and security (Cloud SQL Auth Proxy, CMEK, SSL certificates)', 'Justify the use of session pooler services'. The page shows no weights; section 1's 32% is the course seed's (to verify). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Cloud SQL for PostgreSQL: Replication lag",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/replication/replication-lag",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: causes include an undersized replica, 'long-running replica queries' that block replay, and an overloaded replica; metrics replica_lag and network_lag ('If network_lag is negligible but replica_lag is high, the replica is the bottleneck'); fixes: right-size the replica, tune max_standby_streaming_delay (about 30-60 seconds) and check pg_stat_database_conflicts, 'Use different replicas for OLTP and OLAP'. That promoting a replica stops replication for good is from memory of the 'Promote replicas' page (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database engineer at Fennick Outdoor. The storefront reads stock levels from orders-db-replica1, a Cloud SQL read replica of orders-db. Since about 12:55 customers buy items shown in stock that sold out long ago. The replica's lag is 25 minutes and climbing. A limited-edition jacket drop goes live at 14:00.",
+    "handover": [
+      "Finance's month-end report was pointed at the same replica last week 'to take load off the primary'.",
+      "orders-db-replica1 has max_standby_streaming_delay set to -1 (wait forever) from an old tuning."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the primary, the read replica that serves stock levels and what else runs on that replica.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "13:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The limited-edition drop goes live at 14:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lagAt": {
+      "type": "time",
+      "init": null
+    },
+    "blockerAt": {
+      "type": "time",
+      "init": null
+    },
+    "confAt": {
+      "type": "time",
+      "init": null
+    },
+    "sizeAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "replay",
+        "network",
+        "size"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "lag",
+        "blocker",
+        "conf",
+        "size",
+        "cancel",
+        "alert",
+        "promote",
+        "maxconn",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "lag": {
+      "label": "Monitoring: replica_lag and network_lag for replica1",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(lagAt)",
+          "then": [
+            {
+              "set": "lagAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud monitoring ... cloudsql.googleapis.com/database/replication/replica_lag, network_lag (last hour)\n{harmed ? \"replica_lag: (no data: instance is no longer a replica)\" : fixed ? \"replica_lag 0.4 s; network_lag 1 s\" : \"replica_lag: 12:55 3 s ... 13:20 1,512 s (rising)\nnetwork_lag: 1 s\"}"
+        },
+        {
+          "finding": "WAL arrives in a second, but the replica is not applying it: the replica is the bottleneck, not the network."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "blocker": {
+      "label": "On the replica: long-running queries and replay state",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(blockerAt)",
+          "then": [
+            {
+              "set": "blockerAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ psql -h orders-db-replica1 -c \"SELECT pid, usename, now()-query_start AS age, LEFT(query,40) FROM pg_stat_activity WHERE state = 'active' ORDER BY age DESC LIMIT 2\"\n{fixed and not harmed ? \"(storefront queries only, all under 50 ms)\" : \" 8812  finance_rpt  00:26:10  SELECT ... FROM order_lines ol JOIN prod\n 9120  storefront   00:00:00  SELECT qty FROM stock WHERE sku =\"}"
+        },
+        {
+          "finding": "A 26-minute finance query is holding back replay: with max_standby_streaming_delay -1 the replica waits for it forever."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "conf": {
+      "label": "On the replica: max_standby_streaming_delay and conflicts",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(confAt)",
+          "then": [
+            {
+              "set": "confAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ psql -h orders-db-replica1 -c \"SHOW max_standby_streaming_delay\"; (pg_stat_database_conflicts)\n{fixed and not harmed ? \"30s\nconfl_snapshot: 3\" : \"-1\nconfl_snapshot: 0  (never cancels: waits instead)\"}"
+        },
+        {
+          "finding": "The replica is set never to cancel a query that conflicts with replay."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "size": {
+      "label": "Replica and primary machine types, replica CPU",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sizeAt)",
+          "then": [
+            {
+              "set": "sizeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud sql instances describe orders-db-replica1 --format='value(settings.tier)'; CPU\ndb-custom-8-32768 (primary: db-custom-8-32768); CPU 41%"
+        },
+        {
+          "finding": "The replica is the same size as the primary and not busy: size is not the cause."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cancel": {
+      "label": "Cancel the finance query on replica1, set max_standby_streaming_delay to 30s, and point finance at a separate reporting replica",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ psql -h orders-db-replica1 -c \"SELECT pg_cancel_backend(8812)\"\n t\ndbeng@cloudshell:~$ gcloud sql instances patch orders-db-replica1 --database-flags max_standby_streaming_delay=30s\ndbeng@cloudshell:~$ gcloud sql instances create orders-db-reporting --master-instance-name orders-db --tier db-custom-8-32768 ...  (finance told: report re-runs there tonight)"
+        },
+        {
+          "log": "Replay resumes and the lag drains in minutes; the storefront's replica will not wait on a long query again, and finance gets a replica of its own.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "alert": {
+      "label": "Alert on replica_lag over 30 s for the storefront replica, and document which replica serves which workload",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud alpha monitoring policies create --policy-from-file=replica1-lag-30s.yaml\n(docs: replica1 = storefront OLTP reads only; orders-db-reporting = finance and analytics)"
+        },
+        {
+          "log": "A growing lag pages someone in a minute instead of being found by customers, and the workloads stay on separate replicas.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "promote": {
+      "label": "Promote replica1 so it stops depending on replay",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud sql instances promote-replica orders-db-replica1\nPromoting... done."
+        },
+        {
+          "log": "The replica becomes a standalone instance frozen 25 minutes in the past: it stops receiving changes at all, and the storefront reads ever-staler stock.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "maxconn": {
+      "label": "Raise replica1's max_connections from 400 to 1,000",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dbeng@cloudshell:~$ gcloud sql instances patch orders-db-replica1 --database-flags max_connections=1000,max_standby_streaming_delay=-1\n(flags updated)"
+        },
+        {
+          "log": "Connections were never short; replay is still waiting on the finance query.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check lag and a stock read on the replica against the primary",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dbeng@cloudshell:~$ replica_lag (last 5 min); SELECT qty FROM stock WHERE sku='JKT-LTD-01' on both\n{harmed ? \"replica: not replicating\nprimary 280 / replica 900\" : fixed ? \"replica_lag 0.4 s\nprimary 312 / replica 312\" : \"replica_lag 1,560 s\nprimary 312 / replica 900\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "replay",
+                  "label": "A long finance query blocked replay on the storefront replica (max_standby_streaming_delay -1)"
+                },
+                {
+                  "value": "network",
+                  "label": "Network lag between primary and replica"
+                },
+                {
+                  "value": "size",
+                  "label": "The replica was undersized"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: the drop sells exactly the stock there is.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "14:00: the drop oversells hundreds of jackets on stale stock levels.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the replica fell behind, what you changed, and how reads stay fresh.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates network from replay.",
+          "modelAnswer": "network_lag was 1 second but replica_lag climbed to 25 minutes: the replica received WAL and could not replay it. A 26-minute finance query held replay, and max_standby_streaming_delay -1 made the replica wait for it indefinitely."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Unblocks replay without breaking replication.",
+          "modelAnswer": "Cancelled the finance query, set the delay to 30 seconds, and created a separate reporting replica. Promoting replica1 would have frozen it 25 minutes in the past."
+        },
+        {
+          "label": "Fresh",
+          "criteria": "Separation and alerting.",
+          "modelAnswer": "OLTP reads and reporting are on different replicas, and lag over 30 seconds alerts."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The limited-edition drop goes live at 14:00, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The replica was promoted and stopped replicating."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with replay still blocked leaves the drop to oversell.",
+      "source": {
+        "cite": "Google Cloud documentation, Cloud SQL for PostgreSQL: Replication lag",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.cloud.google.com/sql/docs/postgres/replication/replication-lag",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: causes include an undersized replica, 'long-running replica queries' that block replay, and an overloaded replica; metrics replica_lag and network_lag ('If network_lag is negligible but replica_lag is high, the replica is the bottleneck'); fixes: right-size the replica, tune max_standby_streaming_delay (about 30-60 seconds) and check pg_stat_database_conflicts, 'Use different replicas for OLTP and OLAP'. That promoting a replica stops replication for good is from memory of the 'Promote replicas' page (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "frozen": {
+      "label": "Replica promoted and frozen",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Promotion cut replica1 off from the primary at a 25-minute-old state."
+    },
+    "oversold": {
+      "label": "Drop oversold",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 14:00 the replica was still replaying 25 minutes behind."
+    },
+    "caughtUp": {
+      "label": "Replay unblocked, workloads separated, alert set",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(lagAt) and not isNull(blockerAt) and not isNull(verifiedAt) and causeDoc == \"replay\"",
+      "narrative": "The finance query moved to its own replica, the storefront replica caught up, and lag now alerts."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Stock is accurate, but the alert, the documentation, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "frozen",
+    "oversold",
+    "caughtUp",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Told replay lag from network lag and found the blocking query",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(lagAt) and not isNull(blockerAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(lagAt) or not isNull(blockerAt) or not isNull(confAt) or not isNull(sizeAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Replica caught up by 14:00 and still replicating",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The replica was promoted and stopped replicating.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Lag alert and workload map; stock checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"replay\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:20-13:24",
+        "text": "network_lag 1 s, replica_lag 25 min; finance query 26 min on the replica; delay -1; replica sized like the primary."
+      },
+      {
+        "at": "13:24-13:29",
+        "text": "Cancel the query, delay 30 s, reporting replica; lag alert, workload map."
+      },
+      {
+        "at": "13:29-13:31",
+        "text": "Lag 0.4 s; stock matches."
+      }
+    ],
+    "debrief": {
+      "frozen": {
+        "headline": "Promotion ends replication",
+        "body": "A promoted replica is a separate database. Stale reads come from replay being blocked; unblock replay instead."
+      },
+      "oversold": {
+        "headline": "Replica lag behind a reporting query",
+        "body": "Long queries on a replica can block replay. Keep OLTP and OLAP on different replicas, and set max_standby_streaming_delay so replay is not held forever."
+      },
+      "caughtUp": {
+        "headline": "Good: read the lag before acting",
+        "body": "You told network lag from replay lag, found the query holding replay, unblocked it and capped the wait, gave reporting its own replica, checked stock, and alerted on lag."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Network lag is a second while replica lag is 25 minutes, so the replica is not applying WAL. A long finance query on the same replica blocks replay, and the delay setting tells the replica to wait forever. Cancel the query, cap the standby delay, and give reporting its own replica; then alert on lag. Promoting the replica ends replication; more connections change nothing."
+  }
+}
