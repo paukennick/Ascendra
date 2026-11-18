@@ -1,0 +1,892 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "app-pinned-to-old-primary-after-geo-failover",
+  "title": "After the outage: orders fail because one app still points at the old primary",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "06:40 order-svc: 100% of writes failing since 06:25 ('database is read-only'); picking starts at 08:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "08:00: picking stopped",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "08:00: picking running",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "fog",
+          "label": "Failover group fog-ops",
+          "spokenLabel": "the failover group",
+          "kind": "listener fog-ops.database.windows.net",
+          "status": "{harmed ? \"forced back to sql-ops-eus\" : fixed ? \"primary: sql-ops-wus\" : \"primary: sql-ops-wus\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "wus",
+          "label": "sql-ops-wus (West US)",
+          "spokenLabel": "the West server",
+          "kind": "since 02:40",
+          "status": "{harmed ? \"secondary, last minutes of orders lost\" : fixed ? \"primary\" : \"primary\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "eus",
+          "label": "sql-ops-eus (East US)",
+          "spokenLabel": "the East server",
+          "kind": "back since 06:20",
+          "status": "{harmed ? \"primary\" : fixed ? \"readable secondary\" : \"readable secondary\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "svc",
+          "label": "order-svc",
+          "spokenLabel": "the order service",
+          "kind": "connection string",
+          "status": "{fixed and not harmed ? \"Server=fog-ops (listener)\" : \"Server=sql-ops-eus (server name)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "svc",
+          "to": "eus",
+          "label": "writes",
+          "status": "{fixed and not harmed ? \"not used\" : \"rejected (read-only)\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "svc",
+          "to": "wus",
+          "label": "via listener",
+          "status": "{fixed and not harmed ? \"writing\" : \"not used\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring failover groups",
+  "secondaryObjectives": [
+    "Troubleshooting an HA/DR solution",
+    "Monitoring an HA/DR solution"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Failover groups overview and best practices (Azure SQL Database)",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/azure-sql/database/failover-group-sql-db",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'For read-write workloads, use <fog-name>.database.windows.net as the server name in the connection string'; read-only '<fog-name>.secondary.database.windows.net'; listeners 'remain unchanged during geo-failovers. You don't have to change the connection string ... connections are automatically routed to the current primary'; listener DNS TTL 30 seconds; failover performs full synchronization with no data loss and needs the primary accessible; forced failover 'immediately switches the secondary to the primary role without waiting for recent changes to propagate'. The page does not say what happens to clients using a server's own name; that they keep reaching that server in whatever role it now has, and the read-only error text, are from memory (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator at Haldane Freight. During last night's East US outage the on-call DBA failed over the failover group fog-ops at 02:40; sql-ops-wus (West US) is now primary. East US recovered at 06:20, and sql-ops-eus is back as the readable secondary. Since 06:25 the warehouse order service fails every write. The warehouse shift starts picking at 08:00.",
+    "handover": [
+      "Most services connect through fog-ops.database.windows.net; the order service was built by a contractor.",
+      "Failing back to East US is planned for Saturday's window, as a normal (no data loss) failover."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the failover group's listeners, the two servers' current roles and where each service connects.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "06:40",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 4800,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The warehouse shift starts picking at 08:00, 80 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "rolesAt": {
+      "type": "time",
+      "init": null
+    },
+    "connAt": {
+      "type": "time",
+      "init": null
+    },
+    "errAt": {
+      "type": "time",
+      "init": null
+    },
+    "othersAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "servername",
+        "outage",
+        "perm"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "roles",
+        "conn",
+        "err",
+        "others",
+        "listener",
+        "audit",
+        "forceback",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "roles": {
+      "label": "az sql failover-group show fog-ops (roles)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rolesAt)",
+          "then": [
+            {
+              "set": "rolesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az sql failover-group show -g rg-ops -s sql-ops-wus -n fog-ops --query \"[replicationRole, partnerServers[0].replicationRole, partnerServers[0].id]\" -o tsv\n{harmed ? \"Secondary  Primary  .../sql-ops-eus\" : fixed ? \"Primary  Secondary  .../sql-ops-eus\" : \"Primary  Secondary  .../sql-ops-eus\"}"
+        },
+        {
+          "finding": "West is primary; East is the readable secondary."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "conn": {
+      "label": "Read order-svc's connection string (app settings)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(connAt)",
+          "then": [
+            {
+              "set": "connAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp config connection-string list -g rg-ops -n order-svc --query \"[0].value\" -o tsv | sed 's/Password=.*;/Password=***;/'\n{fixed and not harmed ? \"Server=tcp:fog-ops.database.windows.net,1433;Database=ops;...\" : \"Server=tcp:sql-ops-eus.database.windows.net,1433;Database=ops;...\"}"
+        },
+        {
+          "finding": "The order service names the East server directly: after the failover it reaches the secondary, which is read-only."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "err": {
+      "label": "order-svc error log sample",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(errAt)",
+          "then": [
+            {
+              "set": "errAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp log tail -g rg-ops -n order-svc | head -2\n{fixed and not harmed ? \"(no errors)\" : \"06:25:14 SqlException 3906: Failed to update database 'ops' because the database is read-only.\n06:25:14 POST /orders 500\"}"
+        },
+        {
+          "finding": "Writes are refused because the database it reaches is the secondary."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "others": {
+      "label": "Which services use the listener?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(othersAt)",
+          "then": [
+            {
+              "set": "othersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ grep -rho 'Server=tcp:[^,]*' deploy/ | sort | uniq -c\n{fixed and not harmed ? \"  9 fog-ops.database.windows.net\n  1 fog-ops.secondary.database.windows.net\" : \"  8 fog-ops.database.windows.net\n  1 fog-ops.secondary.database.windows.net\n  1 sql-ops-eus.database.windows.net   (order-svc)\"}"
+        },
+        {
+          "finding": "Only the order service bypasses the listener."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "listener": {
+      "label": "Change order-svc's connection string to the read-write listener fog-ops.database.windows.net and restart it",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp config connection-string set -g rg-ops -n order-svc -t SQLAzure --settings OpsDb='Server=tcp:fog-ops.database.windows.net,1433;Database=ops;Authentication=Active Directory Managed Identity;'\ndba@cloudshell:~$ az webapp restart -g rg-ops -n order-svc"
+        },
+        {
+          "log": "The order service now follows whichever server is primary; today that is West, and after Saturday's failback it will be East, with no change.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "audit": {
+      "label": "Add a deployment check that rejects connection strings naming a member server of fog-ops, and keep Saturday's planned failback",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ echo './check-conn-strings --deny sql-ops-eus,sql-ops-wus --allow fog-ops' >> pipelines/deploy-checks.sh\n(change CHG-7720: planned failover back to East US, Saturday 02:00, no data loss)"
+        },
+        {
+          "log": "A service cannot be deployed pointing at a member server again, and failback happens as a planned, synchronized failover.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "forceback": {
+      "label": "Force failover back to East US now (allow data loss) so the server name works again",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az sql failover-group set-primary -g rg-ops -s sql-ops-eus -n fog-ops --allow-data-loss\n(completed)"
+        },
+        {
+          "log": "A forced failover does not wait for West's latest changes to reach East: orders written in the last moments are lost, and every other service is interrupted at the shift's start.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart order-svc",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp restart -g rg-ops -n order-svc\n(restarted)"
+        },
+        {
+          "log": "It reconnects to the same server name, which is still the read-only secondary.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Place a test order and check where it was written",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ curl -s -X POST https://order-svc.../orders -d @test-order.json; sqlcmd -S fog-ops.database.windows.net -Q \"SELECT @@SERVERNAME, COUNT(*) FROM ops.orders WHERE source='test'\"\n{harmed ? \"201 Created\nsql-ops-eus  1  (12 orders from 06:38-06:41 missing)\" : fixed ? \"201 Created\nsql-ops-wus  1\" : \"500 Internal Server Error\nsql-ops-wus  0\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "servername",
+                  "label": "The order service connected to a member server by name, which became the read-only secondary"
+                },
+                {
+                  "value": "outage",
+                  "label": "East US is still down"
+                },
+                {
+                  "value": "perm",
+                  "label": "The order service's identity lost write permission"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: picking runs; orders write to the current primary.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "08:00: picking stops; no order can be written.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why writes failed after the region recovered, what you changed, and why not fail back now.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Connects the role change to the connection string.",
+          "modelAnswer": "After the 02:40 failover West is primary. order-svc's connection string named sql-ops-eus directly; when East recovered as the readable secondary, order-svc reached it and every write failed as read-only."
+        },
+        {
+          "label": "Change",
+          "criteria": "Uses the listener.",
+          "modelAnswer": "Pointed order-svc at fog-ops.database.windows.net, the read-write listener that always routes to the current primary, and restarted it; a test order was written on West."
+        },
+        {
+          "label": "Not now",
+          "criteria": "Knows forced failover's cost.",
+          "modelAnswer": "A forced failover back would skip synchronization and lose West's latest orders, and interrupt every service at shift start. Failback is planned for Saturday as a normal failover, and deployments now reject member server names."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The warehouse shift starts picking at 08:00, 80 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: A forced failover lost the latest orders."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the order service still on the old server's name leaves picking stopped at 08:00.",
+      "source": {
+        "cite": "Microsoft Learn, Failover groups overview and best practices (Azure SQL Database)",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/azure-sql/database/failover-group-sql-db",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'For read-write workloads, use <fog-name>.database.windows.net as the server name in the connection string'; read-only '<fog-name>.secondary.database.windows.net'; listeners 'remain unchanged during geo-failovers. You don't have to change the connection string ... connections are automatically routed to the current primary'; listener DNS TTL 30 seconds; failover performs full synchronization with no data loss and needs the primary accessible; forced failover 'immediately switches the secondary to the primary role without waiting for recent changes to propagate'. The page does not say what happens to clients using a server's own name; that they keep reaching that server in whatever role it now has, and the read-only error text, are from memory (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "ordersLost": {
+      "label": "Recent orders lost in a forced failback",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Forcing East back to primary dropped changes West had not yet replicated, and briefly cut every service."
+    },
+    "pickingStopped": {
+      "label": "Picking stopped at 08:00",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 08:00 the order service still wrote to the read-only secondary."
+    },
+    "onListener": {
+      "label": "Order service on the listener, check added",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(rolesAt) and not isNull(connAt) and not isNull(verifiedAt) and causeDoc == \"servername\"",
+      "narrative": "Orders write to the current primary through the listener; a deploy check stops the next server-name string."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Orders write again, but the deploy check, the failback plan, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "ordersLost",
+    "pickingStopped",
+    "onListener",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the failover group's roles and the service's connection string",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(rolesAt) and not isNull(connAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(rolesAt) or not isNull(connAt) or not isNull(errAt) or not isNull(othersAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Orders writing by 08:00 with no forced failover",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"A forced failover lost the latest orders.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Deploy check added and failback planned; test order checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"servername\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "06:40-06:44",
+        "text": "West primary, East secondary; order-svc names sql-ops-eus; read-only errors; only order-svc bypasses the listener."
+      },
+      {
+        "at": "06:44-06:49",
+        "text": "Connection string to fog-ops listener, restart; deploy check; failback stays planned for Saturday."
+      },
+      {
+        "at": "06:49-06:51",
+        "text": "Test order written on sql-ops-wus."
+      }
+    ],
+    "debrief": {
+      "ordersLost": {
+        "headline": "Move the app, not the database",
+        "body": "Forced failover is for when the primary is unreachable. Here the primary was healthy; the app pointed at the wrong server. Use the listener, and fail back later with a planned, synchronized failover."
+      },
+      "pickingStopped": {
+        "headline": "Server names do not follow failovers",
+        "body": "A failover group's listener moves with the primary role; a member server's own name does not. Applications should connect to the listener."
+      },
+      "onListener": {
+        "headline": "Good: fixed the connection, kept the data",
+        "body": "You read the roles and the connection string, moved the service to the read-write listener instead of moving the database, checked a test order, and guarded the deployments."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The failover group is healthy with West primary; the order service named the East server directly, so when East returned as the readable secondary its writes failed. Point it at the read-write listener, which follows the primary role, and check a test order. A forced failback would skip synchronization and lose recent orders; a restart reconnects to the same name. Then block member-server names in deployments and fail back in the planned window."
+  }
+}
