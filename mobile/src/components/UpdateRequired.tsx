@@ -11,6 +11,7 @@ import * as Updates from "expo-updates";
 import { BrandMark, Button, H1, Loading, Muted } from "@/components/ui";
 import { APP_VERSION, type AppPlatform, type UpdateRequired as UpdateRequiredInfo } from "@/lib/appVersion";
 import { shouldTryOta, updatePromptView, type UpdatePhase } from "@/lib/updatePrompt";
+import { prepareForReload, reloadAbandoned } from "@/lib/reloadGuard";
 import { colors, spacing } from "@/lib/theme";
 
 const platform: AppPlatform = Platform.OS === "ios" || Platform.OS === "android" ? Platform.OS : "web";
@@ -24,7 +25,12 @@ async function applyOtaUpdate(onInstalling: () => void): Promise<boolean> {
     if (!check.isAvailable) return false;
     onInstalling();
     await Updates.fetchUpdateAsync();
-    await Updates.reloadAsync();
+    // REQ-339 (FAIL-2553): never reload under a refresh in flight.
+    await prepareForReload({ silent: false });
+    await Updates.reloadAsync().catch((err) => {
+      reloadAbandoned();
+      throw err;
+    });
     return true;
   } catch {
     return false; // offline or a bad update: the store link still works

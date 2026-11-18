@@ -144,13 +144,17 @@ describe("REQ-305: unlock sends the newest token once the OS prompt has passed",
   });
 
   const src = readFileSync(new URL("../auth/AuthContext.tsx", import.meta.url), "utf8");
+  const vault = readFileSync(new URL("./tokenVault.ts", import.meta.url), "utf8");
+  // REQ-339: these rules now live in the token vault (tokenVault.test.ts runs
+  // them against a fake store and server); the checks below pin the wiring.
   test("a silent rotation with biometric on writes the latest key, not only memory", () => {
-    assert.match(src, /sealDirtyRef\.current = true;[\s\S]{0,200}setItem\(REFRESH_TOKEN_LATEST_KEY, keep\)/);
+    assert.match(vault, /dirty = true;\s*if \(!\(await write\(TOKEN_KEYS\.latest, token\)\)\)/);
   });
   test("unlock reads the sealed key (the OS prompt) before the latest key", () => {
     const unlock = src.slice(src.indexOf("const unlockWithBiometric"));
-    assert.ok(unlock.indexOf("REFRESH_TOKEN_SECURE_KEY") < unlock.indexOf("REFRESH_TOKEN_LATEST_KEY"));
-    assert.match(unlock, /unlockToken\(token, latest\)/);
+    assert.ok(unlock.indexOf("REFRESH_TOKEN_SECURE_KEY") < unlock.indexOf("vault.unlock(token, exchange)"));
+    const vUnlock = vault.slice(vault.indexOf("function unlock("));
+    assert.match(vUnlock, /tryInOrder\(\[latest, sealedToken\], exchange\)/);
   });
   test("every place that drops the sealed key drops the latest copy too", () => {
     const sealedDeletes = src.match(/deleteItem\(REFRESH_TOKEN_SECURE_KEY\)/g)?.length ?? 0;
@@ -158,7 +162,8 @@ describe("REQ-305: unlock sends the newest token once the OS prompt has passed",
     assert.ok(sealedDeletes > 0);
     assert.equal(latestDeletesAfter, sealedDeletes);
   });
-  test("a successful seal clears the latest copy", () => {
-    assert.match(src, /setItem\(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS\);[\s\S]{0,200}deleteItem\(REFRESH_TOKEN_LATEST_KEY\)/);
+  test("a successful seal clears the latest copy when it holds the sealed token or nothing newer", () => {
+    const seal = vault.slice(vault.indexOf("async function sealNow"));
+    assert.match(seal, /setItem\(TOKEN_KEYS\.sealed, token, sealOptions\);[\s\S]{0,1800}if \(latest !== null && \(latest === token \|\| !moved\)\) await storage\.deleteItem\(TOKEN_KEYS\.latest\)/);
   });
 });

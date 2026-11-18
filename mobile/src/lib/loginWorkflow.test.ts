@@ -80,8 +80,13 @@ describe("the login screen's biometric button needs a sealed session (FAIL-1003)
   test("every write of the sealed-session flag updates the state the button reads", () => {
     const writes = auth.match(/setItem\(BIOMETRIC_SESSION_KEY, "[01]"\)/g) ?? [];
     const mirrors = auth.match(/setBiometricSessionFlag\("[01]"\)/g) ?? [];
-    assert.ok(writes.length >= 5);
+    // REQ-339: the seal's own writes moved into the token vault, which reports
+    // each one back through onSessionFlag.
+    assert.ok(writes.length >= 3);
     assert.ok(mirrors.length >= writes.length, `${mirrors.length} state updates for ${writes.length} writes`);
+    assert.match(auth, /onSessionFlag: \(flag\) => setBiometricSessionFlag\(flag\)/);
+    const vault = readFileSync(new URL("./tokenVault.ts", import.meta.url), "utf8");
+    assert.match(vault, /setItem\(TOKEN_KEYS\.sessionFlag, flag\)[\s\S]{0,160}opts\.onSessionFlag\?\.\(flag\)/);
   });
 });
 

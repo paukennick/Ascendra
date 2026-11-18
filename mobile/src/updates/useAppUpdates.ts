@@ -40,6 +40,7 @@ import * as Updates from "expo-updates";
 import { api } from "@/api/client";
 import { compareBuild, shouldCheckNow, WEB_VERSION_CHECK_MS } from "@/lib/webVersion";
 import { holdsUnsavedWork } from "./protectedRoutes";
+import { prepareForReload, reloadAbandoned } from "@/lib/reloadGuard";
 
 // Baked into the web bundle by backend/scripts/build-webapp.sh.
 const WEB_BUILD_ID = process.env.EXPO_PUBLIC_WEB_BUILD_ID ?? "";
@@ -120,9 +121,20 @@ export function useAppUpdates(): AppUpdatesState {
     };
   }, []);
 
-  const applyUpdate = useCallback(() => {
+  // REQ-339 (FAIL-2553): `silent` is the five-minute return. That return also
+  // sets off the session refresh (the access token has expired), and
+  // reloading under it threw away the rotated token the server had already
+  // issued: the next unlock replayed a spent one and the server ended the
+  // session (Nick, 2026-11-18). The session is asked first; a silent reload
+  // it can't settle quickly becomes the banner instead.
+  const applyUpdate = useCallback(async (silent = false) => {
     if (Platform.OS === "web") {
       if (typeof window !== "undefined") window.location.reload();
+      return;
+    }
+    if (!(await prepareForReload({ silent }))) {
+      setDismissed(false);
+      setUpdateReady(true);
       return;
     }
     // Covers the reload with a branded screen rather than letting the app
@@ -130,6 +142,7 @@ export function useAppUpdates(): AppUpdatesState {
     Updates.showReloadScreen();
     Updates.reloadAsync().catch(() => {
       Updates.hideReloadScreen();
+      reloadAbandoned();
     });
   }, []);
 
@@ -143,7 +156,7 @@ export function useAppUpdates(): AppUpdatesState {
         // Already fetched -- by a previous pass, or by the stock on-launch
         // check -- and waiting for a reload.
         if (pendingRef.current) {
-          if (allowSilentApply) applyUpdate();
+          if (allowSilentApply) await applyUpdate(true);
           else setUpdateReady(true);
           return;
         }
@@ -153,7 +166,7 @@ export function useAppUpdates(): AppUpdatesState {
         if (!result.isAvailable) return;
 
         await Updates.fetchUpdateAsync();
-        if (allowSilentApply) applyUpdate();
+        if (allowSilentApply) await applyUpdate(true);
         else {
           setDismissed(false);
           setUpdateReady(true);
@@ -198,7 +211,8 @@ export function useAppUpdates(): AppUpdatesState {
     // Either our own fetch completed, or something already left an update
     // pending before this hook ran.
     updateReady: (updateReady || isUpdatePending || webUpdate) && !dismissed,
-    applyUpdate,
+    // The banner's button: asked for, so it waits for the session and goes.
+    applyUpdate: () => void applyUpdate(false),
     dismiss: () => setDismissed(true),
   };
 }

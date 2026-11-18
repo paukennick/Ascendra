@@ -134,26 +134,35 @@ describe("a silent refresh does not write the sealed key (FAIL-1040)", () => {
     assert.equal(rotationWrite({ biometricOn: false, sealSuspended: false }), "plain");
     assert.equal(rotationWrite({ biometricOn: true, sealSuspended: true }), "plain", "after a failed seal the session is on the plain key");
   });
+  // REQ-339: the native token storage moved into src/lib/tokenVault.ts; its
+  // behaviour is tested there against a fake store and server. These check
+  // that AuthContext still routes through it the way FAIL-1040 needs.
   test("the refresh path has no sealed write, and a storage failure never signs out", () => {
     const src = read("../auth/AuthContext.tsx");
-    const refresh = src.slice(src.indexOf("const attempt = withRefreshLock"), src.indexOf("inFlightRefresh.current = attempt"));
+    const refresh = src.slice(src.indexOf("const refresh = useCallback"), src.indexOf("useEffect(() => {\n    registerAuthHooks"));
     assert.doesNotMatch(refresh, /REFRESH_TOKEN_SECURE_KEY|SEAL_OPTIONS/);
-    const afterExchange = refresh.slice(refresh.indexOf("accessTokenRef.current = res.accessToken"));
-    assert.doesNotMatch(afterExchange, /clearAuth/, "nothing after a successful rotation signs out");
-    assert.match(afterExchange, /catch \(err\) \{\s*console\.warn/);
+    assert.match(refresh, /vault\.refresh\(exchange\)/);
+    const vault = read("./tokenVault.ts");
+    const persist = vault.slice(vault.indexOf("async function persistRotated"), vault.indexOf("async function tryInOrder"));
+    assert.doesNotMatch(persist, /TOKEN_KEYS\.sealed|sealOptions/, "a rotation never writes the sealed key");
+    const write = vault.slice(vault.indexOf("async function write"), vault.indexOf("async function read"));
+    assert.match(write, /catch \(err\) \{[\s\S]*warn\(/, "a storage failure is logged, never thrown at the caller");
   });
   test("the sealed key is written at sign-in, unlock and when the app goes to the background", () => {
     const src = read("../auth/AuthContext.tsx");
-    const store = src.slice(src.indexOf("const storeSessionToken = useCallback"), src.indexOf("const refresh = useCallback"));
-    assert.match(store, /SEAL_OPTIONS/);
-    assert.match(store, /catch \{\s*sealSuspendedRef\.current = true;\s*await secureStorage\.setItem\(REFRESH_TOKEN_KEY, token\)/, "a failed seal keeps the session on the plain key");
+    const store = src.slice(src.indexOf("const storeSessionToken = useCallback"), src.indexOf("const exchange: Exchange"));
+    assert.match(store, /await vault\.adopt\(token\);\s*if \(biometricEnabledRef\.current\) await vault\.seal\(\);/);
+    const vault = read("./tokenVault.ts");
+    const seal = vault.slice(vault.indexOf("async function sealNow"), vault.indexOf("function seal()"));
+    assert.match(seal, /setItem\(TOKEN_KEYS\.sealed, token, sealOptions\)/);
+    assert.match(seal, /catch \{[\s\S]*suspended = true;[\s\S]*write\(TOKEN_KEYS\.plain, newest\)/, "a failed seal keeps the session on the plain key");
     const apply = src.slice(src.indexOf("const applySession = useCallback"), src.indexOf("type LoginResponse"));
     assert.match(apply, /storeSessionToken\(keep\)/);
     const unlock = src.slice(src.indexOf("const unlockWithBiometric = useCallback"), src.indexOf("const unlockMethod"));
-    assert.match(unlock, /storeSessionToken\(res\.refreshToken\)/);
+    assert.match(unlock, /await vault\.seal\(\)/);
     assert.doesNotMatch(unlock, /secureStorage\.setItem\(REFRESH_TOKEN_SECURE_KEY/);
     const appState = src.slice(src.indexOf("AppState.addEventListener"), src.indexOf("return () => sub.remove();"));
-    assert.match(appState, /sealDirtyRef\.current && refreshTokenRef\.current/);
+    assert.match(appState, /vault\.dirty && vault\.current/);
   });
 });
 

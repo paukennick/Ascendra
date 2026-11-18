@@ -29,12 +29,11 @@ import {
   type SealedSessionEnd,
   planRefresh,
   refreshFailure,
-  refreshTokenToKeep,
-  rotationWrite,
-  unlockToken,
   withRefreshLock,
   type RefreshResult,
 } from "@/lib/sessionStore";
+import { createTokenVault, type Exchange, type TokenVault } from "@/lib/tokenVault";
+import { registerReloadGuard } from "@/lib/reloadGuard";
 import { cancelStudyReminders } from "@/lib/reminderScheduler";
 import { TERMS_VERSION } from "@/lib/legal";
 import { ageField } from "@/lib/ageConfirmation";
@@ -73,6 +72,7 @@ const REFRESH_TOKEN_KEY = "ascendra_refresh_token";
 const REFRESH_TOKEN_SECURE_KEY = "ascendra_refresh_token_secure";
 // REQ-305: the newest rotated token while the sealed copy is behind (only
 // with biometric unlock on). Read only after the sealed key's OS prompt passes.
+// REQ-339: written and cleared only by the token vault (src/lib/tokenVault.ts).
 const REFRESH_TOKEN_LATEST_KEY = "ascendra_refresh_token_latest";
 const BIOMETRIC_ENABLED_KEY = "ascendra_biometric_enabled";
 // REQ-192: the web app keeps no refresh token (an httpOnly cookie holds it,
@@ -173,23 +173,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const appLockedRef = useRef(false);
   const lockAfterRef = useRef<LockAfter>(DEFAULT_LOCK_AFTER);
 
-  // Access token lives only in memory, never persisted. The refresh token is
-  // cached in memory too once known for this app launch, so a biometric
-  // unlock (or a normal login) only has to touch SecureStore once per
-  // launch -- routine silent 401-retries during active use reuse this ref
-  // instead of re-triggering a biometric prompt every ~15 minutes.
+  // Access token lives only in memory, never persisted.
   const accessTokenRef = useRef<string | null>(null);
-  const refreshTokenRef = useRef<string | null>(null);
   const biometricEnabledRef = useRef(false);
+  // Web only: one cookie refresh at a time in this tab (withRefreshLock covers
+  // other tabs).
   const inFlightRefresh = useRef<Promise<RefreshResult> | null>(null);
-  // REQ-217 (FAIL-1040): with biometric unlock on, a silent refresh rotates the
-  // token in memory only (writing the sealed key prompts for the fingerprint on
-  // Android every time). sealDirtyRef says the sealed copy is behind; it is
-  // written when the app goes to the background. sealSuspendedRef: that write
-  // failed once this launch (no prompt could be shown), so the session is on
-  // the plain key until the next sign-in or unlock seals it again.
-  const sealDirtyRef = useRef(false);
-  const sealSuspendedRef = useRef(false);
+  // REQ-339 (FAIL-2550..2554): the native refresh token -- in memory for this
+  // launch and on the device -- lives in one state machine (src/lib/tokenVault.ts):
+  // one exchange at a time, every rotated token on a plain secure-store key
+  // before it is used, seals that never delete a newer copy, a fallback to the
+  // other stored token before a sign-out, and no update reload under a refresh.
+  // REQ-217 (FAIL-1040) still holds: with biometric unlock on, a silent refresh
+  // never writes the sealed key (Android prompts for every write); the vault
+  // marks it behind and it is sealed when the app goes to the background.
+  const vaultRef = useRef<TokenVault | null>(null);
+  if (!vaultRef.current) {
+    vaultRef.current = createTokenVault({
+      storage: secureStorage,
+      sealOptions: SEAL_OPTIONS,
+      biometricOn: () => biometricEnabledRef.current,
+      onSessionFlag: (flag) => setBiometricSessionFlag(flag),
+      warn: (message, err) => console.warn(message, err),
+    });
+  }
+  const vault = vaultRef.current;
+  useEffect(() => {
+    if (IS_WEB) return;
+    return registerReloadGuard(
+      (ms) => vault.quiesce(ms),
+      () => vault.resume()
+    );
+  }, [vault]);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const backgroundedAtRef = useRef<number | null>(null);
   // Web: last keyboard/mouse/touch input. A ref so unlocking can reset it.
@@ -252,14 +267,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearAuth = useCallback(async () => {
     accessTokenRef.current = null;
-    refreshTokenRef.current = null;
+    vault.reset();
     appLockedRef.current = false;
     setAppLocked(false);
     setUser(null);
     setStatus("signedOut");
     await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
     await AsyncStorage.multiRemove([LOCKED_KEY, LAST_SEEN_KEY]).catch(() => undefined);
-  }, []);
+  }, [vault]);
 
   // Ends the sealed session on this device. REQ-212 (FAIL-1002): only
   // logoutAll (revoking every session makes this device's shortcut stale
@@ -284,33 +299,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setBiometricSessionFlag("0");
   }, []);
 
-  // Stores a token the device has just been handed by a sign-in or an unlock
-  // (a moment the learner is present, so the OS prompt can show): sealed behind
-  // the biometric prompt when that is on. A failed or cancelled seal never
-  // loses the session -- the server has already rotated the token -- it keeps
-  // it on the plain key, flag "0", so the next launch resumes instead of
-  // finding a spent sealed copy (REQ-217, FAIL-1040; the pattern is the one
-  // applySession always had).
-  const storeSessionToken = useCallback(async (token: string) => {
-    sealDirtyRef.current = false;
-    if (!biometricEnabledRef.current) {
-      await secureStorage.setItem(REFRESH_TOKEN_KEY, token);
-      return;
-    }
+  // Stores a token the device has just been handed by a sign-in (a moment the
+  // learner is present, so the OS prompt can show): on a plain secure-store
+  // key first (REQ-339, FAIL-2551: persist before use), then sealed behind the
+  // biometric prompt when that is on. A failed or cancelled seal never loses
+  // the session -- it stays on the plain key, flag "0", so the next launch
+  // resumes instead of finding a spent sealed copy (REQ-217, FAIL-1040).
+  const storeSessionToken = useCallback(
+    async (token: string) => {
+      await vault.adopt(token);
+      if (biometricEnabledRef.current) await vault.seal();
+    },
+    [vault]
+  );
+
+  // One native exchange: the vault decides which token to send and stores the
+  // answer before anyone uses it.
+  const exchange: Exchange = useCallback(async (token: string) => {
     try {
-      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS);
-      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
-      setBiometricSessionFlag("1");
-      await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
-      sealSuspendedRef.current = false;
-      await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
-    } catch {
-      sealSuspendedRef.current = true;
-      await secureStorage.setItem(REFRESH_TOKEN_KEY, token);
-      await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY).catch(() => undefined);
-    await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
-      await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "0").catch(() => undefined);
-      setBiometricSessionFlag("0");
+      const res = await api.post<{ accessToken: string; refreshToken?: string }>("/api/auth/refresh", { refreshToken: token });
+      if (typeof res.refreshToken !== "string" || !res.refreshToken) {
+        return { ok: false, expired: false, error: new Error("The server sent no session token.") };
+      }
+      return { ok: true, accessToken: res.accessToken, refreshToken: res.refreshToken };
+    } catch (err) {
+      return refreshFailure(err);
     }
   }, []);
 
@@ -322,11 +335,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // REQ-217 (FAIL-1041): only a 401 from the server signs the device out. A
   // failure to reach it keeps the token and is returned for the caller to show.
   const refresh = useCallback(async (): Promise<RefreshResult> => {
+    if (!IS_WEB) {
+      // REQ-339: newest token first, a stored fallback before a sign-out, and
+      // only the server's 401 (on every stored token) signs out (REQ-217).
+      const res = await vault.refresh(exchange);
+      if (res.ok) {
+        accessTokenRef.current = res.accessToken;
+        return true;
+      }
+      if (res.expired) await clearAuth();
+      return { ok: false, expired: res.expired, error: res.error };
+    }
     if (inFlightRefresh.current) return inFlightRefresh.current;
     const attempt = withRefreshLock<RefreshResult>(async () => {
-      const storedRefreshToken =
-        IS_WEB || !refreshTokenRef.current ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
-      const plan = planRefresh({ web: IS_WEB, memoryToken: refreshTokenRef.current, storedToken: storedRefreshToken });
+      const storedRefreshToken = await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null);
+      const plan = planRefresh({ web: true, memoryToken: null, storedToken: storedRefreshToken });
       if (plan.kind === "none") {
         await clearAuth();
         return false;
@@ -348,33 +371,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (failure.expired) await clearAuth();
         return failure;
       }
+      // The cookie now holds the rotated token; the page keeps none.
       accessTokenRef.current = res.accessToken;
-      const keep = refreshTokenToKeep(IS_WEB, res);
-      if (keep) refreshTokenRef.current = keep;
-      // The exchange succeeded and the server has rotated the token: nothing
-      // below may sign the learner out, whatever the device's storage does.
-      if (keep) {
-        try {
-          if (rotationWrite({ biometricOn: biometricEnabledRef.current, sealSuspended: sealSuspendedRef.current }) === "mark-dirty") {
-            sealDirtyRef.current = true;
-            // REQ-305: survives a reload or kill that skips the background write.
-            await secureStorage.setItem(REFRESH_TOKEN_LATEST_KEY, keep);
-          } else {
-            await secureStorage.setItem(REFRESH_TOKEN_KEY, keep);
-          }
-        } catch (err) {
-          console.warn("Could not store the refreshed session:", err);
-        }
-      }
       return true;
-    }, IS_WEB ? undefined : null);
+    });
     inFlightRefresh.current = attempt;
     try {
       return await attempt;
     } finally {
       inFlightRefresh.current = null;
     }
-  }, [clearAuth]);
+  }, [clearAuth, exchange, vault]);
 
   useEffect(() => {
     registerAuthHooks({
@@ -472,8 +479,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // the same way once a real session comes back from the backend.
   const applySession = useCallback(async (res: { accessToken: string; refreshToken?: string; user: AuthUser }) => {
     accessTokenRef.current = res.accessToken;
-    const keep = refreshTokenToKeep(IS_WEB, res);
-    refreshTokenRef.current = keep;
+    const keep = IS_WEB ? null : typeof res.refreshToken === "string" && res.refreshToken ? res.refreshToken : null;
     if (IS_WEB) {
       // REQ-192: the cookie holds it; drop any token an older version left.
       await secureStorage.deleteItem(REFRESH_TOKEN_KEY).catch(() => undefined);
@@ -483,7 +489,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // logout: seal the new session so the next launch locks instead of
       // losing it. A cancelled prompt keeps it like a plain sign-in; the "0"
       // flag sends the next launch through the plain token.
-      sealSuspendedRef.current = false;
       await storeSessionToken(keep);
     }
     // A sign-in just proved it's them.
@@ -569,13 +574,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const endSession = useCallback(async () => {
     const legacyWebToken = IS_WEB ? await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null) : null;
     const plainToken =
-      !IS_WEB && !refreshTokenRef.current
+      !IS_WEB && !vault.current
         ? (await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null)) ??
           (await secureStorage.getItem(REFRESH_TOKEN_LATEST_KEY).catch(() => null))
         : null;
     const calls = logoutCalls({
       web: IS_WEB,
-      refreshToken: IS_WEB ? null : refreshTokenRef.current ?? plainToken,
+      refreshToken: IS_WEB ? null : vault.current ?? plainToken,
       legacyWebToken,
       hasAccessToken: !!accessTokenRef.current,
     });
@@ -591,7 +596,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setBiometricSessionFlag("0");
     }
     await clearAuth();
-  }, [clearAuth]);
+  }, [clearAuth, vault]);
 
   // An explicit "Log out" (and the web idle sign-out, meant for a browser
   // left unattended) also removes this user's drafts, PBQ progress and
@@ -648,8 +653,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (backgroundedAtRef.current === null) backgroundedAtRef.current = Date.now();
         persistLastSeen();
         // REQ-217 (FAIL-1040): the one place a silently rotated token is
-        // written to the sealed key.
-        if (sealDirtyRef.current && refreshTokenRef.current) void storeSessionToken(refreshTokenRef.current).catch(() => undefined);
+        // written to the sealed key. REQ-339 (FAIL-2550): the vault seals its
+        // newest token, one seal at a time, and a seal that finishes after a
+        // later rotation keeps that newer token on the latest key.
+        if (vault.dirty && vault.current) void vault.seal().catch(() => undefined);
       } else if (next === "active") {
         const at = backgroundedAtRef.current;
         backgroundedAtRef.current = null;
@@ -662,7 +669,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
     return () => sub.remove();
-  }, [status, lockApp, persistLastSeen, storeSessionToken]);
+  }, [status, lockApp, persistLastSeen, vault]);
 
   // Web's counterpart to the native lock above. REQ-177: after the "Lock
   // after" time without input, or with the tab hidden that long, the lock
@@ -737,7 +744,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const enableBiometric = useCallback(async (): Promise<{ ok: boolean; error?: string }> => {
     const available = await isBiometricAvailable();
     if (!available) return { ok: false, error: "No biometric method is set up on this device." };
-    if (!refreshTokenRef.current) return { ok: false, error: "Sign in again before enabling this." };
+    const token = vault.current;
+    if (!token) return { ok: false, error: "Sign in again before enabling this." };
 
     const confirmed = await confirmBiometric("Confirm to enable biometric sign-in for Ascendra");
     if (!confirmed) return { ok: false, error: "Could not confirm biometrics." };
@@ -746,7 +754,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // throw out of the switch with nothing said. Nothing is half-done: the
     // plain copy stays until the sealed one is in place.
     try {
-      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, refreshTokenRef.current, SEAL_OPTIONS);
+      await secureStorage.setItem(REFRESH_TOKEN_SECURE_KEY, token, SEAL_OPTIONS);
       await secureStorage.setItem(BIOMETRIC_SESSION_KEY, "1");
       await secureStorage.deleteItem(REFRESH_TOKEN_KEY);
       await secureStorage.setItem(BIOMETRIC_ENABLED_KEY, "1"); // last: the preference is on only once the rest is in place
@@ -755,34 +763,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
       await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
       if (!(await secureStorage.getItem(REFRESH_TOKEN_KEY).catch(() => null))) {
-        await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current).catch(() => undefined);
+        await secureStorage.setItem(REFRESH_TOKEN_KEY, token).catch(() => undefined);
       }
       return { ok: false, error: "Couldn't turn this on. If you canceled the fingerprint prompt, try again and confirm it." };
     }
-    sealDirtyRef.current = false;
-    sealSuspendedRef.current = false;
+    vault.markSealedClean();
     setBiometricSessionFlag("1");
     biometricEnabledRef.current = true;
     setBiometricEnabled(true);
     return { ok: true };
-  }, []);
+  }, [vault]);
 
   // Disable: the current refresh token is already in memory (the user is
   // signed in to reach this setting), so this just moves it back to the
   // plain key -- no extra biometric prompt needed to turn the feature off.
   const disableBiometric = useCallback(async () => {
-    if (refreshTokenRef.current) {
-      await secureStorage.setItem(REFRESH_TOKEN_KEY, refreshTokenRef.current);
+    if (vault.current) {
+      await secureStorage.setItem(REFRESH_TOKEN_KEY, vault.current);
     }
     await secureStorage.deleteItem(REFRESH_TOKEN_SECURE_KEY);
     await secureStorage.deleteItem(REFRESH_TOKEN_LATEST_KEY).catch(() => undefined);
     await secureStorage.deleteItem(BIOMETRIC_ENABLED_KEY);
     await secureStorage.deleteItem(BIOMETRIC_SESSION_KEY).catch(() => undefined);
     setBiometricSessionFlag("0");
-    sealDirtyRef.current = false;
+    vault.markSealedClean();
     biometricEnabledRef.current = false;
     setBiometricEnabled(false);
-  }, []);
+  }, [vault]);
 
   // The one place the OS biometric/passcode prompt actually happens for
   // returning users -- reading this key is what SecureStore gates.
@@ -797,23 +804,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await clearAuth();
         return false;
       }
-      // REQ-305: the prompt has passed; send the newest token, which the sealed
-      // copy may be behind (an update or a kill skipped the background write).
-      const latest = await secureStorage.getItem(REFRESH_TOKEN_LATEST_KEY).catch(() => null);
-      const useToken = unlockToken(token, latest) ?? token;
-      refreshTokenRef.current = useToken;
-      const res = await api.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", {
-        refreshToken: useToken,
-      });
+      // REQ-305 / REQ-339: the prompt has passed. The vault sends the newest
+      // stored token (the latest copy, then the sealed one if the server
+      // refuses it), under the same lock as every other exchange, and stores
+      // the rotated token on the latest key before anything uses it
+      // (FAIL-2551: it used to wait for the second prompt below).
+      const res = await vault.unlock(token, exchange);
+      if (!res.ok) {
+        // Every stored token was refused: this device can't unlock with them
+        // again. Anything else (offline, an update about to reload) leaves
+        // the enrolment alone so a retry is still possible.
+        if (res.expired) {
+          await endSealedSession("sealedTokenRejected");
+          await clearAuth();
+        }
+        return false;
+      }
       accessTokenRef.current = res.accessToken;
-      refreshTokenRef.current = res.refreshToken;
-      // The server has rotated the token, so the sealed copy is spent: write
-      // the new one now, while the learner is here. If that write fails (a
-      // cancelled second prompt), storeSessionToken keeps the session on the
-      // plain key instead of leaving a spent copy to replay (REQ-217,
-      // FAIL-1040).
-      sealSuspendedRef.current = false;
-      await storeSessionToken(res.refreshToken);
+      // Seal the new token now, while the learner is here (a second prompt on
+      // Android). A cancelled one keeps the session on the plain key instead
+      // of leaving a spent copy to replay (REQ-217, FAIL-1040).
+      await vault.seal();
       const me = await api.get<{ user: AuthUser }>("/api/auth/me");
       releaseLock();
       setUser(me.user);
@@ -834,7 +845,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // can retry or fall back, never trapped and never silently signed in.
       return false;
     }
-  }, [clearAuth, endSealedSession, releaseLock, storeSessionToken]);
+  }, [clearAuth, endSealedSession, exchange, releaseLock, vault]);
 
   // REQ-177: unlocking the lock after time away. The session is still live
   // in memory; this only confirms it's the learner. Biometric: the OS
