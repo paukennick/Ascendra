@@ -1,0 +1,437 @@
+{
+  "slug": "pain-better-then-belly-rigid",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: abdomen and temperature, calls, cultures and lactate, comfort and NPO, output, explains and documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "rovQ",
+          "choice": "rov",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "perf"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "heatQ",
+          "choice": "rupt",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "fowler",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "output",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "noHeatC": "met",
+          "sepsisC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 185
+        },
+        "stateHash": "1f66965b43a520fb"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Finds it and screens, but calls 8 minutes after the rigid abdomen",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rovQ",
+          "choice": "rov",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "temp",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "fowler",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "output",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "perf"
+          },
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "teach",
+          "prompt": "heatQ",
+          "choice": "rupt",
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "noHeatC": "met",
+          "sepsisC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 540,
+          "toKey": 180
+        },
+        "stateHash": "d0585c023865e4cf"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "heated",
+      "title": "Calls promptly but brings the heating pad and skips the sepsis labs",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rovQ",
+          "choice": "rov",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "heat",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "perf"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "heatQ",
+          "choice": "rupt",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "noHeatC": "missed",
+          "sepsisC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "37670b837a6566dd"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "better",
+      "title": "Failure: thinks it is settling, brings heat and leaves it for the 08:00 case",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "abdomen",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "rovQ",
+          "choice": "rov",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "better"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "heat",
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "or"
+          },
+          "seq": 6,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "noHeatC": "missed",
+          "sepsisC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": -1
+        },
+        "stateHash": "cdee65e896431c45"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "const",
+      "title": "Failure: calls it constipation and asks for a laxative",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "const"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "laxative",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "shock",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "noHeatC": "missed",
+          "sepsisC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "c2abfa918b211363"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
