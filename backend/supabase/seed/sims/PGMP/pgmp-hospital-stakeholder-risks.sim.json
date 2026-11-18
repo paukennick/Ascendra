@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pgmp-hospital-stakeholder-risks",
+  "title": "A hospital digitization program's stakeholders: their concerns as program risks, expectations as KPIs, and support kept",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rRisks",
+          "label": "Stakeholder concerns unmanaged",
+          "spokenLabel": "Stakeholder concerns unmanaged",
+          "owner": "\"Program manager\"",
+          "rating": "risks == \"register\" ? \"low\" : risks == \"minutes\" ? \"medium\" : risks == \"dismiss\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "risks == \"register\" ? \"within\" : risks == \"minutes\" ? \"within\" : risks == \"dismiss\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{risks == \"register\" ? \"Stakeholder risks in the program register\" : risks == \"minutes\" ? \"Noted as feedback\" : risks == \"dismiss\" ? \"Dismissed as resistance\" : \"Open\"}"
+        },
+        {
+          "id": "rKpi",
+          "label": "Expectations diverge",
+          "spokenLabel": "Expectations diverge",
+          "owner": "\"Program manager\"",
+          "rating": "kpi == \"kpis\" ? \"low\" : kpi == \"sponsorOnly\" ? \"medium\" : kpi == \"vague\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "kpi == \"kpis\" ? \"within\" : kpi == \"sponsorOnly\" ? \"within\" : kpi == \"vague\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{kpi == \"kpis\" ? \"Agreed KPIs and go-live criterion\" : kpi == \"sponsorOnly\" ? \"Sponsor's targets\" : kpi == \"vague\" ? \"Vague promise\" : \"Open\"}"
+        },
+        {
+          "id": "rSup",
+          "label": "Clinical support for go-live",
+          "spokenLabel": "Clinical support for go-live",
+          "owner": "\"Program manager\"",
+          "rating": "sup == \"engage\" ? \"low\" : sup == \"compromise\" ? \"medium\" : sup == \"override\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "sup == \"engage\" ? \"within\" : sup == \"compromise\" ? \"within\" : sup == \"override\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{sup == \"engage\" ? \"March go-live agreed with super-users\" : sup == \"compromise\" ? \"Two wards in January\" : sup == \"override\" ? \"January held over objections\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Program sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOps",
+          "label": "Operations director",
+          "spokenLabel": "the operations director's support",
+          "value": "ops",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPms",
+          "label": "Project managers",
+          "spokenLabel": "the project managers' support",
+          "value": "pms",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dRisks",
+          "kind": "Stakeholder risks",
+          "label": "Meeting 1: stakeholder concerns",
+          "status": "{risks == \"register\" ? \"Stakeholder risks in the program register\" : risks == \"minutes\" ? \"Noted as feedback\" : risks == \"dismiss\" ? \"Dismissed as resistance\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and risks == \"none\""
+        },
+        {
+          "id": "dKpi",
+          "kind": "Benefit KPIs",
+          "label": "Meeting 2: KPIs",
+          "status": "{kpi == \"kpis\" ? \"Agreed KPIs and go-live criterion\" : kpi == \"sponsorOnly\" ? \"Sponsor's targets\" : kpi == \"vague\" ? \"Vague promise\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and kpi == \"none\""
+        },
+        {
+          "id": "dSup",
+          "kind": "Engagement",
+          "label": "Meeting 3: go-live timing",
+          "status": "{sup == \"engage\" ? \"March go-live agreed with super-users\" : sup == \"compromise\" ? \"Two wards in January\" : sup == \"override\" ? \"January held over objections\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and sup == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Meeting",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluating stakeholder-identified risks and incorporating them into the program risk management plan",
+  "secondaryObjectives": [
+    "Negotiating stakeholder support and setting clear expectations and acceptance criteria (e.g., KPIs) for program benefits",
+    "Performing stakeholder analysis (historical data, interviews, formal agreements) to build a stakeholder engagement plan"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+      "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the portfolio or program, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You run the paperless wards program at St Anselm's Health, a fictional hospital trust: four projects over two years. Clinical staff, the nurses' union and IT all have concerns.",
+    "handover": [
+      "Nurses' union: worried about charting time at the bedside.",
+      "The program's benefits: fewer medication errors and 20 minutes saved per nurse per shift."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a fortnight at a time. A decision comes to you at each board meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-15T09:00",
+    "tick": "1d",
+    "maxDuration": "168d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "ops": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pms": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "risks": {
+      "type": "enum",
+      "values": [
+        "none",
+        "register",
+        "minutes",
+        "dismiss"
+      ],
+      "init": "none"
+    },
+    "risksAt": {
+      "type": "time",
+      "init": null
+    },
+    "kpi": {
+      "type": "enum",
+      "values": [
+        "none",
+        "kpis",
+        "sponsorOnly",
+        "vague"
+      ],
+      "init": "none"
+    },
+    "kpiAt": {
+      "type": "time",
+      "init": null
+    },
+    "sup": {
+      "type": "enum",
+      "values": [
+        "none",
+        "engage",
+        "compromise",
+        "override"
+      ],
+      "init": "none"
+    },
+    "supAt": {
+      "type": "time",
+      "init": null
+    },
+    "interviewsAt": {
+      "type": "time",
+      "init": null
+    },
+    "historyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, ops), pms)"
+    },
+    "missCount": {
+      "expr": "((risks == \"dismiss\") ? 1 : 0) + ((kpi == \"vague\") ? 1 : 0) + ((sup == \"override\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(risks == \"none\" or (risks == \"dismiss\") ? 1 : 0) + (kpi == \"none\" or (kpi == \"vague\") ? 1 : 0) + (sup == \"none\" or (sup == \"override\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Stakeholder engagement",
+      "clock": "turns",
+      "actions": [
+        "interviews",
+        "history"
+      ]
+    },
+    "close": {
+      "label": "Board record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "interviews": {
+      "label": "Interview ward managers, the union and IT",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(interviewsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "interviewsAt",
+          "to": "t"
+        },
+        {
+          "log": "Interview ward managers, the union and IT.",
+          "kind": "act"
+        },
+        {
+          "finding": "Ward managers fear the go-live during winter pressures; the union fears charting time; IT warns that ward Wi-Fi has dead spots."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "history": {
+      "label": "Read the last digital program's lessons learned",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(historyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "historyAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the last digital program's lessons learned.",
+          "kind": "act"
+        },
+        {
+          "finding": "The last program went live in winter and was rolled back after two weeks of staff workarounds."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the board decisions",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Stakeholder concerns registered as program risks, agreed KPIs and go-live criterion, and a March go-live agreed on evidence"
+                },
+                {
+                  "value": "summary",
+                  "label": "Stakeholders engaged"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next board meeting",
+      "wait": {
+        "skipLabel": "Go to the next board meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "risks == \"dismiss\"",
+              "then": [
+                {
+                  "log": "Meeting 2: the pilot ward's dead spots stop bedside charting; nurses revert to paper and the union calls for a halt.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "kpi == \"vague\"",
+              "then": [
+                {
+                  "log": "Meeting 3: after go-live the union says charting is slower and the sponsor says it's a success; there's no agreed measure to settle it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "sup == \"override\"",
+              "then": [
+                {
+                  "log": "Meeting 4: January go-live meets winter pressure; wards adopt workarounds and the program is rolled back, as last time.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "14d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The engagement cycle closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "14d"
+        }
+      ]
+    },
+    {
+      "id": "t_risks",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 1: what stakeholders raised.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "risksPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_kpi",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 2: what success means.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "kpiPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_sup",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Meeting 3: the go-live date.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "supPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "risksPrompt": {
+      "title": "Concerns or risks?",
+      "context": "Three concerns came from the interviews.",
+      "choices": [
+        {
+          "id": "register",
+          "label": "Evaluate each concern as a program risk (winter go-live, charting time, Wi-Fi dead spots), with owners and responses in the program risk register",
+          "effects": [
+            {
+              "set": "risks",
+              "to": "\"register\""
+            },
+            {
+              "set": "risksAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "1"
+            },
+            {
+              "log": "Three stakeholder risks are registered.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Stakeholders see risks the plan doesn't; evaluating and registering them makes them managed."
+        },
+        {
+          "id": "minutes",
+          "label": "Record them as stakeholder feedback",
+          "effects": [
+            {
+              "set": "risks",
+              "to": "\"minutes\""
+            },
+            {
+              "set": "risksAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-1"
+            },
+            {
+              "log": "They're noted as feedback.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Feedback with no owner or response isn't managed."
+        },
+        {
+          "id": "dismiss",
+          "label": "Dismiss them as resistance to change",
+          "effects": [
+            {
+              "set": "risks",
+              "to": "\"dismiss\""
+            },
+            {
+              "set": "risksAt",
+              "to": "t"
+            },
+            {
+              "add": "ops",
+              "by": "-2"
+            },
+            {
+              "log": "They're dismissed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The concerns were real risks; dismissing them loses stakeholders too."
+        }
+      ]
+    },
+    "kpiPrompt": {
+      "title": "Setting expectations",
+      "context": "Each group expects something different.",
+      "choices": [
+        {
+          "id": "kpis",
+          "label": "Agree KPIs with the groups: medication error rate, charting minutes per shift measured on pilot wards, and a no-worse-than-paper criterion for go-live",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"kpis\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "1"
+            },
+            {
+              "log": "Shared KPIs and a go-live criterion are agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Negotiated, measurable acceptance criteria align expectations."
+        },
+        {
+          "id": "sponsorOnly",
+          "label": "Use the sponsor's targets",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"sponsorOnly\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-1"
+            },
+            {
+              "log": "Sponsor targets are used.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Clinical groups never agreed them."
+        },
+        {
+          "id": "vague",
+          "label": "Promise 'a better experience for everyone'",
+          "effects": [
+            {
+              "set": "kpi",
+              "to": "\"vague\""
+            },
+            {
+              "set": "kpiAt",
+              "to": "t"
+            },
+            {
+              "add": "pms",
+              "by": "-2"
+            },
+            {
+              "log": "A vague promise.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nothing to accept or measure; expectations diverge."
+        }
+      ]
+    },
+    "supPrompt": {
+      "title": "Winter go-live",
+      "context": "The sponsor wants go-live in January; ward managers and the union oppose it.",
+      "choices": [
+        {
+          "id": "engage",
+          "label": "Bring the evidence (winter risk, pilot KPIs) to the sponsor and ward managers and agree a March go-live with super-users on each ward",
+          "effects": [
+            {
+              "set": "sup",
+              "to": "\"engage\""
+            },
+            {
+              "set": "supAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "A March go-live with super-users is agreed.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Engagement based on shared evidence keeps support for the program."
+        },
+        {
+          "id": "compromise",
+          "label": "Go live in January on two wards only",
+          "effects": [
+            {
+              "set": "sup",
+              "to": "\"compromise\""
+            },
+            {
+              "set": "supAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "Two wards in January.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A compromise, but still in the riskiest weeks."
+        },
+        {
+          "id": "override",
+          "label": "Hold January: the sponsor decides",
+          "effects": [
+            {
+              "set": "sup",
+              "to": "\"override\""
+            },
+            {
+              "set": "supAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "January is held.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Overriding clinical stakeholders repeats the last program's failure."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the stakeholder engagement note for the program board.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Risks and expectations",
+          "criteria": "Three concerns registered with owners; KPIs and a go-live criterion agreed.",
+          "modelAnswer": "Winter go-live, charting time and Wi-Fi dead spots are program risks with owners; we agreed KPIs for errors and charting minutes and a no-worse-than-paper criterion."
+        },
+        {
+          "label": "Support",
+          "criteria": "A March go-live with super-users agreed on evidence.",
+          "modelAnswer": "Using the pilot data and last program's lessons, the sponsor and ward managers agreed a March go-live with super-users."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (risks == \"minutes\") and (kpi == \"sponsorOnly\") and (sup == \"compromise\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Program Management Professional (PgMP) Examination Content Outline: Strategic Program Alignment 15%, Program Life Cycle Management 44%, Benefits Management 11%, Stakeholder Engagement 16%, Governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://eartech.pmtraining.com/about/how-to-prepare-for-the-pgmp-certification-exam",
+        "note": "Read 2026-11-17. The domain weights were confirmed through a summarizing fetch of a training provider's article (eartech.pmtraining.com, 'How to Prepare for the PgMP Certification Exam'), which describes Program Life Cycle Management as 'initiating, planning, executing, controlling, and closing the program across its phases' and Governance as 'the boards, gates, and decision rights that let leadership steer and, when needed, stop a program'. PMI's own outline PDF did not come up in search and PMI's PgMP pages read today do not list the domains; the task wording is the course seed's, to verify against PMI's PDF. Reused for REQ-336 from this course's pgmp-transit-program-steering-review (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "risksHarm": {
+      "label": "A real risk ignored",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and risks == \"dismiss\"",
+      "narrative": "Wi-Fi dead spots stopped bedside charting; nurses reverted to paper and the union called for a halt."
+    },
+    "kpiHarm": {
+      "label": "A dispute with no measure",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and kpi == \"vague\"",
+      "narrative": "With no agreed KPIs, the union and sponsor disputed the go-live with nothing to settle it."
+    },
+    "supHarm": {
+      "label": "Rolled back again",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sup == \"override\"",
+      "narrative": "The forced winter go-live failed and was rolled back, as the last program was."
+    },
+    "target": {
+      "label": "Stakeholders inside the program",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (risks == \"register\") and (kpi == \"kpis\") and (sup == \"engage\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "Stakeholders' risks are managed, expectations are measurable and support is intact."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "risksHarm",
+    "kpiHarm",
+    "supHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "risksCrit",
+        "label": "Evaluated stakeholder concerns and put them into the program risk plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "risks == \"register\"",
+            "score": "met",
+            "why": "Incorporated."
+          },
+          {
+            "when": "risks == \"minutes\"",
+            "score": "partial",
+            "why": "Not managed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Dismissed risks."
+          }
+        ]
+      },
+      {
+        "id": "kpiCrit",
+        "label": "Negotiated shared acceptance criteria and KPIs for the benefits",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "kpi == \"kpis\"",
+            "score": "met",
+            "why": "Aligned."
+          },
+          {
+            "when": "kpi == \"sponsorOnly\"",
+            "score": "partial",
+            "why": "Not shared."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmeasurable."
+          }
+        ]
+      },
+      {
+        "id": "supCrit",
+        "label": "Sustained stakeholder support with a plan they helped shape",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sup == \"engage\"",
+            "score": "met",
+            "why": "Support kept."
+          },
+          {
+            "when": "sup == \"compromise\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost support."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(interviewsAt) and not isNull(historyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(interviewsAt) or not isNull(historyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Interview the stakeholders and read past programs' lessons first."
+      },
+      {
+        "at": "Meeting 1",
+        "text": "Register the stakeholders' concerns as program risks with owners."
+      },
+      {
+        "at": "Meeting 2",
+        "text": "Agree measurable KPIs and a go-live criterion with the stakeholders."
+      },
+      {
+        "at": "Meeting 3",
+        "text": "Agree the go-live timing with the stakeholders using the evidence."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "risksHarm": {
+        "headline": "Stakeholders see risks",
+        "body": "Evaluate their concerns and put them into the risk plan."
+      },
+      "kpiHarm": {
+        "headline": "Agree acceptance criteria",
+        "body": "Measurable KPIs set expectations for benefits."
+      },
+      "supHarm": {
+        "headline": "Keep stakeholders with you",
+        "body": "Shape key decisions with them, on evidence."
+      },
+      "target": {
+        "headline": "Good: stakeholders inside the program",
+        "body": "Concerns as risks, KPIs agreed, and decisions shaped together."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Program stakeholders identify risks the plan misses; evaluating their concerns and incorporating them in the program risk management plan makes them managed. Negotiated, measurable acceptance criteria (KPIs) align expectations for benefits. Support is sustained by shaping key decisions with stakeholders on shared evidence."
+  }
+}
