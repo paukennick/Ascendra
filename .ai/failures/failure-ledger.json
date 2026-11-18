@@ -18827,7 +18827,7 @@
       "title": "Short course name kept the new 'Exam Prep for' title prefix",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP\u00ae' cut to 18 characters in reminder and countdown emails.",
+      "symptom": "With REQ-324 titles, shortCourseName's title fallback (no credential name) would print 'Exam Prep for CISSP®' cut to 18 characters in reminder and countdown emails.",
       "how_detected": "review of title readers during REQ-324",
       "root_cause": "VENDOR_PREFIX listed the old 'Prep for' prefix only; a title-format change did not look at the readers that strip title prefixes.",
       "requirement": "REQ-324",
@@ -18850,7 +18850,7 @@
       "title": "Reminder short name cut a long credential name to its first words",
       "status": "fixed",
       "severity": "low",
-      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information\u2026' (the credential name without 'Certified', cut to 18 characters).",
+      "symptom": "With names on again, reminder and countdown emails for CISSP would call the course 'Information…' (the credential name without 'Certified', cut to 18 characters).",
       "how_detected": "lib/unbranded.test.ts (REQ-324 short-name test)",
       "root_cause": "shortCourseName fell back to the exam code or an ellipsis; CISSP and similar exams have no code and are known by the acronym at the end of their name. REQ-319 had hidden it by nulling the names.",
       "requirement": "REQ-324",
@@ -19257,6 +19257,77 @@
       "no_test_reason": "",
       "prevention_rules": [],
       "prevention_notes": "The existing lint test caught it before commit; the case was never committed broken.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2502",
+      "date": "2026-11-18",
+      "title": "SCS forensics case relied on an unconfirmed Auto Scaling Standby behavior",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "The case taught putting a compromised instance in Standby to keep it from scale-in; the EC2 Auto Scaling docs read 2026-11-18 do not say Standby instances are excluded from scale-in termination",
+      "how_detected": "round-2 source verification (vendor docs)",
+      "root_cause": "The fix step was written from memory and marked 'to verify'; the verification pass found only termination protection (which does not stop Auto Scaling) and DetachInstances documented.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSSCS/miner-instance-evidence-before-scale-in.sim.json"
+      ],
+      "fix_summary": "The case now detaches the instance from the group with --should-decrement-desired-capacity (DetachInstances: managed independently, deregistered from target groups, not replaced)",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A vendor-behavior fact; checked by reading the EC2 Auto Scaling user guide and API reference, cited in the case's sources. The golden paths still reach the same endings.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify' in the source note.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2503",
+      "date": "2026-11-18",
+      "title": "Redshift case said a reboot rolls back the load; the docs say in-progress transactions are interrupted and must be resubmitted",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "Harm-trap wording stated a rollback the REBOOT_CLUSTER reference does not describe",
+      "how_detected": "round-2 source verification",
+      "root_cause": "Written from general knowledge and marked 'to verify'.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/supabase/seed/sims/AWSDEA/redshift-idle-transaction-blocks-load.sim.json"
+      ],
+      "fix_summary": "Reworded to 'interrupts the load, which must be resubmitted'",
+      "fix_commits": [
+        "a6f0470a"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "Wording of a vendor fact; the decision taught and the goldens are unchanged.",
+      "prevention_rules": [],
+      "prevention_notes": "Scoring facts are confirmed against vendor docs before release; unconfirmed ones keep a visible 'to verify'.",
+      "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2504",
+      "date": "2026-11-18",
+      "title": "ACE and Digital Leader outline findings came from stale HTML guide pages",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "22.39 reported that the ACE guide has five sections and Digital Leader weights of about 16-17%, prompting a request to change the seed",
+      "how_detected": "round-2 check of the PDFs before changing the seed",
+      "root_cause": "The HTML guide pages Google serves show older outlines; the exam guide PDFs linked from the certification pages are current and match the seed. The first pass compared against the HTML pages only.",
+      "requirement": "REQ-335",
+      "affected": [
+        "docs/sims.md",
+        "backend/supabase/seed/sims/GCPACE",
+        "backend/supabase/seed/sims/GCPCDL"
+      ],
+      "fix_summary": "Seed unchanged; bands cite the PDFs (read 2026-11-18); the finding was removed and replaced with a note that the HTML pages are stale",
+      "fix_commits": [
+        "3675c96f"
+      ],
+      "regression_tests": [],
+      "no_test_reason": "A source-reading error, not code; prevention is to read the guide linked from the certification page before reporting an outline difference.",
+      "prevention_rules": [],
+      "prevention_notes": "Read the exam guide linked from the certification page (PDF where Google links one) before reporting an outline difference; note when the HTML page differs.",
       "recurrence_of": ""
     }
   ]

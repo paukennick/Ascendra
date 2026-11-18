@@ -7682,7 +7682,7 @@ cross-level bands for a course's top two domains; a unit where nothing fits
 is recorded as no fit. This builder (depth-cloud) took every AWS, Azure (AZ*,
 DP*, AI200, AI901, PL300, SC500) and Google Cloud course, fewest sims first.
 No engine, renderer, schema or migration change: engine 1.2, the terminal
-screen for every new case, and bands that carry other screens. The list is
+screen or the data console for every new case, and bands that carry other screens. The list is
 `lib/sim/depth-cloud.ts`; `lib/sim/depth-cloud.test.ts` selects every
 document by slug (FAIL-2002) and runs the same checks as `it-cloud.test.ts`
 (22.30): an active objective of its own course that no other sim of the
@@ -7696,7 +7696,7 @@ equal to its base's. A behavior test per new case checks the decision it
 teaches: the harmful shortcut causes harm, the plausible no-op leaves the
 deadline missed, and the right change makes it.
 
-**How the new cases are built.** Each case is a compact spec turned into
+**How the terminal cases are built.** Each terminal case is a compact spec turned into
 the 22.29/22.30 terminal pattern by a factory in the builder's scratchpad
 (`depth-cloud/factory2.py` on top of the REQ-320 factory): learner-paced
 `turns` phase; one `work` wait per command; a deadline as an `interruptsSkip`
@@ -7710,9 +7710,9 @@ Mediocre, late Bad, blind Bad). The committed JSON is the source of truth.
 Teaching timings carry an "Author's scenario timing (REQ-335)" source (FLAG:
 not measured values). Every case names a fictional organization.
 
-**What was built.** 57 new terminal cases and 82 bands, 139 documents in all, on 35 courses. Every new case and band is listed in `lib/sim/depth-cloud.ts`; each document's `sources` carry the course outline read on 2026-11-17 first, then the vendor pages read for the case with what was quoted and what is from memory ("to verify").
+**What was built.** 81 new cases (71 terminal, 10 data console) and 82 bands, 163 documents in all, on 35 courses, in two rounds: the first on 2026-11-17, the second on 2026-11-18 after the coordinator asked for every course to meet the rule, for purpose-written cases on top domains held by cross-family bands, and for a source verification pass. Every course now meets its target and every unit has a sim whose main objective is in it. Every case and band is listed in `lib/sim/depth-cloud.ts`; each document's `sources` carry the course outline first, then the vendor pages read for the case with what was quoted and what is an authored rendering.
 
-**New cases (57).** All on the terminal screen.
+**New cases (81).** On the terminal screen, except the ten marked (data), which use the data console.
 
 | Course | Slug | Title | Main objective (abridged) |
 |---|---|---|---|
@@ -7773,6 +7773,30 @@ not measured values). Every case names a fictional organization.
 | AWSANS | vpn-large-responses-hang-pmtud-blocked | Cutover: small queries work over the VPN, but every large report hangs | Network performance metrics and reachability constraints, including r… |
 | AZ400 | storage-key-in-history-before-open-source | Open-sourcing at 16:00: a storage account key sits in the repository's history | Removing specific data from source control |
 | AWSSCS | miner-instance-evidence-before-scale-in | Evidence: a compromised web instance is due to be scaled in at 22:00 | Capturing and storing system and application logs as forensic artifac… |
+| PL300 | merge-duplicates-double-region-revenue (data) | Board pack: two regions' revenue doubled after a merge | Combining queries with merge (a join) and append (a union) |
+| PL300 | return-rate-trend-on-a-pie-chart (data) | Ops review: is the return rate rising? The page answers with a pie chart | Picking the visual type that fits a comparison, trend, composition or… |
+| AWSAIF | ticket-labels-change-on-every-run (data) | Routing: the same ticket gets a different category every time | Inference parameters and what they change: temperature, input and out… |
+| AWSAIF | manual-in-every-prompt-triples-bill (data) | Cost: the policy assistant's bill tripled since the manual went into every prom… | Token-based pricing, and how it drives both cost and inference perfor… |
+| AWSAIF | guardrail-blocks-payroll-questions (data) | Help desk: the guardrail blocks every question about pay | Using Amazon Bedrock Guardrails to enforce responsible-AI features |
+| GCPGAIL | hr-assistant-grounded-on-the-web (data) | Leave policy: the HR assistant quotes other employers' rules | Describing grounding in LLMs, and differentiating grounding with firs… |
+| AI901 | hotel-reviews-hide-staff-complaints (data) | Guest feedback: staff complaints vanish inside positive reviews | Common text analysis techniques: keyword extraction, entity detection… |
+| GCPGAIL | claims-assistant-pilot-on-an-api-key (data) | Go-live: a claims assistant built on an AI Studio API key goes to production | Choosing between Agent Studio and Google AI Studio |
+| GCPMLE | bqml-churn-predictions-without-training-transforms (data) | Retention campaign: every customer scores as likely to churn | Generating predictions using BigQuery ML |
+| GCPMLE | partner-dataset-shares-raw-emails (data) | Data share: the partner's modeling dataset carries raw customer emails | Ensuring data privacy and handling PII |
+| AZ700 | appgw-502-after-login-on-root | Enrollment opens at 09:00: every request through Application Gateway returns 502 | Configuring health probes |
+| AZ400 | release-gate-unlinked-prs-new-repo | Release at 17:00: the traceability gate finds 14 pull requests with no work ite… | Configuring integration between Azure Boards and GitHub repositories |
+| AZ400 | debug-logging-hits-daily-cap-blind | Blind: Application Insights went silent at 11:20, mid-incident | Configuring collection of telemetry using Azure Monitor Application I… |
+| AZ400 | prod-stage-skips-environment-approval | Audit at 16:00: production deploys have been skipping the approval check | Designing and implementing checks and approvals using YAML-based envi… |
+| SC500 | arc-servers-missing-from-security-dcr | Blind spot: the brute-force rule is silent while new servers take password spra… | Collecting syslog, CEF and Windows Security events with data collecti… |
+| AWSANS | new-vpc-attachment-not-propagated | Go-live: the new analytics VPC cannot reach the shared services through the tra… | Using route tables and automatic propagation to direct traffic |
+| AWSANS | egress-allowlist-blocks-new-payment-api | Cutover: the new payment provider's API is blocked at the egress firewall | Securing outbound traffic flows from AWS: Network Firewall, proxies,… |
+| AWSMLA | vpc-endpoint-cannot-load-model-from-s3 | Launch: the fraud model's endpoint in the private VPC never comes up | Configuring SageMaker AI endpoints inside a VPC |
+| AWSMLA | tuning-job-early-stopping-never-fires | Budget: the tuning job has burned 70% of the month's GPU budget, and early stop… | Reducing training time with early stopping and distributed training |
+| AWSMLA | long-term-bedrock-key-in-app-logs | Exposure: a long-term Bedrock API key is in the support app's shared logs | Choosing a credential type to reach foundation models: Amazon Bedrock… |
+| GCPSEC | eu-patient-data-created-in-us | Residency: EU patient data landed in a US bucket the day before the regulator's… | Configuring compliance-supporting controls: Assured Workloads, organi… |
+| GCPDEV | integration-tests-share-staging-firestore | Release freeze at 17:00: integration tests fail at random because every build s… | Executing automated integration tests in Cloud Build |
+| GCPDEV | eventarc-trigger-wrong-region-for-bucket | Uploads pile up: the thumbnail service never hears about new photos | Invoking Cloud Run services with triggers: Eventarc, Pub/Sub |
+| AWSANS | failover-record-without-health-check | Region down: DNS failover never happens, and the booking site stays dark | Amazon Route 53 features: alias records, traffic policies, resolvers,… |
 
 **Bands (82).** Merge patches over a base case: the course outline first, the base's technical sources, a new main objective, no secondaries.
 
@@ -7810,7 +7834,7 @@ not measured values). Every case names a fictional organization.
 | SC500 | baseline-policy-denies-hana-vm-size-sc500 (AZ120) | Enforcing guardrails with built-in and custom Azure Policy definitions |
 | SC500 | managed-identity-login-fails-new-database-sc500 (DP300) | Replacing stored credentials with system- or user-assigned managed identities |
 | AZ700 | public-access-off-reporting-resolves-public-ip-az700 (DP300) | Integrating Private Link and Private Endpoint with DNS |
-| AZ700 | hana-vip-unreachable-tcp-timestamps-az700 (AZ120) | Configuring health probes |
+| AZ700 | hana-vip-unreachable-tcp-timestamps-az700 (AZ120) | Creating and configuring an Azure Load Balancer |
 | AZ700 | tls-inspection-breaks-session-hosts-az700 (AZ140) | Configuring Azure Firewall rules |
 | GCPACE | cloud-nat-port-exhaustion-payment-api-ace (GCPNET) | Using Cloud DNS and Cloud NAT |
 | GCPACE | folder-policy-deny-blocks-app-to-db-ace (GCPNET) | Managing VPC firewall rules and Cloud NGFW policies day-to-day |
@@ -7861,54 +7885,78 @@ not measured values). Every case names a fictional organization.
 | GCPACE | service-account-key-on-public-repo-ace (GCPSEC) | Creating and managing short-lived service account credentials |
 | SC500 | containerapp-keyvault-revision-sc500 (AI200) | Securing AKS, Container Registry, Container Instances and Container Apps, and acting on D… |
 
-**Cross-level and cross-course bands.** Most bands put a case on a sibling
-course of the same vendor (an AWS Data Engineer case on Developer, Solutions
-Architect or Cloud Practitioner; a Google Cloud networking case on Associate
-Cloud Engineer, Architect, DevOps or Security). Some cross a level or a family
-and are flagged for review: the Security+ `cloud-iam-backdoor` and the
-SecAI+ `rag-assistant-data-leak` and `agent-indirect-prompt-injection` cases on
-AWS Security Specialty, Machine Learning Engineer and Azure AI Fundamentals;
-the Machine Learning Engineer `loan-data-bias` on AI-901; Google Cloud
-professional cases on Cloud Digital Leader and Generative AI Leader. A band
-keeps its base's commands and teaching; only the objective, the outline source
-and the course change. Purpose-written cases took each course's top two
-domains where this builder wrote any for the course.
+**Data console cases (round 2).** Ten cases use the existing data console
+instead of the terminal: two PL-300 (a Power Query merge on a lookup with
+duplicate keys; a trend question answered with a line chart and a ratio
+measure, the visual decision taken as a described choice with a described
+result), three AWS AI Practitioner (temperature and a fixed label set; input
+tokens and retrieval; a Bedrock Guardrails denied topic), two Generative AI
+Leader (grounding on first-party data; the enterprise Agent Platform against an
+AI Studio key), AI-901 opinion mining, and two Google Cloud ML Engineer
+(BigQuery ML TRANSFORM; deterministic de-identification). They are built by the
+REQ-333 data-case helper adapted to this list: look, one change chosen from
+three graded options (right, partial, wrong), an optional destructive
+shortcut, a check, ship, record; seven or eight goldens each. A behavior test
+per data case checks that the right option ships a right result and a wrong
+option ships a wrong one.
 
-**Defects found and fixed (failure ledger).** FAIL-2500: the AWS Data Engineer
-Athena case used the action id `parts`, which is also a server-only key, so
-`documents.test.ts` "client document leaks nothing server-only" failed; the
-action is `showparts` now, the builder's factory refuses such ids, and
-`depth-cloud.test.ts` checks every REQ-335 action and state id against the
-server-only key list. FAIL-2501: the AZ-700 SNAT case's `awk '{print $1}'` was
-read as a template expression; the braces are doubled, caught by golden
-generation and the lint test before the case was first committed.
+**Cross-family bands.** Bands from another exam family on a course's top two
+domains (by weight, ties broken by outline order) were replaced as the main
+coverage there by purpose-written cases and kept as extra coverage: the SecAI+
+agent case on AWS AI Practitioner moved from Applications of Foundation Models
+to the governance domain's agent identity objective, and on Generative AI
+Leader from Gen AI Offerings to the security considerations objective in
+Business Strategies; new cases now hold those top domains. AI-901 has only two
+units, so its three cross-family bands stay in AI Concepts beside the new
+purpose-written opinion mining case. Other bands from another family sit
+outside the top two domains (the Security+ case on AWS Security Specialty's
+Incident Response, the SecAI+ cases on Machine Learning Engineer's operations
+domain beside a purpose-written credential case).
 
-**Findings to verify (from this round's reading).**
+**Source verification (round 2, read 2026-11-18).** For each fact a case's
+scoring depends on, the vendor's own page was read (docs.aws.amazon.com,
+learn.microsoft.com, cloud.google.com and their regional mirrors), using URLs
+from search results or fetched pages only. Each case's source note now says
+what the page states, or marks text as an authored rendering (CLI output,
+error text, log lines). Corrections made where the docs did not support the
+case: the AWS Security Specialty forensics case detaches the instance from its
+Auto Scaling group instead of putting it in Standby (FAIL-2502: Standby's
+effect on scale-in is not documented; detaching is); the Redshift case says a
+reboot interrupts the load rather than rolls it back (FAIL-2503); the
+ExpressRoute case clears the BGP sessions after fixing the advertisement,
+because the docs do not say the session returns on its own; the AZ-400
+history-scrub case uses the documented permission name 'Force push (rewrite
+history, delete branches and tags)'. Statements still not confirmed keep a
+visible "to verify" in their source note: Pacemaker's refusal to move
+resources without fencing (general behavior, not in the Azure guide); HANA's
+sub-millisecond log-write expectation (SAP's guidance); in-flight transactions
+on an Azure SQL failover; foreign key locking under read committed snapshot;
+the Cloud Router return-path advertisement for a peered VPC; a replacement HA
+VPN gateway's new IPs; the PSA overlap effect; the Firestore emulator start
+commands; the Azure Boards re-save step; the Sentinel SecurityEvent table name;
+Query Insights' features; and the Spark skew-splitting practice. Bands built
+on other builders' bases carry those bases' notes unchanged.
 
-- Google's HTML exam guide pages for Associate Cloud Engineer and Digital
-  Leader are stale: they show an older outline. The PDFs linked from the
-  certification pages (read 2026-11-18) are authoritative and match the seed,
-  so the seed is unchanged and the ACE and Digital Leader bands cite the PDFs.
-- AWS SAP-C03, DVA-C03, MLA-C02 and CLF-C02: the official AWS exam guides were
-  not reached through search this round; the outline sources are third-party
-  summaries (Tutorials Dojo, KodeKloud) with the seed's weights. CLF-C02's
-  "benefits of automation" was not found in either summary.
-- Each case's technical source says which details came from the page read and
-  which are from memory ("to verify"): metric names, CLI flags, default MTU,
-  Auto Scaling standby behavior and others. Teaching timings are an author's
-  scenario timing, not measured values.
+**Exam guides (round 2).** The official AWS guides were read on
+docs.aws.amazon.com under aws-certification: SAP-C03, DVA-C03 and MLA-C02 match
+the seed's units in name and weight (MLA-C02 writes "Foundation Model (FM)";
+SAP-C03's Domain 1 has 34 skills and MLA-C02's Domain 4 has 25, the same counts
+and topics as the seed units); CLF-C02's Domain 1 confirms "Identifying
+benefits of automation" and "advantages of high availability, elasticity, and
+agility". These four courses' documents now cite the official guides. Other
+domains were compared by name and weight only. Google's HTML exam guide pages
+for Associate Cloud Engineer and Digital Leader are stale; the PDFs linked from
+the certification pages are current and match the seed (FAIL-2504), so the seed
+is unchanged and those bands cite the PDFs.
 
-**Not built this round (open).** PL300 "Prepare the Data" and "Visualize and
-Analyze the Data": Power Query and report-canvas cases need a data-console case
-written for Power BI, and the data console has no report-canvas view (no new
-screens this round). AWS AI Practitioner "Fundamentals of Generative AI" and
-Google Cloud Generative AI Leader "Techniques to Improve Gen AI Model Output":
-no existing case teaches grounding, prompting or sampling, and a Bedrock or
-Vertex AI generative case was not written. AZ-400 "Processes and
-Communications" and "Instrumentation Strategy": no case written. Course totals
-still short of the target are listed in the table below.
+**Defects found and fixed (failure ledger).** FAIL-2500: the Athena case's
+action id `parts` (a server-only key) failed the client-leak check; renamed,
+with a regression test over every REQ-335 action and state id. FAIL-2501: the
+AZ-700 SNAT case's `awk '{print $1}'` was read as a template expression;
+braces doubled before the first commit. FAIL-2502, FAIL-2503, FAIL-2504 as
+above.
 
-**Per course, before and after.** Before is the count on `origin/master` when the round started; after counts this branch. Target: fewer than 60 objectives, 4 sims; 60 or more, 8. "Units with a sim" counts units holding a sim whose main objective is in them.
+**Per course, before and after.** Before is the count on `origin/master` when the round started; after counts this branch. Target: fewer than 60 objectives, 4 sims; 60 or more, 8. "Units with a sim" counts units holding a sim whose main objective is in it.
 
 | Course | Before | After | Target | Met | Units with a sim | Units without (reason) |
 |---|---|---|---|---|---|---|
@@ -7919,27 +7967,27 @@ still short of the target are listed in the table below.
 | DP300 | 1 | 8 | 8 | yes | 5/5 | every unit |
 | DP900 | 1 | 4 | 4 | yes | 4/4 | every unit |
 | GCPDBE | 1 | 4 | 4 | yes | 4/4 | every unit |
-| GCPMLE | 1 | 4 | 4 | yes | 4/6 | Architecting Low-Code AI Solutions: not built: BigQuery ML, AutoML and Model Garden cases were not written; no existing case fits; Collaborating Within and Across Teams to Manage Data and Models: not built: feature store, notebook and lineage cases were not written; the course's own cases sit on other units |
+| GCPMLE | 1 | 6 | 4 | yes | 6/6 | every unit |
 | GCPNET | 1 | 8 | 8 | yes | 6/6 | every unit |
-| GCPSEC | 1 | 8 | 8 | yes | 4/5 | Supporting Compliance Requirements: not built: no existing Google Cloud case teaches Assured Workloads or compliance scoping |
+| GCPSEC | 1 | 9 | 8 | yes | 5/5 | every unit |
 | AI200 | 2 | 4 | 4 | yes | 4/4 | every unit |
-| AI901 | 2 | 4 | 4 | yes | 2/2 | every unit |
+| AI901 | 2 | 5 | 4 | yes | 2/2 | every unit |
 | AWSDVA | 2 | 8 | 8 | yes | 4/4 | every unit |
-| AZ400 | 2 | 5 | 8 | no | 3/5 | Design and Implement Processes and Communications: not built: no case written (work tracking, dashboards and integrations suit a board or service desk case); Implement an Instrumentation Strategy: not built: no case written; the AI-200 KQL case already serves AZ-400 on a pipelines objective |
-| AZ700 | 2 | 7 | 8 | no | 5/5 | every unit |
+| AZ400 | 2 | 8 | 8 | yes | 5/5 | every unit |
+| AZ700 | 2 | 8 | 8 | yes | 5/5 | every unit |
 | AZ900 | 2 | 6 | 4 | yes | 3/3 | every unit |
 | GCPDEVOPS | 2 | 8 | 8 | yes | 5/5 | every unit |
-| GCPGAIL | 2 | 4 | 4 | yes | 3/4 | Techniques to Improve Gen AI Model Output: not built: no existing case teaches grounding, prompting or sampling parameters |
+| GCPGAIL | 2 | 6 | 4 | yes | 4/4 | every unit |
 | GCPPDE | 2 | 8 | 8 | yes | 5/5 | every unit |
-| PL300 | 2 | 2 | 4 | no | 2/4 | Prepare the Data: not built: a Power Query case on the data console was not written this round; Visualize and Analyze the Data: not built: needs a report-canvas view the data console lacks (no new screens this round) |
-| SC500 | 2 | 7 | 4 | yes | 3/4 | Manage and Monitor Security Posture: not built: Defender CSPM and Sentinel cases need the security console written for them; none was this round |
-| AWSAIF | 3 | 5 | 8 | no | 4/5 | Fundamentals of Generative AI: not built: no existing case teaches prompting, tokens or grounding; a Bedrock case was not written |
-| AWSANS | 3 | 5 | 8 | no | 4/4 | every unit |
-| AWSMLA | 3 | 5 | 8 | no | 4/4 | every unit |
+| PL300 | 2 | 4 | 4 | yes | 4/4 | every unit |
+| SC500 | 2 | 8 | 4 | yes | 4/4 | every unit |
+| AWSAIF | 3 | 8 | 8 | yes | 5/5 | every unit |
+| AWSANS | 3 | 8 | 8 | yes | 4/4 | every unit |
+| AWSMLA | 3 | 8 | 8 | yes | 4/4 | every unit |
 | AZ305 | 3 | 5 | 4 | yes | 4/4 | every unit |
 | GCPACE | 3 | 9 | 8 | yes | 4/4 | every unit |
 | GCPCDL | 3 | 8 | 8 | yes | 6/6 | every unit |
-| GCPDEV | 3 | 4 | 4 | yes | 2/4 | Building and Testing Applications: not built: no case on local emulators, Cloud Build tests or provenance outside the existing Binary Authorization band; Configuring Cloud-Native Applications for Deployment: not built: the existing Cloud Run cases already serve this course on other objectives |
+| GCPDEV | 3 | 6 | 4 | yes | 4/4 | every unit |
 | GCPPCA | 3 | 9 | 8 | yes | 6/6 | every unit |
 | AWSCLF | 4 | 8 | 8 | yes | 4/4 | every unit |
 | AWSSCS | 4 | 8 | 8 | yes | 6/6 | every unit |
@@ -7948,4 +7996,4 @@ still short of the target are listed in the table below.
 | AWSSAA | 6 | 10 | 8 | yes | 4/4 | every unit |
 | AWSSOA | 8 | 8 | 4 | yes | 5/5 | every unit |
 
-**Decisions for Nick.** (1) Whether the cross-family bands named above (Security+ and SecAI+ cases on AWS specialty and Azure AI courses; professional Google Cloud cases on Digital Leader and Generative AI Leader) are acceptable or should be replaced by purpose-written cases. (2) Whether Power BI (PL-300) needs a report-canvas view on the data console before its visualization unit can have sims.
+**Decisions for Nick.** (1) Whether AI-901's three cross-family bands (two SecAI+ cases and an AWS ML case) should stay as extra coverage beside the new case in its two-unit course. (2) Whether the twelve statements still marked 'to verify' (listed above) need a vendor confirmation before release or can ship as flagged.
