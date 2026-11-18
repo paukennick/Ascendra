@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "athena-todays-partition-missing",
+  "title": "Outage: today's clicks are in S3 but Athena returns zero rows",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "data@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:20 marketing: today's clicks = 0 in the 10:00 report draft",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "10:00: report sent, today empty",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "10:00: report sent, today included",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "s3",
+          "label": "S3 tallis-lake/clicks/",
+          "spokenLabel": "the click files",
+          "kind": "YYYY/MM/DD folders",
+          "status": "{harmed ? \"today's files present twice\" : fixed ? \"today's files present\" : \"today's files present\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "cat",
+          "label": "Glue Data Catalog: clicks",
+          "spokenLabel": "the catalog table",
+          "kind": "partitioned by year, month, day",
+          "status": "{fixed and not harmed ? \"partition 2026/11/17 registered\" : \"last partition 2026/11/16\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "lam",
+          "label": "Lambda add-partition",
+          "spokenLabel": "the partition function",
+          "kind": "runs at 00:05",
+          "status": "{fixed and not harmed ? \"permission restored\" : \"AccessDenied since yesterday\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "ath",
+          "label": "Athena",
+          "spokenLabel": "the query engine",
+          "kind": "workgroup marketing",
+          "status": "{fixed and not harmed ? \"today's rows\" : \"0 rows for today\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "lam",
+          "to": "cat",
+          "label": "BatchCreatePartition",
+          "status": "{fixed and not harmed ? \"allowed\" : \"denied\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "ath",
+          "to": "cat",
+          "label": "partition list",
+          "status": "{fixed and not harmed ? \"includes 11/17\" : \"stops at 11/16\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Synchronizing partitions with a data catalog",
+  "secondaryObjectives": [
+    "Building and referencing a technical data catalog: AWS Glue Data Catalog and the Apache Hive metastore"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Data Engineer - Associate (DEA-C01) exam guide: Data Ingestion and Transformation 34%, Data Store Management 26%, Data Operations and Support 22%, Data Security and Governance 18%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/id_id/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.md",
+      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Amazon Athena User Guide, MSCK REPAIR TABLE",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/en_us/athena/latest/ug/msck-repair-table.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: MSCK REPAIR TABLE scans the table's location for Hive-compatible partitions (key=value folder names) added after the table was created and adds the missing ones to the Glue Data Catalog; 'for partitions that are not Hive-compatible, use ALTER TABLE ADD PARTITION'; frequent use can cause timeouts, so ALTER TABLE ADD PARTITION is recommended for daily additions. The glue:BatchCreatePartition permission name and partition projection are from memory of the Glue and Athena documentation (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data engineer at Tallis Home, a fictional retailer. Click data lands hourly in s3://tallis-lake/clicks/YYYY/MM/DD/, and the Athena table clicks is partitioned by year, month and day. A small Lambda, add-partition, registers each new day's partition. Marketing's 10:00 report shows zero clicks for today.",
+    "handover": [
+      "Yesterday a security cleanup removed 'unused' permissions from several Lambda roles.",
+      "The hourly load writes files once; running it again writes a second copy of the same hour."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the click files in S3, the Glue Data Catalog's partitions and the queries that read them.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:20",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Marketing's report runs at 10:00, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "partsAt": {
+      "type": "time",
+      "init": null
+    },
+    "filesAt": {
+      "type": "time",
+      "init": null
+    },
+    "lamlogAt": {
+      "type": "time",
+      "init": null
+    },
+    "countAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "catalog",
+        "data",
+        "athena"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "parts",
+        "files",
+        "lamlog",
+        "count",
+        "addPart",
+        "perm",
+        "rerun",
+        "msck",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "parts": {
+      "label": "Athena: SHOW PARTITIONS clicks (last three)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(partsAt)",
+          "then": [
+            {
+              "set": "partsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws athena start-query-execution --query-string 'SHOW PARTITIONS clicks' ... | tail -3\n{fixed and not harmed ? \"year=2026/month=11/day=15\nyear=2026/month=11/day=16\nyear=2026/month=11/day=17\" : \"year=2026/month=11/day=14\nyear=2026/month=11/day=15\nyear=2026/month=11/day=16\"}"
+        },
+        {
+          "finding": "The catalog has no partition for today, so Athena never looks in today's folder."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "files": {
+      "label": "aws s3 ls s3://tallis-lake/clicks/2026/11/17/",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(filesAt)",
+          "then": [
+            {
+              "set": "filesAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws s3 ls s3://tallis-lake/clicks/2026/11/17/ --summarize | tail -2\n{harmed ? \"Total Objects: 18\n   Total Size: 825.4 MiB\" : fixed ? \"Total Objects: 9\n   Total Size: 412.7 MiB\" : \"Total Objects: 9\n   Total Size: 412.7 MiB\"}\n(folder names are plain YYYY/MM/DD, not year=2026/month=11/day=17)"
+        },
+        {
+          "finding": "Today's data is there, in folders that are not Hive-style key=value names."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "lamlog": {
+      "label": "aws logs tail /aws/lambda/add-partition --since 12h",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(lamlogAt)",
+          "then": [
+            {
+              "set": "lamlogAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws logs tail /aws/lambda/add-partition --since 12h\n2026-11-17T00:05:02 ERROR AccessDeniedException: User: arn:aws:sts::444455556666:assumed-role/add-partition-role/add-partition is not authorized to perform: glue:BatchCreatePartition on resource: arn:aws:glue:us-east-1:444455556666:table/lake/clicks"
+        },
+        {
+          "finding": "The function that registers each day failed at 00:05: yesterday's cleanup removed its Glue permission."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "count": {
+      "label": "Athena: SELECT count(*) FROM clicks WHERE year='2026' AND month='11' AND day='17'",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(countAt)",
+          "then": [
+            {
+              "set": "countAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws athena ... 'SELECT count(*) FROM clicks WHERE year=''2026'' AND month=''11'' AND day=''17'''\n{harmed ? \"  _col0\n 3808454\" : fixed ? \"  _col0\n 1904227\" : \"  _col0\n 0\"}"
+        },
+        {
+          "finding": "Zero rows: a query reads only the partitions the catalog knows."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "addPart": {
+      "label": "ALTER TABLE clicks ADD IF NOT EXISTS PARTITION (year='2026', month='11', day='17') LOCATION ...",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws athena start-query-execution --query-string \"ALTER TABLE clicks ADD IF NOT EXISTS PARTITION (year='2026', month='11', day='17') LOCATION 's3://tallis-lake/clicks/2026/11/17/'\" ...\nState: SUCCEEDED"
+        },
+        {
+          "log": "Today's partition is registered with its real location; Athena now reads today's files, and IF NOT EXISTS makes it safe to repeat.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "perm": {
+      "label": "Restore glue:BatchCreatePartition on add-partition-role for the lake.clicks table only",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws iam put-role-policy --role-name add-partition-role --policy-name glue-partitions --policy-document file://glue-batchcreatepartition-clicks.json\ndata@cloudshell:~$ aws lambda invoke --function-name add-partition --payload file://tomorrow-dryrun.json out.json && cat out.json\n{{\"dryRun\": true, \"wouldAdd\": \"year=2026/month=11/day=18\", \"authorized\": true}}"
+        },
+        {
+          "log": "The function's permission is back, scoped to the one table, and a dry run shows tomorrow's partition will register; the cleanup's owner is told why it was used.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "rerun": {
+      "label": "Re-run today's hourly loads to 'refresh' the data",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws stepfunctions start-execution --state-machine-arn ...:clicks-hourly --input '{{\"date\": \"2026-11-17\", \"hours\": \"00-09\"}}'\nexecutionArn: ...:clicks-hourly:rerun-0917"
+        },
+        {
+          "log": "The loads write a second copy of every hour into today's folder: once the partition exists, every click counts twice.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "msck": {
+      "label": "MSCK REPAIR TABLE clicks",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws athena start-query-execution --query-string 'MSCK REPAIR TABLE clicks' ...\nState: SUCCEEDED\nPartitions not in metastore: (none found)"
+        },
+        {
+          "log": "MSCK REPAIR finds only Hive-style key=value folders; plain YYYY/MM/DD folders are invisible to it, so it adds nothing.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check today's partition and count in Athena",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws athena ... 'SELECT count(*), count(DISTINCT session_id) FROM clicks WHERE year=''2026'' AND month=''11'' AND day=''17'''\n{harmed ? \"  3808454   311806  (two rows per click)\" : fixed ? \"  1904227   311806\" : \"  0   0\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "catalog",
+                  "label": "The catalog had no partition for today: the function that adds it lost its Glue permission"
+                },
+                {
+                  "value": "data",
+                  "label": "Today's data never landed in S3"
+                },
+                {
+                  "value": "athena",
+                  "label": "Athena's workgroup scan limit cut the query"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: the report shows today's clicks.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "10:00: the report goes out with zero clicks for today.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the query found nothing, what you ran and why that statement, and what prevents tomorrow's repeat.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates the data from the catalog.",
+          "modelAnswer": "Today's files are in S3, but the catalog's last partition was 11/16. The add-partition function failed at 00:05 with AccessDenied on glue:BatchCreatePartition after yesterday's permission cleanup, so Athena never looked in today's folder."
+        },
+        {
+          "label": "What",
+          "criteria": "Picks the statement that fits the folder layout.",
+          "modelAnswer": "The folders are plain YYYY/MM/DD, not key=value, so MSCK REPAIR finds nothing. ALTER TABLE ADD IF NOT EXISTS PARTITION with the folder's location registered today. Re-running the loads would have doubled the data."
+        },
+        {
+          "label": "Prevention",
+          "criteria": "Fixes the function's permission narrowly.",
+          "modelAnswer": "The role has glue:BatchCreatePartition again, on this table only, and a dry run shows tomorrow will register; the cleanup's owner knows why it is needed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Marketing's report runs at 10:00, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The re-run wrote every hour twice."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with today's partition still unregistered leaves the report at zero.",
+      "source": {
+        "cite": "Amazon Athena User Guide, MSCK REPAIR TABLE",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/en_us/athena/latest/ug/msck-repair-table.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Relevant text: MSCK REPAIR TABLE scans the table's location for Hive-compatible partitions (key=value folder names) added after the table was created and adds the missing ones to the Glue Data Catalog; 'for partitions that are not Hive-compatible, use ALTER TABLE ADD PARTITION'; frequent use can cause timeouts, so ALTER TABLE ADD PARTITION is recommended for daily additions. The glue:BatchCreatePartition permission name and partition projection are from memory of the Glue and Athena documentation (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "duplicated": {
+      "label": "Clicks counted twice",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Re-running the loads wrote a second copy of each hour; when the partition was added, every click counted twice."
+    },
+    "reportEmpty": {
+      "label": "Report sent with no clicks today",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 10:00 the catalog still did not know today's partition."
+    },
+    "synced": {
+      "label": "Partition added, permission restored, checked",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(partsAt) and not isNull(filesAt) and not isNull(verifiedAt) and causeDoc == \"catalog\"",
+      "narrative": "Today's partition was registered before 10:00 and the function that adds them works again."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Today's clicks appear, but the function, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "duplicated",
+    "reportEmpty",
+    "synced",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Compared the catalog's partitions with the files in S3",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(partsAt) and not isNull(filesAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(partsAt) or not isNull(filesAt) or not isNull(lamlogAt) or not isNull(countAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Today's partition registered before 10:00 without touching the data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The re-run wrote every hour twice.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "The daily function fixed and the count checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"catalog\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:20-09:24",
+        "text": "SHOW PARTITIONS stops at 11/16; files present in plain date folders; add-partition AccessDenied; count 0."
+      },
+      {
+        "at": "09:24-09:28",
+        "text": "ALTER TABLE ADD IF NOT EXISTS PARTITION with the location; restore the role's permission."
+      },
+      {
+        "at": "09:28-09:30",
+        "text": "Count 1.9 million for today."
+      }
+    ],
+    "debrief": {
+      "duplicated": {
+        "headline": "The data was fine; the catalog was not",
+        "body": "The files were already there. Re-running a load that writes once doubles the data. Register the partition; leave the data alone."
+      },
+      "reportEmpty": {
+        "headline": "Athena reads only what the catalog lists",
+        "body": "A partitioned table reads only registered partitions. For folders that are not Hive-style, MSCK REPAIR finds nothing: add the partition with ALTER TABLE ADD PARTITION."
+      },
+      "synced": {
+        "headline": "Good: the catalog caught up, the cause removed",
+        "body": "You saw the files were there and the partition was not, used the statement that works for this folder layout, checked the count, and restored the one permission the daily function needs."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The files are in S3 and the catalog's partitions stop yesterday, so Athena never reads today's folder; the function that adds partitions failed on a removed Glue permission. The folders are not Hive-style, so MSCK REPAIR cannot find them; ALTER TABLE ADD PARTITION with the location registers today safely. Re-running the loads would double the data. Then restore that one permission and check tomorrow will work."
+  }
+}

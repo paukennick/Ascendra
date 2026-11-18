@@ -203,4 +203,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AWSDEA athena-todays-partition-missing: re-running the loads doubles the data; MSCK REPAIR finds no non-Hive folders; ALTER TABLE ADD PARTITION makes the report", () => {
+    const d = docOf("athena-todays-partition-missing");
+    const h = driver(d);
+    h.act("rerun");
+    assert.equal(h.value("harmed"), true, "rerun causes harm");
+    until(h, 41);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("msck");
+    until(n, 41);
+    assert.notEqual(n.value("missAt"), null, "msck changes nothing");
+    const ok = driver(d);
+    ok.act("addPart");
+    until(ok, 41);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
