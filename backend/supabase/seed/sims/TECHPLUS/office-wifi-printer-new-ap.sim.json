@@ -1,0 +1,1069 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "office-wifi-printer-new-ap",
+  "title": "A small office's Wi-Fi: a slow meeting room, a printer that keeps dropping, and which access point to buy",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tRoom",
+          "ref": "INC-5101",
+          "kind": "incident",
+          "title": "Meeting room calls drop",
+          "when": "p >= 1",
+          "at": "86400",
+          "impact": "2",
+          "urgency": "2",
+          "priority": "3",
+          "status": "{room == \"addAp\" ? \"Coverage added from the survey\" : room == \"reboot\" ? \"Daily reboots\" : room == \"hotspot\" ? \"Personal hotspots\" : \"Due\"}",
+          "open": "room == \"none\"",
+          "due": "172800"
+        },
+        {
+          "id": "tPrinter",
+          "ref": "INC-5102",
+          "kind": "incident",
+          "title": "Plotter job failures",
+          "when": "p >= 2",
+          "at": "172800",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{printer == \"wired\" ? \"Wired connection\" : printer == \"extender\" ? \"Range extender\" : printer == \"openSsid\" ? \"Open network for the printer\" : \"Due\"}",
+          "open": "printer == \"none\"",
+          "due": "259200"
+        },
+        {
+          "id": "tBuy",
+          "ref": "CHG-5103",
+          "kind": "change",
+          "title": "Replace the access point",
+          "when": "p >= 3",
+          "at": "259200",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{buy == \"current\" ? \"Current standard, WPA3\" : buy == \"cheap\" ? \"Cheapest single-band\" : buy == \"noSecurity\" ? \"No encryption\" : \"Due\"}",
+          "open": "buy == \"none\"",
+          "due": "345600"
+        }
+      ],
+      "services": [
+        {
+          "id": "vRoom",
+          "label": "Office Wi-Fi",
+          "spokenLabel": "Office Wi-Fi",
+          "status": "{room == \"addAp\" ? \"Coverage added from the survey\" : room == \"reboot\" ? \"Daily reboots\" : room == \"hotspot\" ? \"Personal hotspots\" : \"Normal service\"}",
+          "tone": "room == \"addAp\" ? \"ok\" : room == \"reboot\" ? \"degraded\" : room == \"hotspot\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vPrinter",
+          "label": "Plotter",
+          "spokenLabel": "Plotter",
+          "status": "{printer == \"wired\" ? \"Wired connection\" : printer == \"extender\" ? \"Range extender\" : printer == \"openSsid\" ? \"Open network for the printer\" : \"Normal service\"}",
+          "tone": "printer == \"wired\" ? \"ok\" : printer == \"extender\" ? \"degraded\" : printer == \"openSsid\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vBuy",
+          "label": "Office Wi-Fi",
+          "spokenLabel": "Office Wi-Fi",
+          "status": "{buy == \"current\" ? \"Current standard, WPA3\" : buy == \"cheap\" ? \"Cheapest single-band\" : buy == \"noSecurity\" ? \"No encryption\" : \"Normal service\"}",
+          "tone": "buy == \"current\" ? \"ok\" : buy == \"cheap\" ? \"degraded\" : buy == \"noSecurity\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Day",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Wireless networks: 802.11 standards, speed, and interference considerations",
+  "secondaryObjectives": [
+    "Networking basics: LAN vs. WAN, IP/MAC addresses, routers, switches, and firewalls"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA Tech+ FC0-U71 (V6) Exam Objectives, document version 4.0: IT Concepts and Terminology 13%, Infrastructure 24%, Applications and Software 18%, Software Development 13%, Data and Databases 13%, Security 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://lecbyo.files.cmp.optimizely.com/download/1e77e02ebef111efbcf946d2fe8fe33a",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Identify basic networking concepts' (IP address, MAC address, router); 'Explain methods to secure devices and security best practices' (anti-malware, patching); 'Explain the troubleshooting methodology' ('Identify the problem'; 'Establish a theory of probable cause (question the obvious)'; 'Verify full system functionality and, if applicable, implement preventive measures'). The objective wording here is the course seed's. Reused for REQ-336 from this course's rogue-dhcp-soho-office-techplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Wi-Fi Alliance, Wi-Fi CERTIFIED WPA3 Technology Overview (2021)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.wi-fi.org/node/35521",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: WPA3 is the current Wi-Fi security generation, building on WPA2 with robust password-based authentication."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the IT support technician for Hollis and Pratt, a fictional architecture firm of 25 people in one office. Three wireless tickets arrived this week.",
+    "handover": [
+      "One older access point in the reception area serves the whole office; its security is WPA2.",
+      "The plotter-printer sits on the far wall, 30 meters from the access point."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a day at a time. A decision comes to you at each service review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-15T09:00",
+    "tick": "1h",
+    "maxDuration": "12d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "users": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "mgr": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "itteam": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "room": {
+      "type": "enum",
+      "values": [
+        "none",
+        "addAp",
+        "reboot",
+        "hotspot"
+      ],
+      "init": "none"
+    },
+    "roomAt": {
+      "type": "time",
+      "init": null
+    },
+    "printer": {
+      "type": "enum",
+      "values": [
+        "none",
+        "wired",
+        "extender",
+        "openSsid"
+      ],
+      "init": "none"
+    },
+    "printerAt": {
+      "type": "time",
+      "init": null
+    },
+    "buy": {
+      "type": "enum",
+      "values": [
+        "none",
+        "current",
+        "cheap",
+        "noSecurity"
+      ],
+      "init": "none"
+    },
+    "buyAt": {
+      "type": "time",
+      "init": null
+    },
+    "surveyAt": {
+      "type": "time",
+      "init": null
+    },
+    "apAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(users, mgr), itteam)"
+    },
+    "missCount": {
+      "expr": "((room == \"hotspot\") ? 1 : 0) + ((printer == \"openSsid\") ? 1 : 0) + ((buy == \"noSecurity\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(room == \"none\" or (room == \"hotspot\") ? 1 : 0) + (printer == \"none\" or (printer == \"openSsid\") ? 1 : 0) + (buy == \"none\" or (buy == \"noSecurity\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Support days",
+      "clock": "turns",
+      "actions": [
+        "survey",
+        "ap"
+      ]
+    },
+    "close": {
+      "label": "Support record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "survey": {
+      "label": "Walk the office with a Wi-Fi analyzer",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(surveyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "surveyAt",
+          "to": "t"
+        },
+        {
+          "log": "Walk the office with a Wi-Fi analyzer.",
+          "kind": "act"
+        },
+        {
+          "finding": "Signal in the meeting room is weak and the 2.4 GHz channels are crowded by neighboring offices; the printer's signal drops below usable at the far wall."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "ap": {
+      "label": "Read the access point's specifications",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(apAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "apAt",
+          "to": "t"
+        },
+        {
+          "log": "Read the access point's specifications.",
+          "kind": "act"
+        },
+        {
+          "finding": "An older single-band 2.4 GHz access point from 2014; it supports WPA2 only."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2h"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "A wired second access point on a clearer channel, the plotter on Ethernet, and a dual-band WPA3 access point ordered"
+                },
+                {
+                  "value": "summary",
+                  "label": "Tickets closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next day",
+      "wait": {
+        "skipLabel": "Go to the next day"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "room == \"hotspot\"",
+              "then": [
+                {
+                  "log": "Day 2: a shared drawing set is sent over a personal hotspot to the wrong cloud folder; a client complains.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "printer == \"openSsid\"",
+              "then": [
+                {
+                  "log": "Day 3: a stranger in the parking lot joins the open network and browses the file server.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "buy == \"noSecurity\"",
+              "then": [
+                {
+                  "log": "Day 4: a contractor's laptop captures staff sign-ins from the unencrypted Wi-Fi.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "1d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The week's tickets close.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "1d"
+        }
+      ]
+    },
+    {
+      "id": "t_room",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 1: video calls drop.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "roomPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_printer",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 2: the plotter drops.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "printerPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_buy",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Day 3: the purchase.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "buyPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "roomPrompt": {
+      "title": "A slow meeting room",
+      "context": "Client calls in the meeting room keep freezing.",
+      "choices": [
+        {
+          "id": "addAp",
+          "label": "Add a second access point near the meeting room, wired back to the switch, on a less crowded channel, with 5 GHz for laptops",
+          "effects": [
+            {
+              "set": "room",
+              "to": "\"addAp\""
+            },
+            {
+              "set": "roomAt",
+              "to": "t"
+            },
+            {
+              "log": "Calls run smoothly in the meeting room.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A survey shows weak signal and crowded channels; a wired access point on a clearer channel and band fixes coverage."
+        },
+        {
+          "id": "reboot",
+          "label": "Reboot the access point every morning",
+          "effects": [
+            {
+              "set": "room",
+              "to": "\"reboot\""
+            },
+            {
+              "set": "roomAt",
+              "to": "t"
+            },
+            {
+              "log": "A daily reboot is scheduled.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The signal is still weak and the channel still crowded."
+        },
+        {
+          "id": "hotspot",
+          "label": "Tell staff to use their phones' hotspots for client calls",
+          "effects": [
+            {
+              "set": "room",
+              "to": "\"hotspot\""
+            },
+            {
+              "set": "roomAt",
+              "to": "t"
+            },
+            {
+              "log": "Staff use personal hotspots.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Client files now cross unmanaged personal connections outside the firm's controls."
+        }
+      ]
+    },
+    "printerPrompt": {
+      "title": "A fixed printer far from the access point",
+      "context": "Large print jobs fail halfway.",
+      "choices": [
+        {
+          "id": "wired",
+          "label": "Run an Ethernet cable from the switch to the plotter, which never moves",
+          "effects": [
+            {
+              "set": "printer",
+              "to": "\"wired\""
+            },
+            {
+              "set": "printerAt",
+              "to": "t"
+            },
+            {
+              "log": "Print jobs complete.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A fixed device far from the access point is best connected by cable."
+        },
+        {
+          "id": "extender",
+          "label": "Add a wireless range extender near the printer",
+          "effects": [
+            {
+              "set": "printer",
+              "to": "\"extender\""
+            },
+            {
+              "set": "printerAt",
+              "to": "t"
+            },
+            {
+              "log": "An extender is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Better signal, but extenders halve throughput and add another point of failure."
+        },
+        {
+          "id": "openSsid",
+          "label": "Create an open network with no password next to the printer",
+          "effects": [
+            {
+              "set": "printer",
+              "to": "\"openSsid\""
+            },
+            {
+              "set": "printerAt",
+              "to": "t"
+            },
+            {
+              "log": "An open network is created.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Anyone nearby can join the office network."
+        }
+      ]
+    },
+    "buyPrompt": {
+      "title": "Which access point to buy",
+      "context": "The 2014 single-band access point is due for replacement.",
+      "choices": [
+        {
+          "id": "current",
+          "label": "Buy a current-standard dual-band access point that supports WPA3, and configure WPA3 with WPA2 fallback for older devices",
+          "effects": [
+            {
+              "set": "buy",
+              "to": "\"current\""
+            },
+            {
+              "set": "buyAt",
+              "to": "t"
+            },
+            {
+              "log": "A dual-band WPA3 access point is ordered.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A current dual-band access point adds the less crowded 5 GHz band, and WPA3 is the current Wi-Fi security standard."
+        },
+        {
+          "id": "cheap",
+          "label": "Buy the cheapest single-band model",
+          "effects": [
+            {
+              "set": "buy",
+              "to": "\"cheap\""
+            },
+            {
+              "set": "buyAt",
+              "to": "t"
+            },
+            {
+              "log": "A single-band model is ordered.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It repeats today's crowded 2.4 GHz problem."
+        },
+        {
+          "id": "noSecurity",
+          "label": "Buy a used access point that only supports open, unencrypted networks",
+          "effects": [
+            {
+              "set": "buy",
+              "to": "\"noSecurity\""
+            },
+            {
+              "set": "buyAt",
+              "to": "t"
+            },
+            {
+              "log": "A used model is bought.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Every connection in the office would be readable over the air."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the support record for the office manager.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Coverage",
+          "criteria": "Survey; second wired access point; plotter wired.",
+          "modelAnswer": "The survey showed weak signal and crowded channels; a second wired access point fixed the meeting room, and the plotter is now on a cable."
+        },
+        {
+          "label": "Purchase",
+          "criteria": "Dual-band access point with WPA3.",
+          "modelAnswer": "We ordered a current dual-band access point and configured WPA3 with WPA2 fallback for older devices."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (room == \"reboot\") and (printer == \"extender\") and (buy == \"cheap\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA Tech+ FC0-U71 (V6) Exam Objectives, document version 4.0: IT Concepts and Terminology 13%, Infrastructure 24%, Applications and Software 18%, Software Development 13%, Data and Databases 13%, Security 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://lecbyo.files.cmp.optimizely.com/download/1e77e02ebef111efbcf946d2fe8fe33a",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's PDF. Relevant text: 'Identify basic networking concepts' (IP address, MAC address, router); 'Explain methods to secure devices and security best practices' (anti-malware, patching); 'Explain the troubleshooting methodology' ('Identify the problem'; 'Establish a theory of probable cause (question the obvious)'; 'Verify full system functionality and, if applicable, implement preventive measures'). The objective wording here is the course seed's. Reused for REQ-336 from this course's rogue-dhcp-soho-office-techplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "roomHarm": {
+      "label": "Client files exposed",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and room == \"hotspot\"",
+      "narrative": "Using personal hotspots sent client files outside the firm's control."
+    },
+    "printerHarm": {
+      "label": "The office network opened",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and printer == \"openSsid\"",
+      "narrative": "An open network let a stranger reach the file server."
+    },
+    "buyHarm": {
+      "label": "Sign-ins captured",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and buy == \"noSecurity\"",
+      "narrative": "Unencrypted Wi-Fi exposed staff sign-ins."
+    },
+    "target": {
+      "label": "Wi-Fi that works and stays private",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (room == \"addAp\") and (printer == \"wired\") and (buy == \"current\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "Calls stay up, the plotter prints, and the network is secured with current standards."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "roomHarm",
+    "printerHarm",
+    "buyHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "roomCrit",
+        "label": "Fixed coverage from the survey instead of guessing",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "room == \"addAp\"",
+            "score": "met",
+            "why": "Fixed at the cause."
+          },
+          {
+            "when": "room == \"reboot\"",
+            "score": "partial",
+            "why": "Symptom only."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmanaged."
+          }
+        ]
+      },
+      {
+        "id": "printerCrit",
+        "label": "Connected the fixed device by cable",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "printer == \"wired\"",
+            "score": "met",
+            "why": "Reliable."
+          },
+          {
+            "when": "printer == \"extender\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsecured."
+          }
+        ]
+      },
+      {
+        "id": "buyCrit",
+        "label": "Bought a current dual-band access point with current security",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "buy == \"current\"",
+            "score": "met",
+            "why": "Current."
+          },
+          {
+            "when": "buy == \"cheap\"",
+            "score": "partial",
+            "why": "Same problem."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Insecure."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(surveyAt) and not isNull(apAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(surveyAt) or not isNull(apAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Survey the signal before changing anything."
+      },
+      {
+        "at": "Day 1",
+        "text": "Add a wired access point on a clearer channel."
+      },
+      {
+        "at": "Day 2",
+        "text": "Wire the fixed printer."
+      },
+      {
+        "at": "Day 3",
+        "text": "Buy a current dual-band access point with WPA3."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "roomHarm": {
+        "headline": "Fix coverage",
+        "body": "Survey and add coverage."
+      },
+      "printerHarm": {
+        "headline": "Never open the network",
+        "body": "Wire fixed devices."
+      },
+      "buyHarm": {
+        "headline": "Buy current and secure",
+        "body": "Dual-band and WPA3."
+      },
+      "target": {
+        "headline": "Good: wi-Fi that works and stays private",
+        "body": "Survey, wire fixed devices and buy current."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Wireless problems start with a survey: weak signal and crowded channels are fixed with better placement, more access points and the less crowded band. Fixed devices belong on cables. New equipment should support current standards and security; never open the network to fix a symptom."
+  }
+}
