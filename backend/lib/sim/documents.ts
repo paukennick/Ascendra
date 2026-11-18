@@ -553,6 +553,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AWSSAP", "nat-gateway-bill-spike-sap"),
   band("AWSSAP", "canary-rollback-dlq-sap"),
   band("AWSSAP", "dynamodb-backfill-throttles-checkout-sap"),
+  entry("AZ120", "fence-agent-lost-role-before-maintenance"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----

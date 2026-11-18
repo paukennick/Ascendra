@@ -322,4 +322,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ120 fence-agent-lost-role-before-maintenance: turning STONITH off risks two primaries; restarting Pacemaker changes nothing; restoring the fence role lets HANA move before maintenance", () => {
+    const d = docOf("fence-agent-lost-role-before-maintenance");
+    const h = driver(d);
+    h.act("nostonith");
+    assert.equal(h.value("harmed"), true, "nostonith causes harm");
+    until(h, 121);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("restart");
+    until(n, 121);
+    assert.notEqual(n.value("missAt"), null, "restart changes nothing");
+    const ok = driver(d);
+    ok.act("role");
+    until(ok, 121);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });
