@@ -1,0 +1,1056 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "walk-test-booked-two-weeks-after-mi",
+  "title": "Booked two weeks after a heart attack",
+  "objective": "Screen before a 6-minute walk: acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and resting heart rate over 120 bpm are relative ones",
+  "secondaryObjectives": [
+    "History and chart review: cardiac and pulmonary diagnoses, procedures, devices, labs and medications that change the plan"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: cardiovascular and pulmonary (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/cardiovascular-pulmonary/exam-outline",
+      "note": "Relayed from the cardiovascular and pulmonary specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Examination (15%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra cardiovascular and pulmonary specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSCCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: before a 6-minute walk, acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and a resting heart rate over 120 bpm are relative ones (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "13:00 in an outpatient pulmonary rehabilitation clinic. You are the physical therapist. Mrs. Patel, 66, with interstitial lung disease, is booked for her intake 6-minute walk test. The referral was written six weeks ago.",
+    "handover": [
+      "She says she 'had a little heart thing' and a hospital stay recently but feels fine now.",
+      "Clinic policy: screen the record and the patient before any exercise test; a contraindication defers the test and the referring physician is told the same day."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "13:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Waiting is safe; exercising her is not. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Deferred. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of ischemia during testing. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring physician told within 5 minutes of finding the event (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to rebook and finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "chartAt": {
+      "type": "time",
+      "init": null
+    },
+    "restAt": {
+      "type": "time",
+      "init": null
+    },
+    "medsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "chart",
+        "rest",
+        "meds"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "no",
+        "yes",
+        "slow"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "walkAt": {
+      "type": "time",
+      "init": null
+    },
+    "deferAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(isNull(walkAt) ? 84 : 112 + 30 * max(0, prog - 0.6))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(isNull(walkAt) ? 134 : 150)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.58)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "round(isNull(walkAt) ? 94 : 89 - 6 * max(0, prog - 0.7))",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(walkAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Patel, 66, pulmonary rehabilitation intake for interstitial lung disease",
+        "presentation": "Booked for a baseline 6-minute walk test. {not isNull(walkAt) ? \"Walking the course.\" : \"Seated.\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "colour": "spo2",
+          "alarm": {
+            "low": 88
+          },
+          "announce": {
+            "bands": [
+              91,
+              88
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone home with a new date.\" : (not isNull(walkAt) ? \"Walking the 30 m course.\" : \"Seated in the gym.\")}",
+      "measures": [
+        {
+          "id": "chartResult",
+          "label": "Record",
+          "result": "Admitted 13 days ago with an NSTEMI; medically managed; discharged 9 days ago.",
+          "when": "not isNull(chartAt)",
+          "flag": "true"
+        },
+        {
+          "id": "restResult",
+          "label": "Resting",
+          "result": "HR 84, BP 134/78, SpO2 94%; no chest pain.",
+          "when": "not isNull(restAt)"
+        },
+        {
+          "id": "medsResult",
+          "label": "Medications",
+          "result": "New antiplatelet, beta-blocker and statin since discharge.",
+          "when": "not isNull(medsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Walk test deferred",
+            "when": "isNull(walkAt)"
+          },
+          {
+            "label": "Referring physician called",
+            "when": "route == \"md\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleAcs",
+          "label": "Acute coronary syndrome in the past 30 days",
+          "text": "Absolute contraindication to the walk test.",
+          "met": "not isNull(chartAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "chart": {
+      "label": "Review the hospital records since the referral",
+      "group": "Examine",
+      "available": "not testPending and isNull(chartAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"chart\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "rest": {
+      "label": "Resting vitals and symptoms",
+      "group": "Examine",
+      "available": "not testPending and isNull(restAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"rest\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "meds": {
+      "label": "Medication list and any new cardiac drugs",
+      "group": "Examine",
+      "available": "not testPending and isNull(medsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"meds\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "walk": {
+      "label": "Go ahead with the walk test since she feels fine",
+      "group": "Treat",
+      "available": "isNull(walkAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "walkAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "At 3 minutes she stops with chest tightness and sweating.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "defer": {
+      "label": "Defer the walk test and explain why",
+      "group": "Treat",
+      "available": "isNull(deferAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "deferAt",
+          "to": "t"
+        },
+        {
+          "log": "Walk test deferred; she understands it is about her heart's healing.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Can she do the walk test today?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "no",
+              "label": "No: an acute coronary syndrome 13 days ago is an absolute contraindication (within 30 days)"
+            },
+            {
+              "value": "yes",
+              "label": "Yes: she feels fine and her vitals are normal"
+            },
+            {
+              "value": "slow",
+              "label": "Yes, at a slower pace"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"no\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"no\""
+                },
+                {
+                  "log": "Absolute contraindication.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"yes\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"yes\""
+                },
+                {
+                  "log": "Read as cleared.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"slow\""
+                },
+                {
+                  "log": "Read as modifiable.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call the referring pulmonologist: NSTEMI 13 days ago, walk test deferred; ask about cardiology clearance and cardiac rehabilitation timing"
+            },
+            {
+              "value": "none",
+              "label": "Rebook it for next week without telling anyone"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The pulmonologist agrees, asks cardiology to see her, and reschedules the walk test after 30 days.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Rebooked for next week.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document the screen, the contraindication and the plan",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Screen, contraindication and plan documented.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pulmonary rehab clinic",
+      "clock": "running",
+      "actions": [
+        "chart",
+        "rest",
+        "meds",
+        "walk",
+        "defer",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"chart\"",
+              "then": [
+                {
+                  "set": "chartAt",
+                  "to": "t"
+                },
+                {
+                  "log": "An admission 13 days ago for a non-ST-elevation myocardial infarction, medically managed; discharged 9 days ago. Acute coronary syndrome within 30 days.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"rest\"",
+              "then": [
+                {
+                  "set": "restAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Heart rate 84, blood pressure 134/78, SpO2 94%; no chest pain today.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "medsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "New antiplatelet therapy, a beta-blocker and a statin since discharge.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to rebook and finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with a new date and a cardiology referral.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Can Mrs. Patel do her walk test today?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "No: an NSTEMI 13 days ago is an acute coronary syndrome within 30 days, the one established absolute contraindication to a 6-minute walk test, whatever her resting vitals.",
+          "modelAnswer": "No. She had an NSTEMI 13 days ago, and an ACS in the last 30 days is the absolute contraindication, even though she feels fine."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Defers the test, explains why, tells the referring physician and documents; relative contraindications (uncontrolled hypertension, resting heart rate over 120) are weighed but are not the issue here.",
+          "modelAnswer": "Defer it, explain it to her, call the pulmonologist, and document it."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring physician told within 5 minutes of finding the event (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "An exercise test given through an absolute contraindication is harm here.",
+      "source": {
+        "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: before a 6-minute walk, acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and a resting heart rate over 120 bpm are relative ones (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "ischemia": {
+      "label": "Ischemia during testing",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She develops chest tightness and ST changes on the clinic monitor; 911 is called."
+    },
+    "safe": {
+      "label": "Screened and deferred",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(chartAt)) and isNull(walkAt) and (not isNull(deferAt))",
+      "narrative": "{timeAt(leftAt)|clock}: the test is deferred and her physicians know."
+    },
+    "safeGaps": {
+      "label": "Deferred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the test was handled, but the call was slow or the record was not reviewed."
+    },
+    "time_up": {
+      "label": "Undecided at 14:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "14:00 and no decision."
+    }
+  },
+  "endingOrder": [
+    "ischemia",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring physician told within 5 minutes of finding the event",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "chartC",
+        "label": "Reviewed the record for new events since the referral",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(chartAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reviewed."
+          }
+        ]
+      },
+      {
+        "id": "deferC",
+        "label": "Deferred the test for an absolute contraindication",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(walkAt)",
+            "score": "missed",
+            "why": "Tested anyway."
+          },
+          {
+            "when": "not isNull(deferAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not deferred."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Checked resting vitals and medications",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(restAt) and not isNull(medsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(restAt) or not isNull(medsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Identified the absolute contraindication",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"no\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"yes\"",
+            "score": "missed",
+            "why": "ACS within 30 days is absolute."
+          },
+          {
+            "when": "dxEnum == \"slow\"",
+            "score": "missed",
+            "why": "An absolute contraindication is not modified."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: ACS within 30 days is an absolute contraindication; defer and report",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Event found to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "13:00 to the record review",
+        "value": "isNull(chartAt) ? -1 : timeAt(chartAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "13:00",
+        "text": "Review records since the referral: NSTEMI 13 days ago."
+      },
+      {
+        "at": "~13:01",
+        "text": "Defer the test; explain."
+      },
+      {
+        "at": "~13:02",
+        "text": "Call the pulmonologist."
+      },
+      {
+        "at": "~13:04",
+        "text": "Resting vitals and medications; document."
+      }
+    ],
+    "debrief": {
+      "ischemia": {
+        "headline": "Ischemia during testing",
+        "body": "Screen before every walk test: an acute coronary syndrome in the past 30 days is an absolute contraindication."
+      },
+      "safe": {
+        "headline": "Screened and deferred",
+        "body": "You reviewed the record, found the recent event, deferred the test and told the referring physician within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Deferred, with gaps",
+        "body": "Check whether you reviewed the record and how soon you reported."
+      },
+      "time_up": {
+        "headline": "Undecided at 14:00",
+        "body": "Screen and decide in the visit."
+      }
+    },
+    "modelReasoning": "Screen the record and the patient before a 6-minute walk test. An acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and a resting heart rate over 120 bpm are relative ones. Mrs. Patel's referral predates an NSTEMI 13 days ago, so the test is deferred and the referring physician told."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "absQ": {
+      "during": "testT",
+      "ask": "While you review: what is the established absolute contraindication to a 6-minute walk test?",
+      "choices": [
+        {
+          "id": "acs",
+          "label": "Acute coronary syndrome in the past 30 days"
+        },
+        {
+          "id": "o2",
+          "label": "Using home oxygen"
+        },
+        {
+          "id": "age",
+          "label": "Age over 65"
+        }
+      ],
+      "expect": "acs",
+      "explain": "Acute coronary syndrome in the past 30 days is the one established absolute contraindication.",
+      "source": {
+        "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: before a 6-minute walk, acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and a resting heart rate over 120 bpm are relative ones (the course objective's wording)."
+      }
+    },
+    "relQ": {
+      "during": "leaveT",
+      "ask": "While she rebooks: which are relative contraindications?",
+      "choices": [
+        {
+          "id": "rel",
+          "label": "Uncontrolled hypertension, resting heart rate over 120"
+        },
+        {
+          "id": "cough",
+          "label": "A dry cough"
+        },
+        {
+          "id": "none",
+          "label": "There are none"
+        }
+      ],
+      "expect": "rel",
+      "explain": "Uncontrolled hypertension and a resting heart rate over 120 bpm are relative contraindications.",
+      "source": {
+        "cite": "Matos Casano HA, et al.. Six-Minute Walk Test. StatPearls (updated 2025-07-07), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-6MWT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: before a 6-minute walk, acute coronary syndrome in the past 30 days is the one established absolute contraindication; uncontrolled hypertension and a resting heart rate over 120 bpm are relative ones (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
