@@ -670,6 +670,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NSCACSCS", "cscs-shuttle-test-trait-on-file"),
   entry("NSCACSCS", "cscs-winter-return-gut-check-squats"),
   entry("NREMTEMR", "emr-line-down-on-the-car"),
+  entry("NREMTEMR", "emr-finish-line-confused-runner"),
+  entry("NREMTEMR", "emr-head-cut-wants-to-drive-home"),
   // ---- end REQ-338 ----
 ];
 
