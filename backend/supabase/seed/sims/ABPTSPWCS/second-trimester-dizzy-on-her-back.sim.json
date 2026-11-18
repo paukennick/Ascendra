@@ -1,0 +1,1083 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "second-trimester-dizzy-on-her-back",
+  "title": "Dizzy on her back at 26 weeks",
+  "objective": "Prescribe exercise in pregnancy (about 150 minutes a week of moderate activity, checked with the talk test), avoiding the supine position, contact sports, fall-risk sports and altitude changes",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pelvic and women's health (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health",
+      "note": "Relayed from the pelvic and women's health specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client management (55%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pelvic and women's health specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPWCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Cooper DB, Yang L. Pregnancy and Exercise. StatPearls (updated 2023-04-17), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-PREG; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: prescribe exercise in pregnancy at about 150 minutes a week of moderate activity checked with the talk test, avoiding the supine position, contact sports, fall-risk sports and altitude changes; stop for warning signs (the course objectives' wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "11:00 in an outpatient pelvic health clinic. You are the physical therapist. Ms. Rossi, 30, is 26 weeks pregnant with an uncomplicated pregnancy and low back pain. She ran and did CrossFit before pregnancy and asks for 'a real workout plan'.",
+    "handover": [
+      "Her obstetric provider has cleared her for exercise.",
+      "Clinic policy: stop exercise for warning signs and position a pregnant patient on her left side if she becomes symptomatic lying flat; tell her obstetric provider of any warning sign."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.03,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Lying flat compresses the great vessels and her pressure falls. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It recovers on her left side. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of faint and fall. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Her obstetric provider told within 5 minutes of the episode (clinic policy)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the plan."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.2,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "supineAt": {
+      "type": "time",
+      "init": null
+    },
+    "talkAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "supine",
+        "talk"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ob",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "supine",
+        "hungry",
+        "unfit"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "sideAt": {
+      "type": "time",
+      "init": null
+    },
+    "continueExAt": {
+      "type": "time",
+      "init": null
+    },
+    "planAt": {
+      "type": "time",
+      "init": null
+    },
+    "hiitAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(92 + 20 * max(0, prog - 0.4))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(118 - 40 * max(0, prog - 0.4))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.6)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(supineAt) or not isNull(sideAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Rossi, 30, 26 weeks pregnant",
+        "presentation": "Low back pain; wants a safe exercise plan."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone home with a plan.\" : (not isNull(sideAt) ? \"Lying on her left side, recovering.\" : (not isNull(supineAt) ? \"Lying flat on her back doing bridges, pale.\" : \"Seated on a ball.\"))}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Uncomplicated; no bleeding, contractions or headaches; walking 20 minutes most days.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "supineResult",
+          "label": "Supine exercise",
+          "result": "After 3 minutes: dizzy, pale, nauseated; BP falling.",
+          "when": "not isNull(supineAt)",
+          "flag": "true"
+        },
+        {
+          "id": "talkResult",
+          "label": "Talk test",
+          "result": "Can hold a conversation at a moderate effort.",
+          "when": "not isNull(talkAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Supine exercise avoided",
+            "when": "isNull(continueExAt)"
+          },
+          {
+            "label": "Plan: about 150 min a week, talk test",
+            "when": "not isNull(planAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleSupine",
+          "label": "Dizzy and pale lying on her back",
+          "text": "Turn her onto her left side now; no supine exercise in her plan.",
+          "met": "not isNull(supineAt) and isNull(sideAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "History: pregnancy course, warning signs, current activity, goals",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "supine": {
+      "label": "Start her bridges and pelvic tilts lying flat on her back",
+      "group": "Examine",
+      "available": "not testPending and isNull(supineAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"supine\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "talk": {
+      "label": "Teach the talk test on the bike",
+      "group": "Examine",
+      "available": "not testPending and isNull(talkAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"talk\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "side": {
+      "label": "Turn her onto her left side and recheck",
+      "group": "Treat",
+      "available": "isNull(sideAt) and inClinic and not isNull(supineAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "sideAt",
+          "to": "t"
+        },
+        {
+          "log": "On her left side; within two minutes the dizziness passes and her color returns.",
+          "kind": "act"
+        }
+      ]
+    },
+    "continueEx": {
+      "label": "Encourage her to push through the last set of bridges",
+      "group": "Treat",
+      "available": "isNull(continueExAt) and inClinic and not isNull(supineAt)",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "continueExAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "She keeps going flat on her back and nearly faints.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "plan": {
+      "label": "Plan: about 150 minutes a week of moderate activity by talk test; side-lying or inclined instead of flat on her back; no contact or fall-risk sports or altitude changes; warning signs to stop",
+      "group": "Treat",
+      "available": "isNull(planAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "planAt",
+          "to": "t"
+        },
+        {
+          "log": "She has a written plan she can follow.",
+          "kind": "act"
+        }
+      ]
+    },
+    "hiit": {
+      "label": "Give her a CrossFit-style plan with heavy lifting to failure and box jumps",
+      "group": "Treat",
+      "available": "isNull(hiitAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "hiitAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.2, 2)"
+        },
+        {
+          "log": "A high-intensity plan with box jumps.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why did she feel faint?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "supine",
+              "label": "Supine hypotension: the uterus compresses the great vessels when she lies flat after the first trimester"
+            },
+            {
+              "value": "hungry",
+              "label": "Low blood sugar from skipping breakfast"
+            },
+            {
+              "value": "unfit",
+              "label": "She is out of shape"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"supine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"supine\""
+                },
+                {
+                  "log": "Supine hypotension.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"hungry\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"hungry\""
+                },
+                {
+                  "log": "Read as low sugar.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"unfit\""
+                },
+                {
+                  "log": "Read as fitness.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ob",
+              "label": "Message her obstetric provider: brief supine hypotension at 26 weeks, resolved on her left side; plan avoids supine exercise"
+            },
+            {
+              "value": "none",
+              "label": "Nothing to report"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ob\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ob\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Her obstetric provider acknowledges and agrees with the plan.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Not reported.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Document and give her the warning signs to stop exercise",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Warning signs taught: bleeding, painful contractions, fluid leak, dizziness, headache, chest pain, calf pain or swelling, breathlessness before exertion.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pelvic health clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "supine",
+        "talk",
+        "side",
+        "continueEx",
+        "plan",
+        "hiit",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Uncomplicated pregnancy; no bleeding, contractions, headaches or calf pain; walking 20 minutes most days.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"supine\"",
+              "then": [
+                {
+                  "set": "supineAt",
+                  "to": "t"
+                },
+                {
+                  "log": "After 3 minutes flat on her back she is dizzy, pale and nauseated, and her blood pressure is falling: supine hypotension.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "talkAt",
+                  "to": "t"
+                },
+                {
+                  "log": "At a moderate effort she can talk but not sing: the talk test.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the plan."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with her plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why did she feel faint, and what plan do you give her?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "After the first trimester, lying flat lets the uterus compress the great vessels and drops blood pressure: supine hypotension.",
+          "modelAnswer": "Lying flat at 26 weeks, the baby's weight squeezes the big vessels and her pressure drops. That's why she got dizzy."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Turns her onto her left side, then prescribes about 150 minutes a week of moderate activity by the talk test, avoiding supine positions, contact and fall-risk sports and altitude changes, and teaches warning signs.",
+          "modelAnswer": "Roll her onto her left side, then give her about 150 minutes a week of moderate exercise by the talk test, no lying flat, no contact or fall-risk sports, and teach her when to stop."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "Her obstetric provider told within 5 minutes of the episode (clinic policy)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Supine exercise continued through symptoms is harm here.",
+      "source": {
+        "cite": "Cooper DB, Yang L. Pregnancy and Exercise. StatPearls (updated 2023-04-17), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-PREG; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: prescribe exercise in pregnancy at about 150 minutes a week of moderate activity checked with the talk test, avoiding the supine position, contact sports, fall-risk sports and altitude changes; stop for warning signs (the course objectives' wording)."
+      }
+    }
+  },
+  "endings": {
+    "faint": {
+      "label": "Faint and fall",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She faints on the mat; her blood pressure is 74/40 until she is rolled onto her side."
+    },
+    "safe": {
+      "label": "Safe plan",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ob\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(continueExAt) and (not isNull(sideAt)) and isNull(hiitAt) and (not isNull(planAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she recovered on her side and has a safe, effective plan."
+    },
+    "safeGaps": {
+      "label": "Planned, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she has a plan, but the episode was handled slowly or the plan was unsafe."
+    },
+    "time_up": {
+      "label": "Unfinished at 12:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "12:00."
+    }
+  },
+  "endingOrder": [
+    "faint",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "Her obstetric provider told within 5 minutes of the episode",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ob\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ob\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "sideC",
+        "label": "Turned her onto her left side at once",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(continueExAt)",
+            "score": "missed",
+            "why": "Pushed on flat."
+          },
+          {
+            "when": "not isNull(sideAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not repositioned."
+          }
+        ]
+      },
+      {
+        "id": "planC",
+        "label": "Prescribed a safe plan: about 150 min a week, talk test, no supine, no fall-risk sports",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(hiitAt)",
+            "score": "missed",
+            "why": "Unsafe high-intensity plan."
+          },
+          {
+            "when": "not isNull(planAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No plan."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took the pregnancy history and taught the talk test",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt) and not isNull(talkAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hxAt) or not isNull(talkAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized supine hypotension",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"supine\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"hungry\"",
+            "score": "missed",
+            "why": "It came on lying flat and resolved on her side."
+          },
+          {
+            "when": "dxEnum == \"unfit\"",
+            "score": "missed",
+            "why": "She is fit; this is position."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Documented and taught warning signs",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: supine hypotension; safe pregnancy exercise prescription",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Symptoms to the report",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "11:00 to her left side",
+        "value": "isNull(sideAt) ? -1 : timeAt(sideAt)",
+        "format": "duration",
+        "expert": "under 6 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "11:00",
+        "text": "History: uncomplicated, cleared."
+      },
+      {
+        "at": "~11:04",
+        "text": "Flat on her back: dizzy and pale."
+      },
+      {
+        "at": "~11:05",
+        "text": "Left side; recovered; message her provider."
+      },
+      {
+        "at": "~11:07",
+        "text": "Talk test; 150 min/week plan without supine; warning signs."
+      }
+    ],
+    "debrief": {
+      "faint": {
+        "headline": "Faint and fall",
+        "body": "After the first trimester, lying flat can compress the great vessels and drop the blood pressure. Turn her onto her left side, and build her plan without supine exercise."
+      },
+      "safe": {
+        "headline": "Safe plan",
+        "body": "You turned her onto her side at once and prescribed about 150 minutes a week of moderate exercise by the talk test, avoiding supine, contact and fall-risk activity. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Planned, with gaps",
+        "body": "Check how fast you repositioned her and whether the plan avoided supine and high-risk activity."
+      },
+      "time_up": {
+        "headline": "Unfinished at 12:00",
+        "body": "Finish with a safe plan."
+      }
+    },
+    "modelReasoning": "Exercise in pregnancy: about 150 minutes a week of moderate activity checked with the talk test, avoiding the supine position, contact sports, fall-risk sports and altitude changes, and stopping for warning signs. Ms. Rossi's dizziness flat on her back is supine hypotension: turn her onto her left side, then build her plan with inclined or side-lying positions."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "doseQ": {
+      "during": "testT",
+      "ask": "While you work: what weekly dose of exercise suits an uncomplicated pregnancy?",
+      "choices": [
+        {
+          "id": "dose",
+          "label": "About 150 minutes of moderate activity, by the talk test"
+        },
+        {
+          "id": "zero",
+          "label": "None; rest"
+        },
+        {
+          "id": "max",
+          "label": "Maximal intervals daily"
+        }
+      ],
+      "expect": "dose",
+      "explain": "About 150 minutes a week of moderate activity checked with the talk test.",
+      "source": {
+        "cite": "Cooper DB, Yang L. Pregnancy and Exercise. StatPearls (updated 2023-04-17), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-PREG; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: prescribe exercise in pregnancy at about 150 minutes a week of moderate activity checked with the talk test, avoiding the supine position, contact sports, fall-risk sports and altitude changes; stop for warning signs (the course objectives' wording)."
+      }
+    },
+    "avoidQ": {
+      "during": "leaveT",
+      "ask": "While she leaves: which should she avoid?",
+      "choices": [
+        {
+          "id": "avoid",
+          "label": "Lying flat, contact sports, fall-risk sports, altitude changes"
+        },
+        {
+          "id": "walk",
+          "label": "Walking"
+        },
+        {
+          "id": "swim",
+          "label": "Swimming"
+        }
+      ],
+      "expect": "avoid",
+      "explain": "Avoid the supine position, contact sports, fall-risk sports and altitude changes.",
+      "source": {
+        "cite": "Cooper DB, Yang L. Pregnancy and Exercise. StatPearls (updated 2023-04-17), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-PREG; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: prescribe exercise in pregnancy at about 150 minutes a week of moderate activity checked with the talk test, avoiding the supine position, contact sports, fall-risk sports and altitude changes; stop for warning signs (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
