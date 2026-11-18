@@ -1,0 +1,1571 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "wajp-adult-disclosure-children-at-risk",
+  "title": "Session: an adult's childhood abuse, and the children he lives with now",
+  "mature": true,
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Jenna Marsh",
+        "presentation": "{distress >= 6 ? \"Shaking, holding a cushion against her chest\" : distress >= 3 ? \"Quiet, picking at her sleeve\" : \"Calmer, breathing slowly\"}; {rapport >= 6 ? \"she is talking with you\" : rapport >= 3 ? \"she is careful with what she says\" : \"she has shut down\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "past",
+          "label": "What she told you",
+          "text": "Her uncle, Ray, physically abused her during summers when she was 8 to 12. She has never told anyone.",
+          "when": "pastDisclosed"
+        },
+        {
+          "id": "kids",
+          "label": "Children now",
+          "text": "Ray moved in with her sister Kelsey and the children last month: Ava, 9, and Mason, 6. Ava told Jenna, 'Uncle Ray gets scary.'",
+          "when": "kidsKnown",
+          "alert": "kidsKnown and not reported"
+        },
+        {
+          "id": "report",
+          "label": "Report",
+          "text": "{reported ? \"Made to the intake line.\" : reportedWhen == \"late\" ? \"Put off to next week.\" : reportedWhen == \"never\" ? \"Not made.\" : \"Not yet made.\"}",
+          "when": "kidsKnown"
+        },
+        {
+          "id": "concern",
+          "label": "Concern",
+          "text": "{investigated ? \"You called Kelsey.\" : \"\"} {promised ? \"You promised secrecy.\" : \"\"} {pressured ? \"You told her to go to the police.\" : \"\"}",
+          "when": "investigated or promised or pressured",
+          "alert": "investigated or promised or pressured"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Her disclosure heard without pressing for details",
+            "when": "validated and not pressedDetails"
+          },
+          {
+            "label": "Children at risk now: Ava, 9, and Mason, 6",
+            "when": "kidsKnown"
+          },
+          {
+            "label": "Reported: {reportedWhen}",
+            "when": "reportedWhen != \"none\""
+          },
+          {
+            "label": "Documented: {recordDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Report suspected child abuse or neglect as a mandated reporter, on time and to the right agency",
+  "secondaryObjectives": [
+    "Explain confidentiality with minors, guardians and multiple parties under Washington law",
+    "Explain the protections for people who report in good faith, including whistleblowers"
+  ],
+  "sources": [
+    {
+      "cite": "RCW 26.44.030 (last amended 2025 c 197 s 2 and 2025 c 192 s 2): (1)(a) psychologists are mandated reporters; a report goes 'to the proper law enforcement agency or to the department'; (1)(h) 'at the first opportunity, but in no case longer than 48 hours'; (2) the duty does not cover abuse in childhood discovered after the person is an adult, unless 'there is reasonable cause to believe other children are or may be at risk of abuse or neglect by the accused'",
+      "checkedAt": "2026-11-17",
+      "url": "https://lawfilesext.leg.wa.gov/Law/RCWPDF/RCW%20%2026%20%20TITLE/RCW%20%2026%20.%2044%20%20CHAPTER/RCW%20%2026%20.%2044%20.030.pdf",
+      "note": "Read 2026-11-17 in the Legislature's PDF of the section (summarizing fetch with the short quotes given; history begins '[2025 c 197 s 2; 2025 c 192 s 2; 2024 c 298 s 6')."
+    },
+    {
+      "cite": "Chapter 246-924 WAC, rules of ethical conduct, as the Washington jurisprudence course records them: 246-924-359 (terminate when the client no longer needs or benefits from the service, and offer help finding alternatives); 246-924-363 (disclose without written consent only as chapter 70.02 RCW allows); 246-924-354 (records)",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/wac/default.aspx?cite=246-924-351",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/wa-psych-jurisprudence.ts, sources read 2026-11-14 for REQ-289); not re-read for this case."
+    },
+    {
+      "cite": "APA, Ethical Principles of Psychologists and Code of Conduct (2002, amended 2010 and 2016, effective 2017-01-01): 1.04, 1.05 (reporting does not apply when an intervention would violate confidentiality rights), 3.04, 3.05(a)-(b) (multiple relationships not reasonably expected to impair or harm are not unethical), 4.01, 4.02, 4.05(b), 10.10(c)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apa.org/ethics/code",
+      "note": "Read 2026-11-17 on apa.org (summarizing fetch with short quotes, e.g. 3.05(a) 'refrain from entering into a multiple relationship if' it could impair objectivity or risk harm; 10.10(c) 'prior to termination psychologists provide pretermination counseling and suggest alternative service providers'). Paraphrased, not reproduced."
+    },
+    {
+      "cite": "Washington DOH, Jurisprudence Exam RCW and WAC References (the laws the exam draws on: chapters 18.83 and 18.130 RCW, 246-924 and 246-16 WAC, RCW 26.44.030, chapters 70.02 and 74.34 RCW)",
+      "checkedAt": "2026-11-14",
+      "url": "https://doh.wa.gov/licenses-permits-and-certificates/professions-new-renew-or-update/psychologist/jurisprudence-exam-rcw-and-wac-references",
+      "note": "Relayed from the course seed (read 2026-11-14); not re-read for this case."
+    },
+    {
+      "cite": "Ascendra Washington Psychology Jurisprudence course catalog (backend/supabase/seed/tracks/wa-psych-jurisprudence.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed psychologist in outpatient practice in Washington. Jenna Marsh, 27 (a fictional client), has seen you for three months for depression. Today she sits down and says there is something she has never told anyone. You have 50 minutes.",
+    "handover": [
+      "Depression, moderate, improving with weekly therapy; works at a veterinary clinic; close to her older sister, Kelsey, who has two children.",
+      "At intake you explained the limits of confidentiality in writing, including mandated reports of child abuse."
+    ],
+    "howItWorks": [
+      "Choose what to say and do from the action groups. Jenna answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she discloses change with what you say. What she tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation and document."
+    ]
+  },
+  "clock": {
+    "start": "11:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-17",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 4,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "pastDisclosed": {
+      "type": "bool",
+      "init": false
+    },
+    "validated": {
+      "type": "bool",
+      "init": false
+    },
+    "pressedDetails": {
+      "type": "bool",
+      "init": false
+    },
+    "kidsKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "toldHer": {
+      "type": "bool",
+      "init": false
+    },
+    "reported": {
+      "type": "bool",
+      "init": false
+    },
+    "investigated": {
+      "type": "bool",
+      "init": false
+    },
+    "promised": {
+      "type": "bool",
+      "init": false
+    },
+    "askedPermission": {
+      "type": "bool",
+      "init": false
+    },
+    "pressured": {
+      "type": "bool",
+      "init": false
+    },
+    "optionsOffered": {
+      "type": "bool",
+      "init": false
+    },
+    "tonightPlan": {
+      "type": "bool",
+      "init": false
+    },
+    "minimized": {
+      "type": "bool",
+      "init": false
+    },
+    "reportedWhen": {
+      "type": "enum",
+      "values": [
+        "none",
+        "session",
+        "afterSession",
+        "late",
+        "never"
+      ],
+      "init": "none"
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "facts",
+        "opinion"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "invitePast",
+        "validate",
+        "pressDetails",
+        "askAround",
+        "tellDuty",
+        "callNow",
+        "callSister",
+        "promise",
+        "askPermission",
+        "pressPolice",
+        "minimize",
+        "offerOptions",
+        "tonightPlan",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "reportLater",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'Take your time. What's on your mind?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and give the client room to answer.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "She is quiet for a long moment. \"There's something I've never said out loud. I don't know if I can.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Jenna nods slowly. \"It's been sitting on me for years.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "invitePast": {
+      "label": "Invite her to share what she wants to, at her own pace, and only as much as she chooses",
+      "group": "Explore",
+      "available": "not talking and (not pastDisclosed)",
+      "why": "She has told you.",
+      "effects": [
+        {
+          "log": "You tell her she can go at her own pace and share only what she chooses.",
+          "kind": "act"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "set": "pastDisclosed",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "3"
+                },
+                {
+                  "add": "distress",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"When I was eight to twelve I spent summers with my uncle Ray. He hurt me. Physically, a lot. Nobody knew. I never told anyone.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "distress",
+                  "by": "0.5"
+                },
+                {
+                  "finding": "\"Never mind. It's stupid. Forget it.\" (She is not ready yet.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "validate": {
+      "label": "Believe her and acknowledge how hard that was to say, without pressing for details",
+      "group": "Respond",
+      "available": "not talking and (pastDisclosed and not validated)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You tell her you believe her, that it took courage to say, and that she does not have to say more than she wants to.",
+          "kind": "act"
+        },
+        {
+          "set": "validated",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "She lets out a breath. \"I thought you'd ask me a hundred questions.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "pressDetails": {
+      "label": "Ask her to describe exactly what he did to her",
+      "group": "Explore",
+      "available": "not talking and (pastDisclosed and not pressedDetails)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask for the details of what her uncle did.",
+          "kind": "act"
+        },
+        {
+          "set": "pressedDetails",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "She goes still and stares at the floor. \"I can't. I don't want to.\""
+        },
+        {
+          "log": "Pressing for details she has not offered can retraumatize her, and nothing you must decide today depends on them.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAround": {
+      "label": "Ask, gently, whether Ray is around children now",
+      "group": "Ask about risk",
+      "available": "not talking and (pastDisclosed and not kidsKnown)",
+      "why": "Asked (or she has not told you about him yet).",
+      "effects": [
+        {
+          "log": "You ask whether her uncle has contact with any children today.",
+          "kind": "act"
+        },
+        {
+          "set": "kidsKnown",
+          "to": "true"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "\"That's why I'm telling you now. Last month he moved in with Kelsey and her kids. Ava's nine, Mason's six. Ava told me on the phone, 'Uncle Ray gets scary.'\""
+        },
+        {
+          "log": "Her own childhood abuse need not be reported now that she is an adult, but there is reasonable cause to believe Ava and Mason may be at risk from the same man (RCW 26.44.030(2)).",
+          "kind": "alarm"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "tellDuty": {
+      "label": "Tell her honestly: because Ava and Mason may be at risk, you are required to report, what you will say, and that what she does about her own history stays her choice",
+      "group": "Address",
+      "available": "not talking and (kidsKnown and not toldHer)",
+      "why": "Said (or you do not yet know about the children).",
+      "effects": [
+        {
+          "log": "You explain plainly that the law requires you to report because her niece and nephew may be at risk, what the report will say, and that her own history remains hers to decide about.",
+          "kind": "act"
+        },
+        {
+          "set": "toldHer",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "1"
+                },
+                {
+                  "finding": "She cries. \"Kelsey's going to be so angry.\" Then, quietly: \"Okay. I wanted someone to do something. I just couldn't be the one.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-1.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"I told you because I trusted you.\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "callNow": {
+      "label": "Call the child abuse intake line now, with her there: Ray's name and address, the children, what Ava said, and Jenna's own history with him",
+      "group": "Report",
+      "available": "not talking and (kidsKnown and not reported)",
+      "why": "Reported (or you do not yet know about the children).",
+      "effects": [
+        {
+          "log": "You call the state's child abuse intake line and report Ray's name, where he lives, the two children, what Ava said, and that he physically abused Jenna as a child.",
+          "kind": "act"
+        },
+        {
+          "set": "reported",
+          "to": "true"
+        },
+        {
+          "set": "reportedWhen",
+          "to": "\"session\""
+        },
+        {
+          "add": "distress",
+          "by": "0.5"
+        },
+        {
+          "finding": "Intake takes the report and asks how to reach Kelsey's home. Jenna listens, holding the cushion."
+        },
+        {
+          "log": "Reported at the first opportunity, well inside 48 hours, to the department's intake (RCW 26.44.030).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "6min"
+        }
+      ]
+    },
+    "callSister": {
+      "label": "Call her sister Kelsey first to ask whether the kids are all right",
+      "group": "Investigate",
+      "available": "not talking and (kidsKnown and not investigated)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You call Kelsey and ask how the children are doing with Ray in the house.",
+          "kind": "act"
+        },
+        {
+          "set": "investigated",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "add": "distress",
+          "by": "1.5"
+        },
+        {
+          "finding": "Kelsey is cold: \"Why are you asking? Did Jenna say something?\" Ray's voice is in the background."
+        },
+        {
+          "log": "Checking is the investigators' job. Calling the household can tip off the accused, and you shared Jenna's information without her consent.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "promise": {
+      "label": "Promise her nothing she said today will leave this room",
+      "group": "Address",
+      "available": "not talking and (pastDisclosed and not promised)",
+      "why": "Already said.",
+      "effects": [
+        {
+          "log": "You promise her that what she said stays here.",
+          "kind": "act"
+        },
+        {
+          "set": "promised",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "She looks relieved."
+        },
+        {
+          "log": "A promise you cannot keep: children may be at risk, and the report is not optional.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askPermission": {
+      "label": "Ask her whether she wants you to make a report",
+      "group": "Address",
+      "available": "not talking and (pastDisclosed and not askedPermission and not reported)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask Jenna whether she wants you to report.",
+          "kind": "act"
+        },
+        {
+          "set": "askedPermission",
+          "to": "true"
+        },
+        {
+          "finding": "\"No. Please. Kelsey will never speak to me again.\""
+        },
+        {
+          "log": "When children may be at risk, the report is not hers to permit or refuse (RCW 26.44.030).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "pressPolice": {
+      "label": "Tell her she has to report what Ray did to her to the police",
+      "group": "Address",
+      "available": "not talking and (pastDisclosed and not pressured)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell Jenna she must go to the police about her own abuse.",
+          "kind": "act"
+        },
+        {
+          "set": "pressured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "\"I'm not ready for that. You're not listening.\""
+        },
+        {
+          "log": "She is an adult; what to do about her own abuse is her decision. Offer options, not orders.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "minimize": {
+      "label": "Tell her it was a long time ago and the focus should be on the present",
+      "group": "Respond",
+      "available": "not talking and (pastDisclosed and not minimized)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You suggest it was long ago and she should focus on now.",
+          "kind": "act"
+        },
+        {
+          "set": "minimized",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1"
+        },
+        {
+          "finding": "She pulls the cushion closer and says nothing."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "offerOptions": {
+      "label": "Tell her about her own options, at her pace: a victim advocate, a police report if and when she chooses, and working on this in therapy",
+      "group": "Plan",
+      "available": "not talking and (pastDisclosed and not optionsOffered)",
+      "why": "Offered.",
+      "effects": [
+        {
+          "log": "You describe her own options without steering: an advocate, a police report only if and when she wants one, and continuing this work in therapy.",
+          "kind": "act"
+        },
+        {
+          "set": "optionsOffered",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Maybe the advocate. Not the police. Not yet.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "tonightPlan": {
+      "label": "Plan the rest of today with her: grounding before she leaves, who she will be with tonight, and a session this week",
+      "group": "Plan",
+      "available": "not talking and (pastDisclosed and not tonightPlan)",
+      "why": "Planned.",
+      "effects": [
+        {
+          "log": "You plan the hours ahead with her: a grounding exercise now, her roommate tonight, and a session on Thursday.",
+          "kind": "act"
+        },
+        {
+          "set": "tonightPlan",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "\"My roommate's home tonight. Thursday's okay.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Close the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "reportLater": {
+      "label": "Make the report",
+      "group": "After the session",
+      "available": "not reported",
+      "why": "Reported.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Report",
+          "fields": [
+            {
+              "id": "when",
+              "label": "When",
+              "options": [
+                {
+                  "value": "now",
+                  "label": "Call intake now, before you leave today"
+                },
+                {
+                  "value": "nextWeek",
+                  "label": "Wait until next week's session to learn more first"
+                },
+                {
+                  "value": "never",
+                  "label": "No report: she is an adult and asked you not to"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "when == \"now\"",
+              "then": [
+                {
+                  "set": "reported",
+                  "to": "true"
+                },
+                {
+                  "set": "reportedWhen",
+                  "to": "\"afterSession\""
+                },
+                {
+                  "log": "Reported after the session, the same day.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "when == \"nextWeek\"",
+              "then": [
+                {
+                  "set": "reportedWhen",
+                  "to": "\"late\""
+                },
+                {
+                  "log": "Put off to next week: past the 48 hours the statute allows.",
+                  "kind": "bad"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "reportedWhen",
+                  "to": "\"never\""
+                },
+                {
+                  "log": "No report.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the session and the report",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Session note",
+          "fields": [
+            {
+              "id": "record",
+              "label": "What the note says",
+              "options": [
+                {
+                  "value": "facts",
+                  "label": "What she said in her words, what Ava said, the report (time, intake, what was reported), and the plan"
+                },
+                {
+                  "value": "opinion",
+                  "label": "Uncle abused client as a child and is probably abusing the niece"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: note {recordDoc}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Jenna stands, says she should never have said anything, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predict",
+      "when": "pastDisclosed",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "adult"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "adult": {
+      "title": "Predict (not scored)",
+      "context": "Jenna is 27; the abuse she describes happened when she was a child. Before you respond: does what she has said so far require a report?",
+      "choices": [
+        {
+          "id": "depends",
+          "label": "Not on its own; it depends on whether other children may be at risk from him now",
+          "effects": [
+            {
+              "log": "Prediction: depends on other children.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. RCW 26.44.030(2) does not require a report of childhood abuse discovered after the person is an adult, unless there is reasonable cause to believe other children are or may be at risk from the accused. That is the question to ask next."
+        },
+        {
+          "id": "always",
+          "label": "Yes: any abuse a client discloses must be reported",
+          "effects": [
+            {
+              "log": "Prediction: always report.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not in Washington. An adult's own childhood abuse is excluded unless other children are or may be at risk from the accused (RCW 26.44.030(2)). Reporting it anyway would disclose her information without a legal basis."
+        },
+        {
+          "id": "never",
+          "label": "No: she is an adult, so there is nothing to report",
+          "effects": [
+            {
+              "log": "Prediction: never.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Too fast. The exclusion has an exception: if other children are or may be at risk from the same person, the duty applies (RCW 26.44.030(2)). Ask about children now."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: why her own history did not by itself require a report, why you reported, and how you supported her.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The duty",
+          "criteria": "Childhood abuse discovered after the person is an adult is excluded unless other children are or may be at risk from the accused (RCW 26.44.030(2)); Ray lives with two children and Ava's words give reasonable cause; a psychologist reports at the first opportunity and within 48 hours, to the department or law enforcement; report, do not investigate or ask permission.",
+          "modelAnswer": "Jenna's own abuse, disclosed now that she is 27, would not by itself require a report (RCW 26.44.030(2)). But Ray now lives with her niece and nephew, and Ava has said he 'gets scary': reasonable cause to believe they may be at risk from him. As a psychologist I am a mandated reporter, so I called the department's intake during the session, well within 48 hours. I did not call her sister to check; that is the investigators' job."
+        },
+        {
+          "label": "Supporting her",
+          "criteria": "Believed her without pressing for details; told her before reporting, honestly, without promises; her own history left to her, with options (an advocate, police if and when she chooses); a plan for tonight and a session this week; a factual note.",
+          "modelAnswer": "I believed her and did not ask for details. I told her before I called why I had to report and what I would say, and promised nothing I could not keep. What she does about her own abuse is her choice; I offered an advocate and said a police report is hers to make if and when she wants. We planned tonight with her roommate and a session Thursday. My note records her words, Ava's words and the report, not conclusions."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Not used by this case's endings: the report is judged by whether it was made in the session, after it, or not at the first opportunity (RCW 26.44.030)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not reported",
+      "class": "harm",
+      "rationale": "Reasonable cause to believe two children may be at risk from the accused, and no report: the statute requires one at the first opportunity and within 48 hours.",
+      "source": {
+        "cite": "RCW 26.44.030 (last amended 2025 c 197 s 2 and 2025 c 192 s 2): (1)(a) psychologists are mandated reporters; a report goes 'to the proper law enforcement agency or to the department'; (1)(h) 'at the first opportunity, but in no case longer than 48 hours'; (2) the duty does not cover abuse in childhood discovered after the person is an adult, unless 'there is reasonable cause to believe other children are or may be at risk of abuse or neglect by the accused'",
+        "checkedAt": "2026-11-17",
+        "url": "https://lawfilesext.leg.wa.gov/Law/RCWPDF/RCW%20%2026%20%20TITLE/RCW%20%2026%20.%2044%20%20CHAPTER/RCW%20%2026%20.%2044%20.030.pdf",
+        "note": "Read 2026-11-17 in the Legislature's PDF of the section (summarizing fetch with the short quotes given; history begins '[2025 c 197 s 2; 2025 c 192 s 2; 2024 c 298 s 6')."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She left",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Jenna left mid-session, regretting she had spoken. Ava and Mason are still in the house with Ray, and nothing has been reported."
+    },
+    "notReported": {
+      "label": "No report",
+      "class": "harm",
+      "when": "documented and not walkedOut and not reported",
+      "terminal": true,
+      "narrative": "{kidsKnown ? \"You knew two children live with him now.\" : \"You never asked whether he is around children now.\"} Ava and Mason go to bed tonight in the house with Ray, and no one who could act knows."
+    },
+    "tippedOff": {
+      "label": "The household was tipped off",
+      "class": "harm",
+      "when": "documented and not walkedOut and investigated",
+      "terminal": true,
+      "narrative": "Kelsey and Ray know something was said before anyone from the department does, and Jenna's sister knows her secret without Jenna's consent."
+    },
+    "reportedSupported": {
+      "label": "Reported, and she was heard",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and reportedWhen == \"session\" and toldHer and not promised and not askedPermission and not investigated and optionsOffered and not pressured and validated and not pressedDetails and not minimized and tonightPlan and recordDoc == \"facts\" and rapport >= allianceTarget",
+      "narrative": "Intake has the report on Ava and Mason. Jenna leaves shaken but not alone: an advocate's number, her roommate tonight, and Thursday's session."
+    },
+    "reportedLost": {
+      "label": "Reported, at the cost of her trust",
+      "class": "recovered",
+      "when": "documented and not walkedOut and reported and (rapport < allianceRecovered or not toldHer)",
+      "terminal": true,
+      "narrative": "The report is made, but Jenna {toldHer ? \"left feeling betrayed\" : \"heard it happen without being told why\"} and may not come back."
+    },
+    "gaps": {
+      "label": "Reported, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut and reported",
+      "terminal": true,
+      "narrative": "The children are reported, but parts of the timing, the honesty or the care fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "notReported",
+    "tippedOff",
+    "reportedSupported",
+    "reportedLost",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportCrit",
+        "label": "Reported at the first opportunity (RCW 26.44.030)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "reportedWhen == \"session\"",
+            "score": "met",
+            "why": "Called intake during the session."
+          },
+          {
+            "when": "reportedWhen == \"afterSession\"",
+            "score": "partial",
+            "why": "Reported the same day, after the session."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{kidsKnown ? \"No report today.\" : \"Never asked whether he is around children now.\"}"
+          }
+        ]
+      },
+      {
+        "id": "noInvestigation",
+        "label": "Reported without investigating or seeking permission",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not investigated and not askedPermission",
+            "score": "met",
+            "why": "No calls to the family, no permission sought."
+          },
+          {
+            "when": "not investigated",
+            "score": "partial",
+            "why": "Asked her permission for a report that is not hers to give."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Called the household where the accused lives."
+          }
+        ]
+      },
+      {
+        "id": "honesty",
+        "label": "Told her first, without promises",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "toldHer and not promised",
+            "score": "met",
+            "why": "Told her plainly before reporting."
+          },
+          {
+            "when": "toldHer",
+            "score": "partial",
+            "why": "Told her, after promising secrecy."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "She was not told."
+          }
+        ]
+      },
+      {
+        "id": "herChoice",
+        "label": "Left her own history in her hands",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "optionsOffered and not pressured",
+            "score": "met",
+            "why": "Options offered; the choice left to her."
+          },
+          {
+            "when": "not pressured",
+            "score": "partial",
+            "why": "Did not pressure her, but did not offer her options."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Told her she must go to the police."
+          }
+        ]
+      },
+      {
+        "id": "care",
+        "label": "Heard her without retraumatizing her",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "validated and not pressedDetails and not minimized and tonightPlan",
+            "score": "met",
+            "why": "Believed, no details pressed, a plan for tonight."
+          },
+          {
+            "when": "not pressedDetails and not minimized",
+            "score": "partial",
+            "why": "No harm done, but {validated ? \"no plan for tonight\" : \"no acknowledgment of what she said\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{pressedDetails ? \"Pressed for details.\" : \"Minimized it.\"}"
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "Documented facts, not conclusions",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "recordDoc == \"facts\"",
+            "score": "met",
+            "why": "Their words and the report details."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A conclusion, not the facts."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "reportedKpi",
+        "label": "Report made in the session",
+        "value": "reportedWhen == \"session\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-15 min",
+        "text": "Check in and reflect; invite her to share at her pace; believe her without pressing for details."
+      },
+      {
+        "at": "15-25 min",
+        "text": "Ask whether Ray is around children now: he lives with her niece and nephew."
+      },
+      {
+        "at": "25-40 min",
+        "text": "Tell her why you must report and what you will say; call intake with her there."
+      },
+      {
+        "at": "40-50 min",
+        "text": "Offer her own options (an advocate; police only if and when she chooses); plan tonight and Thursday; a factual note."
+      }
+    ],
+    "debrief": {
+      "reportedSupported": {
+        "headline": "Good: reported, and she was heard",
+        "body": "You knew why her own history alone did not require a report and why the children did (RCW 26.44.030(2)), reported at the first opportunity, told her first, and left her own choices with her."
+      },
+      "gaps": {
+        "headline": "Reported, with gaps",
+        "body": "The children are reported; the criteria below show what was late or missing."
+      },
+      "reportedLost": {
+        "headline": "Reported, at the cost of her trust",
+        "body": "Telling her before you call, without promises, is what keeps a client who has just disclosed abuse in therapy (APA 4.02)."
+      },
+      "notReported": {
+        "headline": "No report",
+        "body": "An adult's childhood abuse is excluded only until there is reasonable cause to believe other children are or may be at risk from the accused; then a psychologist reports at the first opportunity and within 48 hours (RCW 26.44.030). Her permission is not required."
+      },
+      "tippedOff": {
+        "headline": "Tipped off",
+        "body": "Calling the household warns the accused and discloses her information. Report, and let the department investigate."
+      },
+      "walkout": {
+        "headline": "She left",
+        "body": "Pressing for details, pushing her to the police, or brushing it off drives a client out of the room right after the hardest thing she has said."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Jenna's own abuse, disclosed as an adult, does not by itself trigger a report: RCW 26.44.030(2) excludes childhood abuse discovered after the person is an adult unless there is reasonable cause to believe other children are or may be at risk from the accused. So ask about children now: Ray lives with her niece and nephew, and Ava says he 'gets scary'. That is reasonable cause, and a psychologist reports to the department or law enforcement at the first opportunity and within 48 hours. Report; do not call the family to check or ask her permission. Tell her first, honestly and without promises; leave what she does about her own abuse to her, with options; plan tonight; document facts, not conclusions."
+  }
+}

@@ -661,6 +661,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   // screen, clinical-session profile; MH_DEPTH_SLUGS below lists them. ----
   entry("WAPSYCHJP", "wajp-client-hired-by-your-practice"),
   band("EPPP", "eppp-client-hired-by-your-practice"),
+  entry("WAPSYCHJP", "wajp-adult-disclosure-children-at-risk"),
+  band("EPPP", "eppp-adult-disclosure-children-at-risk"),
   // ---- end REQ-337 ----
 ];
 
