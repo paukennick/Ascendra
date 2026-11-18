@@ -657,6 +657,10 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "clinic-eviction-no-way-out"),
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
+  // ---- REQ-333 (docs/sims.md 22.37): depth for the academic and programming
+  // courses; listed by slug in lib/sim/depth-academic.ts. Keep these together. ----
+  entry("MSHI", "mshi-a1c-units-quality-dashboard"),
+  // ---- end REQ-333 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by

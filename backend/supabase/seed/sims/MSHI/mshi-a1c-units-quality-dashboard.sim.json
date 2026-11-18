@@ -1,0 +1,570 @@
+{
+  "schemaVersion": 1,
+  "engine": { "major": 1, "minor": 2 },
+  "slug": "mshi-a1c-units-quality-dashboard",
+  "title": "Poor diabetes control more than doubled overnight?",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "Diabetes quality dashboard, November refresh, clinical data warehouse (Ridgeview Community Health, fictional)",
+      "flags": [
+        { "id": "ask", "label": "Quality director, Dr. Mei Tan", "text": "The share of our patients with diabetes whose latest A1c is above 9% went from 17.6% to 41.2%. Is that real? The quality committee packet goes out at 15:00.", "when": "true", "severity": "info" },
+        { "id": "implausible", "label": "Plausibility check", "text": "1,406 A1c results above 20%: not a possible percentage.", "when": "not isNull(profiledAt) and fix == \"none\" and not overwrote", "severity": "warning" },
+        { "id": "units", "label": "Interface", "text": "Harbor Reference Lab sends A1c as LOINC 59261-8 in mmol/mol; our main lab sends 4548-4 in %.", "when": "not isNull(msgAt)", "severity": "info" },
+        { "id": "overwritten", "label": "Health information management", "text": "1,406 stored lab results were changed outside the lab interface. Those results are part of the legal record.", "when": "overwrote", "severity": "error" },
+        { "id": "lock", "label": "Quality committee", "text": "15:00: the packet went out without the diabetes dashboard.", "when": "not isNull(lockedAt)", "severity": "error" }
+      ],
+      "charts": [
+        {
+          "id": "trend",
+          "label": "Latest A1c above 9%, share of patients with diabetes",
+          "spokenLabel": "the monthly rate of A1c above 9 percent",
+          "kind": "line",
+          "unit": "%",
+          "min": 0,
+          "max": 60,
+          "points": [
+            { "id": "jun", "label": "Jun", "value": "17.9" },
+            { "id": "jul", "label": "Jul", "value": "18.4" },
+            { "id": "aug", "label": "Aug", "value": "17.2" },
+            { "id": "sep", "label": "Sep", "value": "18.0" },
+            { "id": "oct", "label": "Oct", "value": "17.6" },
+            { "id": "nov", "label": "Nov", "value": "rate", "flag": "fix == \"none\" and not overwrote" }
+          ],
+          "lines": []
+        }
+      ],
+      "tables": [
+        {
+          "id": "bylab",
+          "label": "A1c results this year by sending lab",
+          "spokenLabel": "the A1c results by lab",
+          "columns": [
+            { "id": "lab", "label": "Lab" },
+            { "id": "loinc", "label": "OBX-3 (LOINC)" },
+            { "id": "unit", "label": "OBX-6 unit" },
+            { "id": "n", "label": "Results", "numeric": true },
+            { "id": "median", "label": "Median", "numeric": true },
+            { "id": "max", "label": "Max", "numeric": true }
+          ],
+          "rows": [
+            { "id": "main", "cells": ["Ridgeview main lab", "4548-4", "%", "9,812", "7.4", "15.1"] },
+            { "id": "harbor", "cells": ["Harbor Reference Lab (since 3 Nov)", "59261-8", "mmol/mol", "1,406", "{overwrote ? \"7.5\" : \"58\"}", "{overwrote ? \"12.4\" : \"112\"}"], "flag": "not overwrote" }
+          ],
+          "when": "not isNull(profiledAt)",
+          "note": "Values as stored in the results table."
+        },
+        {
+          "id": "measure",
+          "label": "This month's measure",
+          "spokenLabel": "the measure result",
+          "columns": [
+            { "id": "what", "label": "What" },
+            { "id": "n", "label": "Count", "numeric": true }
+          ],
+          "rows": [
+            { "id": "den", "cells": ["patients with diabetes, 18-75, with a visit (denominator)", "2,960"] },
+            { "id": "num", "cells": ["latest A1c above 9%, or none this year (numerator)", "{numer}"] },
+            { "id": "pct", "cells": ["rate (lower is better)", "{rate}%"] }
+          ]
+        }
+      ],
+      "code": [
+        {
+          "id": "map",
+          "label": "a1c_measure_view.sql",
+          "language": "SQL",
+          "lines": [
+            { "id": "m0", "text": "CREATE OR REPLACE VIEW a1c_for_measure AS" },
+            { "id": "m1", "text": "SELECT r.patient_id, r.collected_at," },
+            { "id": "m2", "text": "       r.value_num AS a1c_pct", "when": "fix == \"none\" or fix == \"exclude\"", "mark": "not isNull(msgAt) and fix == \"none\" ? \"error\" : \"none\"" },
+            { "id": "m3", "text": "       CASE WHEN r.unit = 'mmol/mol' THEN round(0.09148 * r.value_num + 2.152, 1)", "when": "fix == \"convert\"", "mark": "\"changed\"" },
+            { "id": "m4", "text": "            ELSE r.value_num END AS a1c_pct", "when": "fix == \"convert\"", "mark": "\"changed\"" },
+            { "id": "m5", "text": "       CASE WHEN r.unit = 'mmol/mol' THEN r.value_num / 10 ELSE r.value_num END AS a1c_pct", "when": "fix == \"divide\"", "mark": "\"warning\"" },
+            { "id": "m6", "text": "FROM lab_results r" },
+            { "id": "m7", "text": "WHERE r.loinc IN ('4548-4', '59261-8')", "when": "fix != \"exclude\"" },
+            { "id": "m8", "text": "WHERE r.loinc = '4548-4'", "when": "fix == \"exclude\"", "mark": "\"warning\"" },
+            { "id": "m9", "text": "  AND r.status = 'F';" }
+          ]
+        }
+      ],
+      "meters": [
+        { "id": "due", "label": "Packet due", "value": "15:00" },
+        { "id": "altered", "label": "Stored results changed outside the fix", "value": "{rowsAlteredOutsideFix}" }
+      ]
+    }
+  },
+  "objective": "Data quality dimensions -- correctness, completeness, concordance, plausibility and currency -- and how to check data against them",
+  "secondaryObjectives": [
+    "LOINC: identifying laboratory tests and other clinical observations so results mean the same thing everywhere",
+    "HL7 Version 2 messaging: the long-established, widely implemented standard for passing clinical data between a central patient care system and departmental systems",
+    "Electronic clinical quality measures: how measure logic, value sets and EHR data are combined to calculate and report a quality score"
+  ],
+  "sources": [
+    {
+      "cite": "AMIA Accreditation Committee, foundational domains for master's-level health informatics education (CAHIIM HI master's curriculum requirements PDF; approved by the AMIA Board December 2016)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cahiim.org/wp-content/uploads/2024/08/hi-ms-curriculum.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch. The ten foundational domains F1-F10 as the MSHI course uses them; F4 (Health Information Science and Technology) covers methods, tools and standards for collecting, organizing and sharing health data: 'Systems design and development addresses standards, integration, interoperability, and protection of information.' The course's data quality objective paraphrases the dimensions named by Weiskopf and Weng (2013, JAMIA, PMC3555312); that article's page did not load through the fetch, so its definitions are marked to verify and the case defines each check in its own words."
+    },
+    {
+      "cite": "eCQI Resource Center, CMS122v13, Diabetes: Glycemic Status Assessment Greater Than 9% (2025 performance period)",
+      "checkedAt": "2026-11-17",
+      "url": "https://ecqi.healthit.gov/ecqm/ec/2025/cms0122v13",
+      "note": "Read 2026-11-17 through a summarizing fetch. Patients 18-75 with diabetes; the measure counts a glycemic status assessment above 9.0%; improvement notation 'Lower score indicates better quality'. The fetch did not show how a missing result is counted; the case's dashboard counts a patient with no result this year in the numerator, as the measure's earlier HbA1c Poor Control versions did, and says so on the screen. The case uses no measure version's exact logic."
+    },
+    {
+      "cite": "NGSP, IFCC Standardization of HbA1c (master equation)",
+      "checkedAt": "2026-11-17",
+      "url": "https://ngsp.org/ifccngsp.asp",
+      "note": "Read 2026-11-17 through a summarizing fetch: 'NGSP = [0.09148 * IFCC] + 2.152', IFCC in mmol/mol; 6.5% is about 48 mmol/mol and 9% is 75 mmol/mol. The case's conversion is this equation."
+    },
+    {
+      "cite": "LOINC 4548-4 (Hemoglobin A1c/Hemoglobin.total in Blood, mass fraction, example unit %) and LOINC 59261-8 (Hemoglobin A1c/Hemoglobin.total in Blood by IFCC protocol, substance fraction, example unit mmol/mol), as listed by FindACode",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.findacode.com/loinc/4548-4--hba1c-mfr-bld.html",
+      "note": "Read 2026-11-17 through summarizing fetches of the two FindACode pages (a third-party listing, not loinc.org): 4548-4 property MFr, scale Qn, system Bld, example unit %; 59261-8 property SFr, example UCUM unit mmol/mol, and 'not proposed for use in the United States'. The point the case teaches is that the two codes carry the same analyte in different units."
+    },
+    {
+      "cite": "HL7 V2-to-FHIR, ConceptMap SegmentOBXComponentToObservation, version 1.0.0 (STU1, informative)",
+      "checkedAt": "2026-11-17",
+      "url": "https://hl7.org/fhir/uv/v2mappings/ConceptMap-segment-obx-component-to-observation.html",
+      "note": "Read 2026-11-17 through a summarizing fetch: OBX-3 (Observation Identifier) maps to the code, OBX-5 carries the value whose type OBX-2 sets (NM to a quantity), OBX-6 carries the units for NM values, and OBX-11 is the result status. A value without its OBX-6 unit is not the whole result."
+    },
+    {
+      "cite": "Author's scenario (REQ-333)",
+      "checkedAt": "2026-11-17",
+      "note": "Ridgeview Community Health, Harbor Reference Lab, every person, count, rate, run time and deadline are invented teaching values, not measured ones. No patient data appears in the case."
+    }
+  ],
+  "brief": {
+    "situation": "You are the informatics analyst at Ridgeview Community Health (fictional). This month's diabetes dashboard says 41.2% of patients with diabetes have a latest A1c above 9%; for five months it has been about 18%. On 3 November the outpatient clinics started sending A1c tests to Harbor Reference Lab (fictional) through a new HL7 v2 results interface. The quality committee packet goes out at 15:00. It is 14:00.",
+    "handover": [
+      "The dashboard reads the a1c_for_measure view, which takes the numeric result from each A1c result row.",
+      "A patient with no A1c this year counts in the numerator, as poor control."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: profile the data, read the interface messages, change the measure view, run a check, or send the dashboard. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "The console shows what is open, its flags, the trend chart, tables and the view's code, and the result of each step. 'Read the console' reads it aloud, and the chart can be shown as a table.",
+      "Sending the dashboard is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": { "start": "14:00", "tick": "1min", "maxDuration": "150min", "calendar": "clock" },
+  "params": {
+    "deadline": {
+      "value": 3600,
+      "unit": "s",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The packet goes out at 15:00, 60 minutes after the start. Step times and every count are invented teaching values." }
+    }
+  },
+  "state": {
+    "busy": { "type": "bool", "init": false },
+    "closedAt": { "type": "time", "init": null },
+    "documented": { "type": "bool", "init": false },
+    "fix": { "type": "enum", "values": ["none", "convert", "exclude", "divide"], "init": "none" },
+    "overwrote": { "type": "bool", "init": false },
+    "profiledAt": { "type": "time", "init": null },
+    "msgAt": { "type": "time", "init": null },
+    "lookAt": { "type": "time", "init": null },
+    "changedAt": { "type": "time", "init": null },
+    "lastChangeAt": { "type": "time", "init": null },
+    "checkAt": { "type": "time", "init": null },
+    "checkMatched": { "type": "bool", "init": false },
+    "raised": { "type": "bool", "init": false },
+    "rowsAlteredOutsideFix": { "type": "number", "init": 0, "min": 0, "max": 100000 },
+    "sentAs": { "type": "enum", "values": ["unsent", "wrong", "right"], "init": "unsent" },
+    "sentAt": { "type": "time", "init": null },
+    "lockedAt": { "type": "time", "init": null },
+    "causeDoc": { "type": "enum", "values": ["unset", "units", "real", "missing"], "init": "unset" },
+    "checkDoc": { "type": "enum", "values": ["unset", "reconcile", "lower", "none"], "init": "unset" }
+  },
+  "derived": {
+    "correct": { "expr": "fix == \"convert\" or overwrote" },
+    "numer": { "expr": "correct ? 536 : fix == \"exclude\" ? 1074 : fix == \"divide\" ? 434 : 1220" },
+    "rate": { "expr": "correct ? 18.1 : fix == \"exclude\" ? 36.3 : fix == \"divide\" ? 14.7 : 41.2" },
+    "sent": { "expr": "sentAs != \"unsent\"" },
+    "sentSec": { "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1" },
+    "lookedFirst": { "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))" },
+    "checkedCurrent": { "expr": "checkMatched and not isNull(checkAt) and timeAt(checkAt) >= timeAt(lastChangeAt)" }
+  },
+  "processes": [],
+  "phases": {
+    "work": { "label": "Working the problem", "clock": "turns", "actions": ["profile", "messages", "rewrite", "overwrite", "check", "raise", "send", "wait", "finish"] },
+    "report": { "label": "Record", "clock": "stopped", "actions": ["document"] }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "profile": {
+      "label": "Profile this year's A1c results by sending lab: code, unit, count, median and maximum",
+      "group": "Profile",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "if": "isNull(profiledAt)", "then": [{ "set": "profiledAt", "to": "t" }] },
+        { "if": "isNull(lookAt)", "then": [{ "set": "lookAt", "to": "t" }] },
+        { "output": "lab            loinc    unit       n      median  max\nmain lab       4548-4   %          9812   7.4     15.1\nHarbor         59261-8  mmol/mol   1406   {overwrote ? \"7.5     12.4\" : \"58      112\"}" },
+        { "finding": "Harbor's A1c results have a median of 58 and run up to 112: impossible as a percentage." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "5min" }
+      ]
+    },
+    "messages": {
+      "label": "Read three ORU^R01 messages from the Harbor interface",
+      "group": "Profile",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "if": "isNull(msgAt)", "then": [{ "set": "msgAt", "to": "t" }] },
+        { "if": "isNull(lookAt)", "then": [{ "set": "lookAt", "to": "t" }] },
+        { "output": "OBX|1|NM|59261-8^Hemoglobin A1c/Hemoglobin.total IFCC^LN||64|mmol/mol|20-42|H|||F\nOBX|1|NM|59261-8^Hemoglobin A1c/Hemoglobin.total IFCC^LN||48|mmol/mol|20-42|H|||F\nOBX|1|NM|59261-8^Hemoglobin A1c/Hemoglobin.total IFCC^LN||91|mmol/mol|20-42|H|||F\n(test patients from the interface's validation set)" },
+        { "finding": "OBX-3 is LOINC 59261-8 and OBX-6 is mmol/mol: the IFCC unit, not %." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "rewrite": {
+      "label": "Change the measure view",
+      "group": "Change the view",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "View",
+          "options": [
+            { "value": "convert", "label": "Convert mmol/mol results to % with the NGSP master equation (0.09148 x IFCC + 2.152), keyed on the unit" },
+            { "value": "exclude", "label": "Leave Harbor's results out of the measure until the lab fixes its feed" },
+            { "value": "divide", "label": "Divide mmol/mol results by 10" }
+          ]
+        }
+      ],
+      "effects": [
+        { "if": "isNull(changedAt)", "then": [{ "set": "changedAt", "to": "t" }] },
+        { "set": "lastChangeAt", "to": "t" },
+        { "set": "fix", "to": "f" },
+        { "set": "checkMatched", "to": "false" },
+        { "log": "The measure view now uses the {f} version.", "kind": "act" },
+        { "output": "CREATE VIEW\nRefreshed: numerator {numer} of 2,960, rate {rate}%" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "8min" }
+      ]
+    },
+    "overwrite": {
+      "label": "UPDATE lab_results: rewrite Harbor's stored values and units as %",
+      "group": "Change the data",
+      "available": "not busy and not overwrote",
+      "why": "Already done.",
+      "effects": [
+        { "if": "isNull(changedAt)", "then": [{ "set": "changedAt", "to": "t" }] },
+        { "set": "lastChangeAt", "to": "t" },
+        { "set": "overwrote", "to": "true" },
+        { "set": "checkMatched", "to": "false" },
+        { "add": "rowsAlteredOutsideFix", "by": "1406" },
+        { "output": "UPDATE 1406" },
+        { "log": "1,406 stored lab results now differ from what the lab reported.", "kind": "bad" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "4min" }
+      ]
+    },
+    "check": {
+      "label": "Check: plausible range, and 20 Harbor patients against the % on the lab's own PDF reports",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "set": "checkAt", "to": "t" },
+        { "if": "correct", "then": [
+          { "set": "checkMatched", "to": "true" },
+          { "output": "range of a1c_pct: 4.6 to 15.8\n20 of 20 sampled Harbor results match the % printed on the lab's report\nrate {rate}% (October 17.6%)" },
+          { "log": "Plausible values, and the converted results agree with the lab's own reports.", "kind": "good" }
+        ], "else": [
+          { "if": "fix == \"exclude\"", "then": [{ "output": "range of a1c_pct: 4.6 to 15.1\n0 of 20 sampled Harbor results present in the measure; 640 patients now have no A1c this year\nrate {rate}% (October 17.6%)" }], "else": [{ "if": "fix == \"divide\"", "then": [{ "output": "range of a1c_pct: 4.6 to 15.1\n2 of 20 sampled Harbor results match the lab's report\nrate {rate}% (October 17.6%)" }], "else": [{ "output": "range of a1c_pct: 4.6 to 112\n0 of 20 sampled Harbor results match the lab's report\nrate {rate}% (October 17.6%)" }] }] },
+          { "log": "The measure still does not agree with the lab's own reports.", "kind": "bad" }
+        ] },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "6min" }
+      ]
+    },
+    "raise": {
+      "label": "Open a ticket with the interface team and Harbor about the A1c unit",
+      "group": "Escalate",
+      "available": "not busy and not raised",
+      "why": "Already raised.",
+      "effects": [
+        { "set": "raised", "to": "true" },
+        { "output": "Ticket INT-2211 opened: A1c arrives as 59261-8 in mmol/mol; downstream reports expect %. Interface team will review the mapping with Harbor." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "3min" }
+      ]
+    },
+    "send": {
+      "label": "Send the dashboard to the quality committee",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already sent.",
+      "effects": [
+        { "set": "sentAs", "to": "correct ? \"right\" : \"wrong\"" },
+        { "set": "sentAt", "to": "t" },
+        { "output": "Sent: latest A1c above 9%, {rate}%." },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "2min" }
+      ]
+    },
+    "wait": {
+      "label": "Wait 15 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "log": "You wait 15 minutes.", "kind": "act" },
+        { "set": "busy", "to": "true" },
+        { "schedule": "work", "after": "15min" }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        { "cancel": "work" },
+        { "set": "busy", "to": "false" },
+        { "set": "closedAt", "to": "t" },
+        { "log": "You stop and write it up.", "kind": "act" },
+        { "phase": "report" }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why the rate jumped",
+              "options": [
+                { "value": "units", "label": "The new lab reports A1c in mmol/mol (LOINC 59261-8) and the view read every value as %" },
+                { "value": "real", "label": "Glycemic control really got worse this month" },
+                { "value": "missing", "label": "Patients missed their A1c tests" }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know the new rate is right",
+              "options": [
+                { "value": "reconcile", "label": "Every value is now in a possible range, and sampled results match the lab's own reports" },
+                { "value": "lower", "label": "The rate came back down" },
+                { "value": "none", "label": "Not checked" }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        { "set": "causeDoc", "to": "cause" },
+        { "set": "checkDoc", "to": "check" },
+        { "log": "Recorded: cause {cause}, check {check}.", "kind": "act" },
+        { "set": "documented", "to": "true" }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": { "skipLabel": "Let the step finish" },
+      "instances": "one",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "Working minutes per step are invented teaching values." },
+      "effects": [{ "set": "busy", "to": "false" }]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        { "set": "lockedAt", "to": "t" },
+        { "log": "15:00: the packet went out without the diabetes dashboard.", "kind": "alarm" }
+      ]
+    },
+    { "id": "writeUp", "when": "phase == \"report\"", "mode": "once", "effects": [{ "reason": "writeup" }] }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the quality director: why the rate jumped, what you changed, and how you know the new figure is right.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why it jumped",
+          "criteria": "Names the data quality failure: the new lab's A1c arrives under LOINC 59261-8 in mmol/mol (OBX-6), the view took OBX-5 as a percentage, so values like 58 failed plausibility and counted as above 9%. Not a real change in care.",
+          "modelAnswer": "Harbor sends IFCC mmol/mol under 59261-8; the view ignored the unit, so 64 mmol/mol (8.0%) was read as 64%."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Converts in the measure view, keyed on the unit or code, with the NGSP equation; leaves the stored results as the lab reported them; does not drop Harbor's results (that makes 640 patients look untested, a completeness failure) and does not divide by 10.",
+          "modelAnswer": "a1c_pct = 0.09148 x mmol/mol + 2.152 when the unit is mmol/mol, in the view only; ticket to the interface team."
+        },
+        {
+          "label": "How you know",
+          "criteria": "A check after the last change: every value plausible, and a concordance check of converted results against the lab's own reported percentages; the trend is consistent with prior months.",
+          "modelAnswer": "Range 4.6-15.8%; 20 of 20 sampled results match Harbor's PDF; 18.1% against 17.6% in October."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3600,
+        "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "The packet deadline, 60 minutes after the start; an invented teaching value." }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Holding the dashboard sends nothing wrong, but the committee meets without it; safe, with no progress.",
+      "source": { "cite": "Author's scenario (REQ-333)", "checkedAt": "2026-11-17", "note": "An invented teaching scenario." }
+    }
+  },
+  "endings": {
+    "altered": {
+      "label": "Stored lab results rewritten",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and rowsAlteredOutsideFix > 0",
+      "narrative": "1,406 results in the record no longer say what the lab reported. Health information management must trace and restore them."
+    },
+    "wrongSent": {
+      "label": "A wrong rate went to the committee",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "The committee acts on a rate of {rate}% that the data cannot support."
+    },
+    "notSent": {
+      "label": "Nothing sent",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "No wrong figure went out, but the committee met without the dashboard."
+    },
+    "right": {
+      "label": "The right rate, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and sentSec <= deadline and checkedCurrent",
+      "narrative": "The committee has 18.1%, and the check against the lab's own reports backs it."
+    },
+    "gaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The rate is right, but it went late or unchecked."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": ["altered", "wrongSent", "notSent", "right", "gaps"],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Profiled the data or read the messages before changing anything",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "lookedFirst", "score": "met", "why": "Looked at the values, codes and units first." },
+          { "when": "not isNull(lookAt)", "score": "partial", "why": "Looked only after a change." },
+          { "when": "true", "score": "missed", "why": "Never looked at the data behind the jump." }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Converted by unit in the measure view, with the NGSP equation",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "fix == \"convert\"", "score": "met", "why": "Unit-aware conversion in the view." },
+          { "when": "true", "score": "missed", "why": "{overwrote ? \"The stored results were rewritten instead of the view.\" : fix == \"exclude\" ? \"Dropping Harbor's results makes 640 patients look untested.\" : fix == \"divide\" ? \"Dividing by 10 is not the conversion; 64 mmol/mol is 8.0%, not 6.4%.\" : \"The view still reads mmol/mol as %.\"}" }
+        ]
+      },
+      {
+        "id": "data",
+        "label": "Left the stored results as the lab reported them",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          { "when": "rowsAlteredOutsideFix == 0", "score": "met", "why": "No stored result changed." },
+          { "when": "true", "score": "missed", "why": "Rewrote {rowsAlteredOutsideFix} stored results." }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "Checked plausibility and concordance with the lab's reports after the last change",
+        "weight": 1,
+        "rows": [
+          { "when": "checkedCurrent and (not sent or timeAt(checkAt) <= sentSec)", "score": "met", "why": "Plausible range, and 20 of 20 match." },
+          { "when": "not isNull(checkAt)", "score": "partial", "why": "Checked, but it did not match or came before a later change." },
+          { "when": "true", "score": "missed", "why": "Never checked the result." }
+        ]
+      },
+      {
+        "id": "raised",
+        "label": "Raised the unit mismatch with the interface team",
+        "weight": 1,
+        "rows": [
+          { "when": "raised", "score": "met", "why": "Ticket opened, so the feed and other reports get fixed too." },
+          { "when": "true", "score": "missed", "why": "The interface team was not told." }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          { "when": "causeDoc == \"units\" and checkDoc == \"reconcile\"", "score": "met", "why": "Cause and check both right." },
+          { "when": "causeDoc == \"units\" or checkDoc == \"reconcile\"", "score": "partial", "why": "Half right." },
+          { "when": "true", "score": "missed", "why": "Neither is recorded right." }
+        ]
+      }
+    ],
+    "reasoningCriteria": [{ "moment": "writeup", "label": "Written explanation", "weight": 1 }],
+    "kpis": [
+      { "id": "rateSent", "label": "Rate sent, %", "value": "sent ? rate : 0", "format": "number", "expert": "18.1" },
+      { "id": "altered", "label": "Stored results changed outside the fix", "value": "rowsAlteredOutsideFix", "format": "number", "expert": "0" },
+      { "id": "sentAtMin", "label": "Minutes until sent", "value": "sent ? sentSec / 60 : 0", "format": "number", "expert": "about 27" }
+    ],
+    "expertPath": [
+      { "at": "0-5 min", "text": "Profile A1c by lab: Harbor's median is 58, maximum 112; impossible as %." },
+      { "at": "5-8 min", "text": "Read Harbor's messages: LOINC 59261-8, OBX-6 mmol/mol." },
+      { "at": "8-16 min", "text": "Convert in the view by unit: 0.09148 x mmol/mol + 2.152. Rate 18.1%." },
+      { "at": "16-22 min", "text": "Check: range 4.6-15.8%, 20 of 20 sampled results match Harbor's reports." },
+      { "at": "22-27 min", "text": "Ticket to the interface team; send the dashboard." }
+    ],
+    "debrief": {
+      "right": { "headline": "Good: plausibility, then concordance", "body": "A1c of 58% cannot exist, so the jump was a data problem. The codes and units showed which one, the conversion went in the view and not the record, and a check against the lab's own reports proved it." },
+      "gaps": { "headline": "Sent, with gaps", "body": "The rate is right; it went late, or without a check after the last change to prove it." },
+      "wrongSent": { "headline": "A wrong rate went out", "body": "A rate that moves 23 points in a month is a data quality signal before it is a clinical one. Profile the values and read the units before you report." },
+      "altered": { "headline": "The record was changed to fix a report", "body": "Stored results are what the lab reported and part of the legal record. Convert in the reporting layer, keyed on the unit, and have the interface fixed at the source." },
+      "notSent": { "headline": "Nothing sent", "body": "Safe, but the committee needed the figure, and the conversion is one line in the view." },
+      "time_up": { "headline": "Time up", "body": "Nothing was recorded before the case's limit." }
+    },
+    "modelReasoning": "A rate that more than doubles in a month, coinciding with a new lab interface, is a data quality question first. Plausibility: an A1c median of 58 and maximum of 112 cannot be percentages. Concordance with the message: OBX-3 is LOINC 59261-8 and OBX-6 is mmol/mol, the IFCC unit, while the view assumed %. Convert in the measure view with the NGSP master equation, keyed on the unit, so the stored results stay as the lab reported them. Leaving Harbor out would make 640 patients look untested, which the measure counts as poor control; dividing by 10 is not the conversion. Then check: every value plausible, sampled results match the lab's own reports, and 18.1% sits with prior months. Ask the interface team to review the mapping so other reports are right too."
+  }
+}
