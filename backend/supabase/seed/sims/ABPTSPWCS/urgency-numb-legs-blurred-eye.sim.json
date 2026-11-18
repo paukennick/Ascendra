@@ -1,0 +1,991 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "urgency-numb-legs-blurred-eye",
+  "title": "Urgency, numb legs and a blurred eye",
+  "objective": "Recognize urge incontinence (frequency, urgency, nocturia) from detrusor overactivity or from neurological disease, for example stroke, Parkinson disease or multiple sclerosis",
+  "secondaryObjectives": [
+    "Know relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and that fatigue, spasticity, pain, bladder problems and depression are common symptom targets"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: pelvic and women's health (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/pelvic-womens-health/specialist-certification-examination-outline-womens-health",
+      "note": "Relayed from the pelvic and women's health specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client management (55%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra pelvic and women's health specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSPWCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Leslie SW, et al.. Urinary Incontinence. StatPearls (updated 2024-08-11), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-UI; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: urge incontinence (frequency, urgency, nocturia) comes from detrusor overactivity or from neurological disease, for example stroke, Parkinson disease or multiple sclerosis (the course objective's wording)."
+    },
+    {
+      "cite": "Tafti D, et al.. Multiple Sclerosis. StatPearls (updated 2024-03-20), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-MS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and fatigue, spasticity, pain, bladder problems and depression are common symptom targets (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:00 in an outpatient pelvic health clinic. You are the physical therapist. Ms. Adeyemi, 31, was referred for bladder training. She has had urgency, frequency, nocturia and urge leakage for 6 weeks.",
+    "handover": [
+      "She mentions that last year she 'lost the vision in my right eye for a few weeks, with pain moving it', which got better on its own.",
+      "Clinic policy: urinary symptoms with new neurological signs go back to the referring provider the same day for neurology referral; pelvic floor care can continue alongside."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A demyelinating disease goes unrecognized while only her bladder is treated. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.002,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Neurology assessment is on its way. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of diagnosis delayed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring provider called within 5 minutes of the neuro screen (clinic policy: same day)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the visit."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "diaryAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "neuro",
+        "diary"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ms",
+        "oab",
+        "stress"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "onlyAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "76",
+      "unit": "/min",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"md\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Adeyemi, 31, referred for 'overactive bladder, bladder training'",
+        "presentation": "Six weeks of urgency, frequency and nocturia with urge leakage."
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Visit over.\" : \"Seated, talking through her symptoms.\"}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "History",
+          "result": "Urgency, frequency, nocturia x3; numb, tingling legs 3 weeks; past painful vision loss in one eye; fatigue.",
+          "when": "not isNull(hxAt)"
+        },
+        {
+          "id": "neuroResult",
+          "label": "Neuro screen",
+          "result": "Brisk reflexes, positive Babinski bilaterally, reduced vibration sense, wide-based gait.",
+          "when": "not isNull(neuroAt)",
+          "flag": "true"
+        },
+        {
+          "id": "diaryResult",
+          "label": "Bladder diary",
+          "result": "Diary and urge strategies taught.",
+          "when": "not isNull(diaryAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Neurological screen done",
+            "when": "not isNull(neuroAt)"
+          },
+          {
+            "label": "Bladder diary started",
+            "when": "not isNull(diaryAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleNeuro",
+          "label": "Urge incontinence with neurological symptoms",
+          "text": "Screen neurologically; refer new deficits for neurology assessment.",
+          "met": "not isNull(hxAt) and isNull(neuroAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Bladder history and a review of systems: vision, numbness, weakness, balance, fatigue",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Lower-limb neurological screen: sensation, reflexes, tone, Babinski, gait",
+      "group": "Examine",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "diary": {
+      "label": "Start a 3-day bladder diary and urge suppression strategies",
+      "group": "Examine",
+      "available": "not testPending and isNull(diaryAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"diary\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "only": {
+      "label": "Treat it as idiopathic overactive bladder with bladder training only",
+      "group": "Treat",
+      "available": "isNull(onlyAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "onlyAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.4, 2)"
+        },
+        {
+          "log": "Bladder training only; no one hears about her legs or eye.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is driving her urge incontinence?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "ms",
+              "label": "Urge incontinence with upper motor neuron signs, sensory symptoms and a past episode of optic neuritis: a neurological cause such as multiple sclerosis must be assessed"
+            },
+            {
+              "value": "oab",
+              "label": "Idiopathic overactive bladder"
+            },
+            {
+              "value": "stress",
+              "label": "Stress incontinence"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"ms\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"ms\""
+                },
+                {
+                  "log": "Possible neurological cause such as MS.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"oab\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"oab\""
+                },
+                {
+                  "log": "Read as idiopathic.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"stress\""
+                },
+                {
+                  "log": "Read as stress incontinence.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Refer",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call her provider today: urge incontinence with brisk reflexes, bilateral Babinski, leg sensory symptoms, past optic neuritis; ask for neurology referral and MRI; pelvic floor care to continue"
+            },
+            {
+              "value": "none",
+              "label": "Mention it in the discharge summary in 8 weeks"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "Her provider refers her urgently to neurology for MRI; pelvic floor therapy continues.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Left for the summary.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Explain to her and document the screen",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Screen and plan documented; she understands why neurology is needed.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Pelvic health clinic",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "neuro",
+        "diary",
+        "only",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Urgency, frequency, waking 3 times a night; numb, tingling legs for 3 weeks; painful loss of vision in the right eye last year; heavy fatigue.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Brisk lower-limb reflexes, upgoing toes on both sides, reduced vibration sense at the ankles, a wide-based gait: upper motor neuron signs.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "diaryAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Bladder diary started; urge suppression strategies taught.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min to finish the visit."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with a neurology referral and a bladder plan.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What is driving her urge incontinence?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Urge incontinence can come from detrusor overactivity or neurological disease; leg sensory symptoms, brisk reflexes, bilateral Babinski and a past painful vision loss suggest a demyelinating disease such as MS, in which bladder problems are common.",
+          "modelAnswer": "Probably neurological. Her legs are numb, her reflexes are brisk with upgoing toes, and she had what sounds like optic neuritis. MS often causes bladder urgency."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Calls the provider the same day for neurology and MRI, continues pelvic floor care with a bladder diary and urge strategies, documents.",
+          "modelAnswer": "Call her provider today for neurology and an MRI, keep the bladder diary and urge strategies going, and document it."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring provider called within 5 minutes of the neuro screen (clinic policy: same day)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Unreferred neurological signs an hour on are harm here.",
+      "source": {
+        "cite": "Tafti D, et al.. Multiple Sclerosis. StatPearls (updated 2024-03-20), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-MS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and fatigue, spasticity, pain, bladder problems and depression are common symptom targets (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "relapse": {
+      "label": "Diagnosis delayed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Months later she is admitted with a relapse affecting her walking; MS is diagnosed late."
+    },
+    "safe": {
+      "label": "Neurological cause flagged",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(neuroAt)) and isNull(onlyAt)",
+      "narrative": "{timeAt(leftAt)|clock}: she has a neurology referral and a bladder plan."
+    },
+    "safeGaps": {
+      "label": "Referred, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is referred, but late."
+    },
+    "time_up": {
+      "label": "Undecided at 16:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:00 and no referral."
+    }
+  },
+  "endingOrder": [
+    "relapse",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring provider called within 5 minutes of the neuro screen",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "neuroC",
+        "label": "Screened neurologically",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not screened."
+          }
+        ]
+      },
+      {
+        "id": "notOnlyC",
+        "label": "Did not treat it as bladder-only",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(onlyAt)",
+            "score": "missed",
+            "why": "Bladder-only plan."
+          },
+          {
+            "when": "true",
+            "score": "met",
+            "why": "Saw the whole picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Took a full history and started a bladder diary",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(hxAt) and not isNull(diaryAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(hxAt) or not isNull(diaryAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized a likely neurological cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"ms\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"oab\"",
+            "score": "missed",
+            "why": "Neurological signs point elsewhere."
+          },
+          {
+            "when": "dxEnum == \"stress\"",
+            "score": "missed",
+            "why": "Urgency and nocturia are urge symptoms."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: urge incontinence can be neurological; screen; refer",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Neuro screen to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "15:00 to the neuro screen",
+        "value": "isNull(neuroAt) ? -1 : timeAt(neuroAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:00",
+        "text": "History: urge symptoms, numb legs, past optic neuritis."
+      },
+      {
+        "at": "~15:02",
+        "text": "Neuro screen: upper motor neuron signs."
+      },
+      {
+        "at": "~15:03",
+        "text": "Call her provider for neurology."
+      },
+      {
+        "at": "~15:05",
+        "text": "Bladder diary and urge strategies; document."
+      }
+    ],
+    "debrief": {
+      "relapse": {
+        "headline": "Diagnosis delayed",
+        "body": "Urge incontinence can be neurological. With leg sensory symptoms, upper motor neuron signs and past optic neuritis, refer for neurology; don't treat only the bladder."
+      },
+      "safe": {
+        "headline": "Neurological cause flagged",
+        "body": "You took a full history, screened neurologically, saw the pattern and called within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Referred, with gaps",
+        "body": "Check how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 16:00",
+        "body": "Refer new neurological signs the same day."
+      }
+    },
+    "modelReasoning": "Urge incontinence (frequency, urgency, nocturia) comes from detrusor overactivity or from neurological disease such as stroke, Parkinson disease or multiple sclerosis. Screen neurologically: Ms. Adeyemi's leg sensory symptoms, brisk reflexes, bilateral Babinski signs and past painful monocular vision loss suggest MS, in which bladder problems are common, and relapsing-remitting MS is the first course in about 85%. Refer for neurology the same day and continue pelvic floor care alongside."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "msQ": {
+      "during": "leaveT",
+      "ask": "While she leaves: which symptoms are common targets in MS?",
+      "choices": [
+        {
+          "id": "ms",
+          "label": "Fatigue, spasticity, pain, bladder problems, depression"
+        },
+        {
+          "id": "rash",
+          "label": "Rash and fever"
+        },
+        {
+          "id": "none",
+          "label": "None"
+        }
+      ],
+      "expect": "ms",
+      "explain": "Fatigue, spasticity, pain, bladder problems and depression are common symptom targets.",
+      "source": {
+        "cite": "Tafti D, et al.. Multiple Sclerosis. StatPearls (updated 2024-03-20), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-MS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: relapsing-remitting multiple sclerosis is the first course in about 85% of patients, and fatigue, spasticity, pain, bladder problems and depression are common symptom targets (the course objective's wording)."
+      }
+    },
+    "urgeQ": {
+      "during": "testT",
+      "ask": "While you screen: what can cause urge incontinence?",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Detrusor overactivity or neurological disease such as MS, stroke or Parkinson disease"
+        },
+        {
+          "id": "only",
+          "label": "Only weak pelvic floor muscles"
+        },
+        {
+          "id": "age",
+          "label": "Only aging"
+        }
+      ],
+      "expect": "both",
+      "explain": "Urge incontinence comes from detrusor overactivity or from neurological disease, for example stroke, Parkinson disease or multiple sclerosis.",
+      "source": {
+        "cite": "Leslie SW, et al.. Urinary Incontinence. StatPearls (updated 2024-08-11), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-UI; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: urge incontinence (frequency, urgency, nocturia) comes from detrusor overactivity or from neurological disease, for example stroke, Parkinson disease or multiple sclerosis (the course objective's wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}

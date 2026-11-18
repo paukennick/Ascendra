@@ -1,0 +1,394 @@
+{
+  "slug": "urgency-numb-legs-blurred-eye",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: history, neuro screen, calls, bladder diary, explains",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "urgeQ",
+          "choice": "both",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ms"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "msQ",
+          "choice": "ms",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diary",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 37
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "neuroC": "met",
+          "notOnlyC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "04fee70aebdabc7b"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Screens and starts the diary, but calls 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "hx",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urgeQ",
+          "choice": "both",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diary",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ms"
+          },
+          "seq": 6,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 7,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "msQ",
+          "choice": "ms",
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 9,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "neuroC": "met",
+          "notOnlyC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 530,
+          "toKey": 120
+        },
+        "stateHash": "408aacd68ef5c0c1"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noHx",
+      "title": "Screens and calls without the full history or diary",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "urgeQ",
+          "choice": "both",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "ms"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "md"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "msQ",
+          "choice": "ms",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 7,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "mediocre",
+        "score": 79,
+        "criteria": {
+          "reportC": "met",
+          "neuroC": "met",
+          "notOnlyC": "met",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 60
+        },
+        "stateHash": "54ce88e076124910"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "oab",
+      "title": "Failure: treats idiopathic overactive bladder only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "oab"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "only",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "none"
+          },
+          "seq": 3,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "relapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "neuroC": "missed",
+          "notOnlyC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "5d12447199269ee0"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "stress",
+      "title": "Failure: calls it stress incontinence and treats the bladder only",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "stress"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "only",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "relapse",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "neuroC": "missed",
+          "notOnlyC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "2a180a019b71d630"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
