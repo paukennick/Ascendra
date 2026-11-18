@@ -7774,8 +7774,8 @@
     {
       "id": "REQ-221",
       "category": "operations",
-      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow",
-      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration.",
+      "title": "Operations and docs audit fixes (G6): restore into a fresh cluster, CRON_SECRET health check, env docs, Android preview workflow; M8 Android autofill site link (asset_statements)",
+      "description": "Audit of 2026-11-11, batch G6 (Nick approved 2026-11-10). H9: a restore into a cluster without the app_runtime and content_recheck roles fails (about 120 pg_restore errors); the drill and runbook now create both roles first and re-apply 071 then 064's grants, and CI restores on a second Postgres server that never saw them. CRON_SECRET is required in production (/api/health reports misconfigured). apply-migration header corrected; runbook: after hand-applied SQL run app_runtime_sync() then migrate --status. .env.example and the runbook list 17 missing settings. Data inventory names the scheduled purge-auth-data cron (09:30 UTC). Backup workflow comments name production-backup. build-android-preview.yml added to master (pinned, Node 24, tolerant summary). No migration. M8 (FAIL-1167, branch fix/android-autofill-assetlinks): Android offers a password saved for the website inside the app only if the app also declares the website (Digital Asset Links asset_statements); native config change shipped with the store build 2.1.0.",
       "priority": "high",
       "status": "needs_review",
       "minimum_access_scope": [
@@ -7790,29 +7790,40 @@
         "docs/legal/data-inventory.md",
         ".github/workflows/",
         ".github/scripts/eas-build-summary.mjs",
-        "CHANGELOG.md"
+        "CHANGELOG.md",
+        "mobile/plugins/withAssetStatements.js",
+        "mobile/app.json",
+        "backend/public/.well-known/README.md"
       ],
       "acceptance_criteria": [
         "a plain restore into a fresh cluster fails and the drill passes there",
         "restored roles have the source's privileges",
         "CRON_SECRET missing in production is misconfigured",
         "every listed env name is in .env.example and the runbook",
-        "the Android preview workflow is pinned and its summary never throws"
+        "the Android preview workflow is pinned and its summary never throws",
+        "app.json lists the plugin for https://www.ascendra-learn.com",
+        "prebuild writes the asset_statements meta-data and string",
+        "assetlinks.json keeps its existing fingerprint"
       ],
       "validation_required": [
         "backend npm test",
         "backup-drill-test.sh on two clusters",
         "node --test .github/scripts",
-        "omni gate"
+        "omni gate",
+        "mobile npx tsc --noEmit and npm test",
+        "expo prebuild --platform android in a scratch copy"
       ],
       "documentation_required": [
         "CHANGELOG.md",
         "docs/operations-runbook.md",
-        "docs/restore-drill.md"
+        "docs/restore-drill.md",
+        "backend/public/.well-known/README.md"
       ],
       "risk_notes": [
         "production Vercel must have CRON_SECRET or /api/health turns 503 after the next deploy",
-        "the Android preview workflow's EAS JSON shape is untested against live EAS"
+        "the Android preview workflow's EAS JSON shape is untested against live EAS",
+        "needs a new EAS build",
+        "the Play app signing fingerprint must be added to assetlinks.json by Nick for Play installs"
       ]
     },
     {
@@ -12048,6 +12059,77 @@
       "risk_notes": [
         "content on suicide and violence reaches adults only through the REQ-327 gate",
         "a case that names a method would breach the content rule: sensitive-sims.test.ts checks a word list"
+      ]
+    },
+    {
+      "id": "REQ-302",
+      "category": "release",
+      "title": "Leave the app version out of the Expo runtime fingerprint",
+      "description": "Nick 2026-11-14 approved: the installed @expo/fingerprint hashes expo.version/versionCode/buildNumber by default, so a version bump would change the runtime and strand OTA updates. mobile/fingerprint.config.js skips them (keeping the default skip). Ships with the next store build.",
+      "priority": "medium",
+      "status": "completed",
+      "minimum_access_scope": [
+        "mobile/fingerprint.config.js",
+        "docs/versioning.md"
+      ],
+      "acceptance_criteria": [
+        "fingerprint.config.js sets ExpoConfigVersions plus the default skip",
+        "docs/versioning.md §11 records the decisions"
+      ],
+      "validation_required": [
+        "EAS update workflow dry run on the store-build commit",
+        "python3 omni gate"
+      ],
+      "documentation_required": [
+        "docs/versioning.md",
+        "CHANGELOG.md"
+      ],
+      "risk_notes": [
+        "Changes the runtime fingerprint once: merge only together with a store build",
+        "Verified 2026-11-17 (REQ-330) with expo-updates runtimeversion:resolve and real node_modules: with the config, 2.0.0 and 2.1.0 give the same runtime on Android and iOS; without it they differ"
+      ]
+    },
+    {
+      "id": "REQ-330",
+      "category": "release",
+      "title": "Store build 2.1.0: integration branch, version bump and release steps",
+      "description": "Nick 2026-11-17 16:52 PT approved the next store build. release/store-2.1 merges #190 (REQ-302, version out of the runtime fingerprint), #125 (REQ-221 M8, Android asset_statements), #194 (expo 57.0.33) and #195 (mobile minor/patch group; react, react-dom, react-native-safe-area-context and react-native-screens kept on the versions Expo SDK 57.0.33 expects, expo-crypto ~57.0.4; @vercel/speed-insights kept at 2.0.0 because 2.1.0 is under two weeks old, which analyticsWiring.test.ts forbids). The app version goes from 2.0.0 to 2.1.0 (minor: a new native capability, docs/versioning.md section 6) in the four places appVersion.test.ts keeps equal; store build numbers stay with EAS (appVersionSource remote, production autoIncrement). The CHANGELOG is cut into 2.1.0 and 2.0.0 sections. docs/next-store-build-plan.md records the build and submit steps and Nick's console steps.",
+      "priority": "high",
+      "status": "needs_review",
+      "minimum_access_scope": [
+        "mobile/app.json",
+        "mobile/package.json",
+        "mobile/package-lock.json",
+        "mobile/src/lib/appVersion.ts",
+        "backend/lib/release-notes.ts",
+        "CHANGELOG.md",
+        "docs/next-store-build-plan.md",
+        "docs/versioning.md"
+      ],
+      "acceptance_criteria": [
+        "app.json, APP_VERSION, package.json and package-lock.json all say 2.1.0",
+        "npx expo install --check reports dependencies up to date",
+        "the runtime fingerprint is the same for 2.0.0 and 2.1.0 on this branch",
+        "a What's new note with appVersion 2.1.0 covers REQ-330 and REQ-221",
+        "the build and submit steps name the production profile and channel"
+      ],
+      "validation_required": [
+        "mobile npm test and npx tsc --noEmit",
+        "npx expo export --platform web and npx expo config --type public",
+        "mobile audit gate",
+        "backend release-notes, ship-notes, client-version and app-runtime tests",
+        "python3 omni gate",
+        "EAS update workflow dry run on the merged commit (lead)"
+      ],
+      "documentation_required": [
+        "CHANGELOG.md",
+        "docs/next-store-build-plan.md",
+        "docs/versioning.md"
+      ],
+      "risk_notes": [
+        "New runtime: installed 2.0.0 binaries get no OTA update carrying this code; learners need the store build",
+        "The Play app signing SHA-256 must be added to backend/public/.well-known/assetlinks.json or autofill association works only for internal (EAS-signed) installs",
+        "Release notes written after this merges must use appVersion 2.1.0 (release-notes.test.ts: never decreasing)"
       ]
     }
   ]

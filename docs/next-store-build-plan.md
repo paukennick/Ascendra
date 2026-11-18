@@ -40,6 +40,94 @@ run by default) reports per platform whether a store build can take the
 current commit; run it before deciding between an OTA update and waiting
 for this build.
 
+## Store build 2.1.0 (REQ-330, approved by Nick 2026-11-17)
+
+Nick approved a store build now, ahead of sections 1 to 5, which are still
+not built and are not in it. Branch `release/store-2.1` carries:
+
+- #190, REQ-302: `mobile/fingerprint.config.js` leaves the app version out
+  of the runtime fingerprint (verified, docs/versioning.md section 11).
+- #125, REQ-221 M8: the `withAssetStatements` config plugin declares
+  `https://www.ascendra-learn.com` in the Android manifest, so Android can
+  offer a password saved for the website inside the app.
+- #194 and #195: expo 57.0.33 and the mobile minor/patch updates, with
+  react, react-dom, react-native-safe-area-context and react-native-screens
+  kept on the versions SDK 57.0.33 expects (`npx expo install --check`).
+- App version 2.1.0 (docs/versioning.md section 6). Build numbers come from
+  EAS: `eas.json` has `appVersionSource: "remote"` and `autoIncrement` on
+  the `production` profile, so each production build takes the next
+  `versionCode` / `buildNumber` on its own. Nothing to set by hand.
+
+This is a new runtime, so installed 2.0.0 binaries get none of this code
+over the air; learners get it from the store.
+
+### How the build is run
+
+No workflow builds for the stores. `.github/workflows/build-android-preview.yml`
+builds only the `preview` APK (push to `ops/build-android-preview`), and
+`eas-update.yml` only publishes OTA updates. Store builds and submissions are
+run with the EAS CLI by Nick or the lead, never by an agent session.
+
+1. Merge `release/store-2.1` into master. The backend deploy that follows
+   puts What's new 2026-11-17-i (appVersion 2.1.0) live. From then on every
+   new release note uses `appVersion: "2.1.0"` (release-notes.test.ts).
+2. Run "EAS update (OTA)" from the Actions tab on master with
+   `channel: production` and `dry_run: true`. Expected: no finished build has
+   this runtime on either platform, and the summary says a store build is
+   needed. That confirms the store build, and that no OTA is published to
+   2.0.0 binaries by mistake.
+3. Optional check on a phone before the store upload: push master's tip to
+   `ops/build-android-preview`, install the APK from the job summary, save a
+   password for the website in Google Password Manager, and confirm the app's
+   sign-in screen offers it. The EAS keystore's fingerprint is already in
+   `assetlinks.json`, so this works for the preview APK.
+4. Build, from a local clone of master (`EXPO_TOKEN` set, or `eas login`):
+
+       cd mobile
+       npm ci
+       npx eas-cli@27.4.1 build --platform all --profile production
+
+   Profile `production`: channel `production`, store distribution (an AAB
+   for Android), `EXPO_PUBLIC_API_URL` and the Google client ids from
+   `eas.json`. The first iOS build may ask interactively for Apple
+   credentials, so run it without `--non-interactive` the first time.
+5. Submit:
+
+       npx eas-cli@27.4.1 submit --platform android --profile production --latest
+       npx eas-cli@27.4.1 submit --platform ios --profile production --latest
+
+   `submit.production` in `eas.json` is empty. Android therefore needs the
+   Google Play service account key stored in EAS credentials, and it uploads
+   to the `internal` track by default. iOS needs an App Store Connect API key
+   in EAS and the app's App Store Connect record; it uploads to TestFlight.
+6. When the build is live in the stores, tag it (section 8 of
+   docs/versioning.md): `v2.0.0` on f4b9c645 if not already created, then
+   `v2.1.0` on the master commit the build was made from. Leave
+   `MIN_APP_VERSION` alone for at least 30 days.
+
+### Nick's steps in the store consoles
+
+- **Play Console, App integrity:** copy the "App signing key certificate"
+  SHA-256 and add it to `sha256_cert_fingerprints` in
+  `backend/public/.well-known/assetlinks.json`, next to the EAS key that is
+  already there, then deploy the backend. Until then, Android autofill of
+  saved web passwords works only for EAS-signed installs, not for installs
+  from Google Play. Copy the value from the console; never derive or guess it.
+  The same page's SHA-1 belongs on the Android OAuth client in Google Cloud
+  (docs/play-store/listing-draft.md, step 5) if that is not done yet.
+- **Play Console, release:** promote the uploaded build from the internal
+  track to the track you use (closed testing, then production once the
+  account has production access), add the release notes ("Version 2.1.0:
+  saved website passwords on Android, and fixes"), and roll out. The Data
+  safety form does not change: this build collects no new data.
+- **App Store Connect:** the iOS app has no store link yet
+  (`IOS_APP_STORE_URL` is unset). Create the app record for
+  `com.hel1x.ascendra` if it doesn't exist, create the API key EAS submit
+  uses, test the TestFlight build, fill in the 2.1.0 version page, privacy
+  labels and review notes, and submit for review. Export compliance is
+  answered by `ITSAppUsesNonExemptEncryption: false`. After approval, set
+  `IOS_APP_STORE_URL` in Vercel so the iOS update screen has a button.
+
 ## Why a store build
 
 `mobile/app.json` sets `runtimeVersion.policy` to `fingerprint`. Anything

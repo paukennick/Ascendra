@@ -15,7 +15,7 @@
 // below it, requests are answered 426 { code: "update_required" } and the app
 // shows the "Update required" screen (components/UpdateRequired.tsx,
 // src/lib/updatePrompt.ts).
-export const APP_VERSION = "2.0.0";
+export const APP_VERSION = "2.1.0";
 
 export const APP_VERSION_HEADER = "X-Ascendra-App";
 export const APP_PLATFORM_HEADER = "X-Ascendra-Platform";
