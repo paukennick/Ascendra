@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "airport-baggage-residual-secondary-risks",
+  "title": "Monitoring risks on an airport baggage system: a response that created a new risk, stale entries and the overall risk level",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rSec",
+          "label": "Integration risk from the response",
+          "spokenLabel": "Integration risk from the response",
+          "owner": "\"Integration lead\"",
+          "rating": "sec == \"add\" ? \"low\" : sec == \"note\" ? \"medium\" : sec == \"ignore\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "sec == \"add\" ? \"within\" : sec == \"note\" ? \"within\" : sec == \"ignore\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{sec == \"add\" ? \"Secondary risk added and owned; residual recorded\" : sec == \"note\" ? \"Noted in minutes\" : sec == \"ignore\" ? \"Secondary risk ignored\" : \"Open\"}"
+        },
+        {
+          "id": "rClose",
+          "label": "Stale register",
+          "spokenLabel": "Stale register",
+          "owner": "\"Risk manager\"",
+          "rating": "close == \"cleanup\" ? \"low\" : close == \"archive\" ? \"medium\" : close == \"deleteAll\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "close == \"cleanup\" ? \"within\" : close == \"archive\" ? \"within\" : close == \"deleteAll\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{close == \"cleanup\" ? \"Expired risks closed; lessons recorded\" : close == \"archive\" ? \"Hidden, not closed\" : close == \"deleteAll\" ? \"30 entries deleted\" : \"Open\"}"
+        },
+        {
+          "id": "rLevel",
+          "label": "Overall risk trend unseen",
+          "spokenLabel": "Overall risk trend unseen",
+          "owner": "\"Risk manager\"",
+          "rating": "level == \"overall\" ? \"low\" : level == \"top10\" ? \"medium\" : level == \"allGreen\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "level == \"overall\" ? \"within\" : level == \"top10\" ? \"within\" : level == \"allGreen\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{level == \"overall\" ? \"Overall exposure and confidence trend reported\" : level == \"top10\" ? \"Top 10 only\" : level == \"allGreen\" ? \"Reassurance without figures\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sPm",
+          "label": "Project manager",
+          "spokenLabel": "the project manager's support",
+          "value": "pm",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sOwners",
+          "label": "Risk owners",
+          "spokenLabel": "the risk owners' support",
+          "value": "owners",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dSec",
+          "kind": "Secondary risk",
+          "label": "Week 1: secondary and residual risks",
+          "status": "{sec == \"add\" ? \"Secondary risk added and owned; residual recorded\" : sec == \"note\" ? \"Noted in minutes\" : sec == \"ignore\" ? \"Secondary risk ignored\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and sec == \"none\""
+        },
+        {
+          "id": "dClose",
+          "kind": "Register upkeep",
+          "label": "Week 2: register clean-up",
+          "status": "{close == \"cleanup\" ? \"Expired risks closed; lessons recorded\" : close == \"archive\" ? \"Hidden, not closed\" : close == \"deleteAll\" ? \"30 entries deleted\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and close == \"none\""
+        },
+        {
+          "id": "dLevel",
+          "kind": "Reporting",
+          "label": "Week 3: steering report",
+          "status": "{level == \"overall\" ? \"Overall exposure and confidence trend reported\" : level == \"top10\" ? \"Top 10 only\" : level == \"allGreen\" ? \"Reassurance without figures\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and level == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Monitoring residual and secondary risks resulting from implemented responses, and updating stakeholders on their impact",
+  "secondaryObjectives": [
+    "Updating relevant project documents (risk register, lessons learned, change logs) and closing out expired risks",
+    "Monitoring overall project risk level and communicating it to stakeholders through tailored reporting"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+      "checkedAt": "2026-11-17",
+      "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the risk manager on a fictional airport's baggage handling replacement. Two months ago, to cut schedule risk, the team chose a second conveyor supplier. You run the monthly risk reviews.",
+    "handover": [
+      "The register has 84 entries; 30 have not changed in four months.",
+      "The steering committee gets a list of the top 10 risks."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-04-05T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "pm": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "owners": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "sec": {
+      "type": "enum",
+      "values": [
+        "none",
+        "add",
+        "note",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "secAt": {
+      "type": "time",
+      "init": null
+    },
+    "close": {
+      "type": "enum",
+      "values": [
+        "none",
+        "cleanup",
+        "archive",
+        "deleteAll"
+      ],
+      "init": "none"
+    },
+    "closeAt": {
+      "type": "time",
+      "init": null
+    },
+    "level": {
+      "type": "enum",
+      "values": [
+        "none",
+        "overall",
+        "top10",
+        "allGreen"
+      ],
+      "init": "none"
+    },
+    "levelAt": {
+      "type": "time",
+      "init": null
+    },
+    "respAt": {
+      "type": "time",
+      "init": null
+    },
+    "staleAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, pm), owners)"
+    },
+    "missCount": {
+      "expr": "((sec == \"ignore\") ? 1 : 0) + ((close == \"deleteAll\") ? 1 : 0) + ((level == \"allGreen\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(sec == \"none\" or (sec == \"ignore\") ? 1 : 0) + (close == \"none\" or (close == \"deleteAll\") ? 1 : 0) + (level == \"none\" or (level == \"allGreen\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Risk monitoring",
+      "clock": "turns",
+      "actions": [
+        "resp",
+        "stale"
+      ]
+    },
+    "close": {
+      "label": "Risk report decision",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "resp": {
+      "label": "Review implemented responses and their effects",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(respAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "respAt",
+          "to": "t"
+        },
+        {
+          "log": "You review the responses.",
+          "kind": "act"
+        },
+        {
+          "finding": "The second supplier's conveyors use a different control protocol: a new integration risk the register doesn't contain. The original delivery risk is now low but not zero."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "stale": {
+      "label": "Check the register for expired entries",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(staleAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "staleAt",
+          "to": "t"
+        },
+        {
+          "log": "You check the register.",
+          "kind": "act"
+        },
+        {
+          "finding": "18 of the 30 unchanged entries concern phases already finished; their triggers can no longer occur."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Record the report decision",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the decision says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The secondary and residual risks registered and owned, expired risks closed with lessons, and overall risk reported with trend and confidence"
+                },
+                {
+                  "value": "summary",
+                  "label": "Risks monitored"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "sec == \"ignore\"",
+              "then": [
+                {
+                  "log": "Week 2: integration testing finds the protocol mismatch late; commissioning slips four weeks.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "close == \"deleteAll\"",
+              "then": [
+                {
+                  "log": "Week 3: one deleted live risk (baggage peak testing) triggers and nobody is watching it; the test fails on the holiday peak.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "level == \"allGreen\"",
+              "then": [
+                {
+                  "log": "Week 4: overall exposure has doubled since the supplier change; the committee hears only at the next gate.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The risk review cycle closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_sec",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the review.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "secPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_close",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the register.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "closePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_level",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: the steering report.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "levelPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "secPrompt": {
+      "title": "A response created a new risk",
+      "context": "The second supplier's protocol differs.",
+      "choices": [
+        {
+          "id": "add",
+          "label": "Add the integration risk as a secondary risk with an owner and response (protocol gateway test in week 3), record the residual delivery risk, and brief the stakeholders affected",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"add\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "1"
+            },
+            {
+              "log": "The secondary risk is owned and planned.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Responses can create secondary risks and leave residual risk; both are registered and managed."
+        },
+        {
+          "id": "note",
+          "label": "Note it in the minutes",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"note\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-1"
+            },
+            {
+              "log": "It's noted.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "A risk in the minutes has no owner or response."
+        },
+        {
+          "id": "ignore",
+          "label": "Ignore it: the response worked",
+          "effects": [
+            {
+              "set": "sec",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "secAt",
+              "to": "t"
+            },
+            {
+              "add": "owners",
+              "by": "-2"
+            },
+            {
+              "log": "Nothing changes.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The integration problem goes unmanaged."
+        }
+      ]
+    },
+    "closePrompt": {
+      "title": "Thirty stale entries",
+      "context": "18 entries are expired.",
+      "choices": [
+        {
+          "id": "cleanup",
+          "label": "Close the 18 expired risks with a note, review the other 12 with their owners, and record lessons learned",
+          "effects": [
+            {
+              "set": "close",
+              "to": "\"cleanup\""
+            },
+            {
+              "set": "closeAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "1"
+            },
+            {
+              "log": "The register is current.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A current register shows real exposure; closed risks and lessons are recorded."
+        },
+        {
+          "id": "archive",
+          "label": "Hide old entries from the report",
+          "effects": [
+            {
+              "set": "close",
+              "to": "\"archive\""
+            },
+            {
+              "set": "closeAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "-1"
+            },
+            {
+              "log": "Old entries are hidden.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The register is still wrong underneath."
+        },
+        {
+          "id": "deleteAll",
+          "label": "Delete all 30 unchanged entries",
+          "effects": [
+            {
+              "set": "close",
+              "to": "\"deleteAll\""
+            },
+            {
+              "set": "closeAt",
+              "to": "t"
+            },
+            {
+              "add": "pm",
+              "by": "-2"
+            },
+            {
+              "log": "All 30 are deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "12 of them are live risks; deleting them removes them from monitoring."
+        }
+      ]
+    },
+    "levelPrompt": {
+      "title": "Top 10 list or overall risk?",
+      "context": "The committee asks if the project is getting riskier.",
+      "choices": [
+        {
+          "id": "overall",
+          "label": "Report overall risk (the trend of total exposure and the Monte Carlo finish date confidence), the top risks and the decisions needed, tailored for the committee",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"overall\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The committee sees the overall trend.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Overall project risk is more than the top 10: report exposure trends and confidence."
+        },
+        {
+          "id": "top10",
+          "label": "Keep sending the top 10",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"top10\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "The top 10 goes out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It shows individual risks, not whether the project is getting riskier."
+        },
+        {
+          "id": "allGreen",
+          "label": "Report 'risk under control' with no figures",
+          "effects": [
+            {
+              "set": "level",
+              "to": "\"allGreen\""
+            },
+            {
+              "set": "levelAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "A reassuring summary goes out.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The committee loses the chance to act on a rising trend."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the risk report summary: what the supplier response changed, what you closed, and how risky the project is overall.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Response effects",
+          "criteria": "A secondary integration risk and a residual delivery risk, both owned.",
+          "modelAnswer": "The second supplier cut delivery risk but added a protocol integration risk; both are registered with owners and responses."
+        },
+        {
+          "label": "Register and overall level",
+          "criteria": "18 expired risks closed with lessons; overall exposure trend and confidence.",
+          "modelAnswer": "We closed 18 expired risks and recorded lessons; overall exposure and the finish-date confidence are reported monthly."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (sec == \"note\") and (close == \"archive\") and (level == \"top10\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Risk Management Professional (PMI-RMP) Examination Content Outline and Specifications (updated January 2023): Strategy and Planning 22%, Identification 23%, Analysis 23%, Response 13%, Monitor and Close 19%",
+        "checkedAt": "2026-11-17",
+        "url": "https://itta.net/wp-content/uploads/2025/03/risk-management-exam-outline_2024.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a training provider. Relevant text: Risk Response Task 2 'Implement risk response' ('Execute the risk response plan(s)'; 'Execute the contingency plan(s)'; 'Evaluate and react to secondary and residual risks from the response implementation'); Risk Identification Task 3 'Document risk triggers and thresholds based on context/environment'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-contingency-pmirmp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "secHarm": {
+      "label": "A late surprise",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and sec == \"ignore\"",
+      "narrative": "The unmanaged protocol mismatch was found late; commissioning slipped four weeks."
+    },
+    "closeHarm": {
+      "label": "A live risk deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and close == \"deleteAll\"",
+      "narrative": "A deleted live risk triggered unwatched; peak testing failed."
+    },
+    "levelHarm": {
+      "label": "A rising trend hidden",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and level == \"allGreen\"",
+      "narrative": "The committee didn't see overall exposure double until the next gate."
+    },
+    "target": {
+      "label": "Risks watched, register honest",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (sec == \"add\") and (close == \"cleanup\") and (level == \"overall\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The committee sees the real overall risk, and the response's side effects are under control."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "secHarm",
+    "closeHarm",
+    "levelHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "secCrit",
+        "label": "Identified and treated the secondary and residual risks",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sec == \"add\"",
+            "score": "met",
+            "why": "Managed."
+          },
+          {
+            "when": "sec == \"note\"",
+            "score": "partial",
+            "why": "Not managed."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Ignored."
+          }
+        ]
+      },
+      {
+        "id": "closeCrit",
+        "label": "Closed expired risks and updated the register and lessons learned",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "close == \"cleanup\"",
+            "score": "met",
+            "why": "Current."
+          },
+          {
+            "when": "close == \"archive\"",
+            "score": "partial",
+            "why": "Cosmetic."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Deleted live risks."
+          }
+        ]
+      },
+      {
+        "id": "levelCrit",
+        "label": "Reported overall project risk with tailored reporting",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "level == \"overall\"",
+            "score": "met",
+            "why": "Overall view."
+          },
+          {
+            "when": "level == \"top10\"",
+            "score": "partial",
+            "why": "Partial view."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Uninformative."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(respAt) and not isNull(staleAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(respAt) or not isNull(staleAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Review the implemented responses and the register's age first."
+      },
+      {
+        "at": "Week 1",
+        "text": "Register the secondary and residual risks with owners and responses."
+      },
+      {
+        "at": "Week 2",
+        "text": "Close expired risks, review the rest and record lessons."
+      },
+      {
+        "at": "Week 3",
+        "text": "Report the overall risk trend, confidence and decisions needed."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "secHarm": {
+        "headline": "Watch what responses create",
+        "body": "Register secondary and residual risks."
+      },
+      "closeHarm": {
+        "headline": "Close, don't delete",
+        "body": "Close only expired risks and keep a record."
+      },
+      "levelHarm": {
+        "headline": "Report overall risk",
+        "body": "Show the trend and confidence, tailored to the audience."
+      },
+      "target": {
+        "headline": "Good: risks watched, register honest",
+        "body": "Secondary and residual risks managed, a current register, and overall risk reported."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Monitoring risks includes the effects of responses: residual risk that remains and secondary risks a response creates, each registered with an owner. The register stays current by closing expired risks (not deleting live ones) and recording lessons learned. Overall project risk, the trend of total exposure and the confidence of meeting objectives, is reported in a form tailored to each audience."
+  }
+}
