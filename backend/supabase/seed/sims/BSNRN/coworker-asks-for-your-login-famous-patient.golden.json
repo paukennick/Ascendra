@@ -1,0 +1,1086 @@
+{
+  "slug": "coworker-asks-for-your-login-famous-patient",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Asks before answering, acknowledges the pressure, declines and offers the proper route, refuses the second request, escalates through the proper channel where needed, writes a factual note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askScope",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "askWhy",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "ack",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "route",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 9,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 9,
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 10,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 13,
+          "seq": 11,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "keepLogs",
+          "seq": 12,
+          "tick": 13
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 15,
+          "seq": 13,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "endTalk",
+          "seq": 14,
+          "tick": 15
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 15
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "factual"
+          },
+          "seq": 16,
+          "tick": 15
+        }
+      ],
+      "expect": {
+        "ending": "upheld",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "noShare": "met",
+          "logs": "met",
+          "route": "met",
+          "channel": "met",
+          "diligence": "met",
+          "relation": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "minRoute": 5,
+          "breaches": 0,
+          "relation": 8
+        },
+        "stateHash": "2eee55f2918d8317"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "flatNo",
+      "title": "Refuses flatly with no way forward, refuses the second request; nobody else hears",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askScope",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "refuse",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 9,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 9,
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "keepLogs",
+          "seq": 12,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 11,
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 14,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 13,
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 13,
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "endTalk",
+          "seq": 17,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 18,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "factual"
+          },
+          "seq": 19,
+          "tick": 13
+        }
+      ],
+      "expect": {
+        "ending": "costly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 63,
+        "criteria": {
+          "noShare": "met",
+          "logs": "met",
+          "route": "partial",
+          "channel": "partial",
+          "diligence": "partial",
+          "relation": "missed",
+          "note": "met"
+        },
+        "kpis": {
+          "minRoute": -1,
+          "breaches": 0,
+          "relation": 3
+        },
+        "stateHash": "ee3818b4eb939eb3"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "lateRoute",
+      "title": "Listens a long time, offers the route only after being pressed, then escalates properly",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askScope",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "checkPolicy",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 4,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 6,
+          "seq": 6,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 8,
+          "seq": 8,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 10,
+          "seq": 10,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "keepLogs",
+          "seq": 11,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 12,
+          "seq": 12,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 14,
+          "seq": 14,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 16,
+          "seq": 16,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 17,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 18,
+          "seq": 18,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 19,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 20,
+          "seq": 20,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 21,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 22,
+          "seq": 22,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "route",
+          "seq": 23,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 12,
+          "to": 26,
+          "seq": 24,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "escalate",
+          "seq": 25,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 13,
+          "to": 30,
+          "seq": 26,
+          "tick": 26
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 27,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "factual"
+          },
+          "seq": 28,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "costly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 81,
+        "criteria": {
+          "noShare": "met",
+          "logs": "met",
+          "route": "partial",
+          "channel": "met",
+          "diligence": "partial",
+          "relation": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "minRoute": 22,
+          "breaches": 0,
+          "relation": 6
+        },
+        "stateHash": "8b19c4555952aa95"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "share",
+      "title": "Gives in to the first request, then refuses the second",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "ack",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "share",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 3,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 3
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 5,
+          "seq": 6,
+          "tick": 3
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 5
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 7,
+          "seq": 8,
+          "tick": 5
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 9,
+          "seq": 10,
+          "tick": 7
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 9,
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "keepLogs",
+          "seq": 12,
+          "tick": 9
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 11,
+          "seq": 13,
+          "tick": 9
+        },
+        {
+          "type": "act",
+          "action": "endTalk",
+          "seq": 14,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 15,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "none"
+          },
+          "seq": 16,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "breached",
+        "class": "harm",
+        "rating": "bad",
+        "score": 31,
+        "criteria": {
+          "noShare": "missed",
+          "logs": "met",
+          "route": "missed",
+          "channel": "partial",
+          "diligence": "missed",
+          "relation": "met",
+          "note": "missed"
+        },
+        "kpis": {
+          "minRoute": -1,
+          "breaches": 1,
+          "relation": 8
+        },
+        "stateHash": "db78830ec53322d9"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "logsOff",
+      "title": "Offers the proper route, then gives in to the second request",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "askScope",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 2,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "route",
+          "seq": 3,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 6,
+          "seq": 4,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 8,
+          "seq": 6,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 10,
+          "seq": 8,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "logsOff",
+          "seq": 9,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 11,
+          "seq": 10,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "endTalk",
+          "seq": 11,
+          "tick": 11
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 11
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "factual"
+          },
+          "seq": 13,
+          "tick": 11
+        }
+      ],
+      "expect": {
+        "ending": "breached",
+        "class": "harm",
+        "rating": "bad",
+        "score": 63,
+        "criteria": {
+          "noShare": "met",
+          "logs": "missed",
+          "route": "met",
+          "channel": "partial",
+          "diligence": "partial",
+          "relation": "met",
+          "note": "met"
+        },
+        "kpis": {
+          "minRoute": 2,
+          "breaches": 1,
+          "relation": 6
+        },
+        "stateHash": "84ca2edb165f2095"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "threatPost",
+      "title": "Threatens and posts publicly; never offers a route; no note",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "threaten",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 1,
+          "to": 1,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "post",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 2,
+          "to": 2,
+          "seq": 4,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 5,
+          "tick": 2
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 3,
+          "to": 4,
+          "seq": 6,
+          "tick": 2
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 7,
+          "tick": 4
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 4,
+          "to": 6,
+          "seq": 8,
+          "tick": 4
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 9,
+          "tick": 6
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 5,
+          "to": 8,
+          "seq": 10,
+          "tick": 6
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 11,
+          "tick": 8
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 6,
+          "to": 10,
+          "seq": 12,
+          "tick": 8
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 13,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 7,
+          "to": 12,
+          "seq": 14,
+          "tick": 10
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 15,
+          "tick": 12
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 8,
+          "to": 14,
+          "seq": 16,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 17,
+          "tick": 14
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 9,
+          "to": 16,
+          "seq": 18,
+          "tick": 14
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 19,
+          "tick": 16
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 10,
+          "to": 18,
+          "seq": 20,
+          "tick": 16
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 21,
+          "tick": 18
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 11,
+          "to": 20,
+          "seq": 22,
+          "tick": 18
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 23,
+          "tick": 20
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 12,
+          "to": 22,
+          "seq": 24,
+          "tick": 20
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 25,
+          "tick": 22
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 13,
+          "to": 24,
+          "seq": 26,
+          "tick": 22
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 27,
+          "tick": 24
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 14,
+          "to": 26,
+          "seq": 28,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 29,
+          "tick": 26
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 15,
+          "to": 28,
+          "seq": 30,
+          "tick": 26
+        },
+        {
+          "type": "act",
+          "action": "wait",
+          "seq": 31,
+          "tick": 28
+        },
+        {
+          "type": "skip",
+          "timer": "talk",
+          "instance": 16,
+          "to": 30,
+          "seq": 32,
+          "tick": 28
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 33,
+          "tick": 30
+        },
+        {
+          "type": "act",
+          "action": "note",
+          "params": {
+            "note": "none"
+          },
+          "seq": 34,
+          "tick": 30
+        }
+      ],
+      "expect": {
+        "ending": "costly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 19,
+        "criteria": {
+          "noShare": "met",
+          "logs": "partial",
+          "route": "missed",
+          "channel": "missed",
+          "diligence": "missed",
+          "relation": "missed",
+          "note": "missed"
+        },
+        "kpis": {
+          "minRoute": -1,
+          "breaches": 0,
+          "relation": 0
+        },
+        "stateHash": "aafed07784ce8fe7"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "coworker-asks-for-your-login-famous-patient",
+  "title": "Your login, for a famous patient",
+  "screen": {
+    "type": "session",
+    "level": 2,
+    "session": {
+      "client": {
+        "name": "Jess Moreno, a nurse on your unit and a friend",
+        "presentation": "{pressure >= 8 ? \"Arms crossed, voice raised\" : pressure >= 6 ? \"Leaning on the counter, talking fast\" : pressure >= 3 ? \"Standing by the station, phone in hand\" : \"Sitting down, calmer\"}; {relation >= 6 ? \"she is listening to you\" : relation >= 3 ? \"she wants this over with\" : \"she has stopped looking at you\"}."
+      },
+      "gauges": [
+        {
+          "id": "pressure",
+          "label": "Pressure",
+          "spokenLabel": "Pressure on you",
+          "value": "pressure",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "calm",
+            "pressing",
+            "insistent",
+            "angry"
+          ]
+        },
+        {
+          "id": "relation",
+          "label": "Working relationship",
+          "spokenLabel": "Working relationship",
+          "value": "relation",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "strained",
+            "steady",
+            "strong"
+          ]
+        },
+        {
+          "id": "known",
+          "label": "What you know",
+          "spokenLabel": "What you know",
+          "value": "known",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "little",
+            "some of it",
+            "the full picture"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "ask",
+          "label": "The request",
+          "text": "Let Jess use your login to open the news anchor's chart on the cardiac unit 'just to see if the rumor's true'.",
+          "when": "true"
+        },
+        {
+          "id": "policy",
+          "label": "Policy",
+          "text": "Logins are personal (acceptable use policy). Access only the records you need for your job (minimum necessary). Report possible breaches to the privacy officer the same day; the IT help desk resets locked logins.",
+          "when": "not isNull(policyAt)"
+        },
+        {
+          "id": "scope",
+          "label": "What you found out",
+          "text": "{not isNull(scopeAt) ? \"Jess is not on the anchor's care team; her friend in the group chat wants to know.\" : \"\"} {not isNull(whyAt) ? \"Jess already opened the anchor's chart from her own login this morning before it locked.\" : \"\"} {not isNull(acctAt) ? \"Her login locked after repeated attempts; the help desk can reset it in minutes.\" : \"\"}",
+          "when": "not isNull(scopeAt) or not isNull(whyAt) or not isNull(acctAt)"
+        },
+        {
+          "id": "logs",
+          "label": "Second request",
+          "text": "Take a photo of the cardiac unit's census board on your phone 'for the group chat'.",
+          "when": "not isNull(logsAskAt)",
+          "alert": "not isNull(logsAskAt) and logs == \"unset\""
+        }
+      ],
+      "record": {
+        "label": "Your note so far",
+        "items": [
+          {
+            "label": "Declined to share my login; pointed Jess to the help desk for her own account",
+            "when": "not isNull(routeAt)"
+          },
+          {
+            "label": "Declined to photograph the census board",
+            "when": "logs == \"kept\""
+          },
+          {
+            "label": "Reported the earlier chart access to the privacy officer",
+            "when": "not isNull(escalateAt)"
+          }
+        ]
+      },
+      "readLabel": "Read the conversation"
+    }
+  },
+  "objective": "Keep electronic health information confidential, accurate and available to those who need it, and spot and respond to a security breach",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Nurses Service Organization: Breaking Down the ANA Code of Ethics for Nurses: A Simplified Summary (2025 edition; no article date shown)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.nso.com/Learning/Artifacts/Articles/Breaking-Down-the-ANA-Code-of-Ethics-for-Nurses-A-Simplified-Summary",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the 2025 edition (released January 2025, ten provisions): 'A nurse's primary commitment is to the recipient(s) of nursing care'; 'The nurse establishes a trusting relationship and advocates for the rights, health, and safety of recipient(s)', including protecting privacy and confidentiality; 'Nurses have authority over nursing practice and are responsible and accountable for their practice'; respect, transparency and civility with coworkers, and 'bullying behaviors should never be tolerated'. A secondary summary; the code itself was not opened. Learner text names 'your professional code', not the association."
+    },
+    {
+      "cite": "HHS Office for Civil Rights: Minimum Necessary Requirement (content last reviewed 2013-07-26; page modified 2026-03-18)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/minimum-necessary-requirement",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: policies must 'identify the persons or classes of persons within the covered entity who need access to the information' to 'carry out their job duties', to 'limit unnecessary or inappropriate access to and disclosure of protected health information'; the standard does not apply to 'Disclosures to or requests by a health care provider for treatment purposes'."
+    }
+  ],
+  "brief": {
+    "situation": "14:20 at the nurses' station of a medical unit. You are a staff RN. A well-known local news anchor was admitted this morning to the cardiac unit upstairs. Your colleague and friend Jess, whose own login just locked her out, asks to use yours 'for two minutes' to look at the anchor's chart. She is not on that patient's care team. Work out what is being asked, act on your professional code and the privacy rules, and keep the working relationship where you can.",
+    "handover": [
+      "Your professional code puts the patient first and asks you to protect privacy and confidentiality; you are accountable for your own practice.",
+      "Hospital policy: logins are personal and never shared; staff access only the records they need for their job; anyone who learns of a possible privacy breach reports it to the privacy officer the same day."
+    ],
+    "howItWorks": [
+      "Choose what to ask or say. Each exchange takes a few minutes of the conversation; Jess answers at once, and the next choice waits for the exchange to finish.",
+      "The screen shows Jess, how hard she is pushing, your working relationship, what you know so far, and your note.",
+      "When the conversation ends you write your note and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "14:20",
+    "tick": "1min",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "logsDelay": {
+      "value": 480,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Jess's second request comes eight minutes in."
+      },
+      "unit": "s"
+    },
+    "insistDelay": {
+      "value": 720,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Jess insists twelve minutes in if nothing else has been offered."
+      },
+      "unit": "s"
+    },
+    "talkEnd": {
+      "value": 1800,
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "Jess leaves after thirty minutes."
+      },
+      "unit": "s"
+    }
+  },
+  "state": {
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "shared": {
+      "type": "bool",
+      "init": false
+    },
+    "threatened": {
+      "type": "bool",
+      "init": false
+    },
+    "posted": {
+      "type": "bool",
+      "init": false
+    },
+    "scopeAt": {
+      "type": "time",
+      "init": null
+    },
+    "whyAt": {
+      "type": "time",
+      "init": null
+    },
+    "acctAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "ackAt": {
+      "type": "time",
+      "init": null
+    },
+    "declineAt": {
+      "type": "time",
+      "init": null
+    },
+    "routeAt": {
+      "type": "time",
+      "init": null
+    },
+    "logsAskAt": {
+      "type": "time",
+      "init": null
+    },
+    "escalateAt": {
+      "type": "time",
+      "init": null
+    },
+    "insistAt": {
+      "type": "time",
+      "init": null
+    },
+    "endAt": {
+      "type": "time",
+      "init": null
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "pressure": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "relation": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "known": {
+      "type": "number",
+      "init": 1,
+      "min": 0,
+      "max": 10
+    },
+    "logs": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "kept",
+        "off"
+      ],
+      "init": "unset"
+    },
+    "noteDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "factual",
+        "none"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "breaches": {
+      "expr": "(shared ? 1 : 0) + (logs == \"off\" ? 1 : 0)"
+    },
+    "routeInTime": {
+      "expr": "not isNull(routeAt) and timeAt(routeAt) <= actWindow"
+    },
+    "properChannel": {
+      "expr": "not threatened and not posted"
+    },
+    "escalatedIfNeeded": {
+      "expr": "not isNull(escalateAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "conversation": {
+      "label": "Conversation",
+      "clock": "turns",
+      "actions": [
+        "askScope",
+        "askWhy",
+        "askAcct",
+        "checkPolicy",
+        "ack",
+        "route",
+        "refuse",
+        "share",
+        "keepLogs",
+        "logsOff",
+        "escalate",
+        "threaten",
+        "post",
+        "wait",
+        "endTalk"
+      ]
+    },
+    "after": {
+      "label": "After the conversation",
+      "clock": "stopped",
+      "actions": [
+        "note"
+      ]
+    }
+  },
+  "initialPhase": "conversation",
+  "actions": {
+    "askScope": {
+      "label": "Ask whether she is caring for the patient",
+      "group": "Ask",
+      "available": "not talking and (isNull(scopeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "scopeAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "3"
+        },
+        {
+          "finding": "\"No, I just want to know. My friend's in a group chat about it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askWhy": {
+      "label": "Ask whether she has already looked at the chart",
+      "group": "Ask",
+      "available": "not talking and (isNull(whyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "whyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "add": "pressure",
+          "by": "-0.5"
+        },
+        {
+          "finding": "\"Well... I peeked this morning, before my login locked. Just the admission note.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askAcct": {
+      "label": "Ask why her own login is locked",
+      "group": "Ask",
+      "available": "not talking and (isNull(acctAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "acctAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "\"Too many tries after lunch. The help desk would fix it, but it takes ten minutes.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "checkPolicy": {
+      "label": "Check the access and privacy policy on the intranet",
+      "group": "Ask",
+      "available": "not talking and (isNull(policyAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "add": "known",
+          "by": "2"
+        },
+        {
+          "finding": "Sam waits while you read."
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "ack": {
+      "label": "Acknowledge her curiosity: 'Everyone's talking about it, I get why you're curious'",
+      "group": "Respond",
+      "available": "not talking and (isNull(ackAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "ackAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "finding": "\"Right? It's all anyone's talking about.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "route": {
+      "label": "Decline to share your login, explain it's not her patient, and point her to the help desk to unlock her own account for her own patients",
+      "group": "Respond",
+      "available": "not talking and (isNull(routeAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "set": "routeAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-2"
+        },
+        {
+          "add": "relation",
+          "by": "isNull(ackAt) ? 0 : 1"
+        },
+        {
+          "finding": "\"Okay. You're right. I'll call the help desk for my own login.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "refuse": {
+      "label": "Refuse flatly: 'No. Don't ask me that.'",
+      "group": "Respond",
+      "available": "not talking and (isNull(declineAt) and not shared)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "declineAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "3"
+        },
+        {
+          "add": "relation",
+          "by": "-3"
+        },
+        {
+          "finding": "\"Wow. Fine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "share": {
+      "label": "Log in for her and step away",
+      "group": "Respond",
+      "available": "not talking and (not shared and isNull(routeAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "shared",
+          "to": "true"
+        },
+        {
+          "add": "pressure",
+          "by": "-4"
+        },
+        {
+          "add": "relation",
+          "by": "1"
+        },
+        {
+          "log": "You log in and step away while Jess reads the anchor's chart under your name.",
+          "kind": "bad"
+        },
+        {
+          "finding": "\"Thanks. I'll be quick.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepLogs": {
+      "label": "Decline the photo: the census board is patient information",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"kept\""
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "finding": "\"Okay, okay. Forget it.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "logsOff": {
+      "label": "Take the photo of the census board for her",
+      "group": "Respond",
+      "available": "not talking and (not isNull(logsAskAt) and logs == \"unset\")",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "logs",
+          "to": "\"off\""
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "log": "You photograph the census board, names and rooms included.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "escalate": {
+      "label": "Tell Jess you have to report the earlier chart access to the privacy officer, and call now",
+      "group": "Escalate",
+      "available": "not talking and (isNull(escalateAt))",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "escalateAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "-1"
+        },
+        {
+          "finding": "The privacy officer: \"Thank you for telling me. We'll review the access log and follow up with Jess through her manager.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "4min"
+        }
+      ]
+    },
+    "threaten": {
+      "label": "Tell Jess you'll get her fired unless she drops it",
+      "group": "Escalate",
+      "available": "not talking and (not threatened)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "threatened",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-4"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "finding": "\"Seriously? Some friend you are.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "post": {
+      "label": "Post in the unit group chat that Jess is snooping on the anchor's chart",
+      "group": "Escalate",
+      "available": "not talking and (not posted)",
+      "why": "Done.",
+      "effects": [
+        {
+          "set": "posted",
+          "to": "true"
+        },
+        {
+          "add": "relation",
+          "by": "-5"
+        },
+        {
+          "log": "The post names Jess in front of thirty colleagues.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "1min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Let Jess talk (2 min)",
+      "group": "Wait",
+      "available": "not talking and (true)",
+      "why": "Done.",
+      "effects": [
+        {
+          "log": "You listen.",
+          "kind": "act"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endTalk": {
+      "label": "End the conversation and write your note",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let Jess finish.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "The conversation ends.",
+          "kind": "act"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    "note": {
+      "label": "Write your note",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "note",
+              "label": "What you write",
+              "options": [
+                {
+                  "value": "factual",
+                  "label": "A factual note to the privacy officer: what Jess asked, what she said she had accessed, what you did"
+                },
+                {
+                  "value": "none",
+                  "label": "Nothing: it worked out"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "noteDoc",
+          "to": "note"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Note: {note}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "Conversation",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figure (REQ-334)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each exchange takes and when each event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "logsAsk",
+      "when": "isNull(logsAskAt) and t >= logsDelay and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "logsAskAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "1"
+        },
+        {
+          "log": "Jess: \"At least snap a picture of the cardiac census board for the group chat, so they know which room.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "insist",
+      "when": "isNull(insistAt) and t >= insistDelay and isNull(routeAt) and not shared and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "insistAt",
+          "to": "t"
+        },
+        {
+          "add": "pressure",
+          "by": "2"
+        },
+        {
+          "log": "Jess: \"Come on, nobody checks the logs. Just log in for two minutes.\"",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "leaves",
+      "when": "isNull(leftAt) and t >= talkEnd and phase == \"conversation\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "set": "endAt",
+          "to": "t"
+        },
+        {
+          "log": "Jess is called to a call light and leaves. The conversation is over.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "after"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"after\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "reflection": {
+      "question": "For your note: what the privacy problem was, what you did about it and why, and how you dealt with your colleague.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The problem",
+          "criteria": "Names that sharing a login and opening a chart without a job need breach the minimum necessary rule and the code's duty of confidentiality, and that the earlier access is itself a possible breach to report.",
+          "modelAnswer": "Sharing my login would put her access under my name, and she has no job reason to see that chart. She already looked this morning, which is a possible breach I have to report."
+        },
+        {
+          "label": "Ask, then act",
+          "criteria": "Finds out whether she is on the care team and what she already did before answering; declines, keeps patient information off phones, and offers the proper route for her own work (the help desk).",
+          "modelAnswer": "I asked whether she was caring for the patient and whether she'd looked, then said no to my login and the photo and pointed her to the help desk for her own account."
+        },
+        {
+          "label": "The relationship and the channel",
+          "criteria": "Acknowledges her curiosity without endorsing it; reports to the privacy officer, not by threats or a public post; writes a factual note.",
+          "modelAnswer": "I stayed kind about it, reported to the privacy officer, and wrote down the facts."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "professional-ethics",
+    "thresholds": {
+      "actWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The refusal and the proper route within 20 minutes, before Jess leaves (author's figure)."
+        }
+      },
+      "canonBreaches": {
+        "value": 0,
+        "source": {
+          "cite": "Professional-ethics outcome profile (docs/sims.md 9.2, 22.26)",
+          "checkedAt": "2026-11-17",
+          "note": "No login shared and no photo of patient information taken."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and isNull(declineAt) and not shared and logs != \"off\"",
+      "class": "recovered",
+      "rationale": "Nothing was shared, but the request was never answered and the earlier access was not reported.",
+      "source": {
+        "cite": "HHS Office for Civil Rights: Minimum Necessary Requirement (content last reviewed 2013-07-26; page modified 2026-03-18)",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.hhs.gov/hipaa/for-professionals/privacy/guidance/minimum-necessary-requirement",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: policies must 'identify the persons or classes of persons within the covered entity who need access to the information' to 'carry out their job duties', to 'limit unnecessary or inappropriate access to and disclosure of protected health information'; the standard does not apply to 'Disclosures to or requests by a health care provider for treatment purposes'."
+      }
+    }
+  },
+  "endings": {
+    "breached": {
+      "label": "Privacy breached",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and breaches > canonBreaches",
+      "narrative": "The anchor's chart was read under your name, or the census board is in a group chat. The hospital must now report a breach."
+    },
+    "upheld": {
+      "label": "Privacy kept, colleague kept",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and breaches <= canonBreaches and routeInTime and logs == \"kept\" and properChannel and escalatedIfNeeded and noteDoc == \"factual\" and relation >= 5",
+      "narrative": "You declined, kept the information off phones, reported the earlier access, and kept a working relationship with Jess."
+    },
+    "costly": {
+      "label": "Kept, at a cost",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Nothing was shared, but the answer came late, without a way forward, the earlier access went unreported, or the relationship suffered."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no note."
+    }
+  },
+  "endingOrder": [
+    "breached",
+    "upheld",
+    "costly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "noShare",
+        "label": "Did not share your login",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not shared",
+            "score": "met",
+            "why": "Your login stayed yours."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The chart was opened under your name."
+          }
+        ]
+      },
+      {
+        "id": "logs",
+        "label": "Did not photograph patient information",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "logs == \"kept\"",
+            "score": "met",
+            "why": "Declined, with the reason."
+          },
+          {
+            "when": "logs == \"unset\"",
+            "score": "partial",
+            "why": "Never answered the second request."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The census board is in a group chat."
+          }
+        ]
+      },
+      {
+        "id": "route",
+        "label": "Declined and offered the proper route within 20 minutes",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "routeInTime",
+            "score": "met",
+            "why": "Offered at {timeAt(routeAt) / 60|0dp} min."
+          },
+          {
+            "when": "not isNull(routeAt) or not isNull(declineAt)",
+            "score": "partial",
+            "why": "{isNull(routeAt) ? \"Refused with no way forward.\" : \"Offered late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No answer, or a yes."
+          }
+        ]
+      },
+      {
+        "id": "channel",
+        "label": "Reported the known access to the privacy officer, not by threats or a public post",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "properChannel and escalatedIfNeeded",
+            "score": "met",
+            "why": "{isNull(escalateAt) ? \"No escalation was needed.\" : \"The privacy officer has the report.\"}"
+          },
+          {
+            "when": "properChannel",
+            "score": "partial",
+            "why": "A possible breach went unreported."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{posted ? \"A public post naming her.\" : \"A threat instead of a channel.\"}"
+          }
+        ]
+      },
+      {
+        "id": "diligence",
+        "label": "Found out whether she had a job need and what she had already accessed before answering",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(scopeAt) and not isNull(whyAt) and (isNull(declineAt) or timeAt(whyAt) <= timeAt(declineAt))",
+            "score": "met",
+            "why": "Due diligence first."
+          },
+          {
+            "when": "not isNull(scopeAt) or not isNull(whyAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Answered without knowing what it touched."
+          }
+        ]
+      },
+      {
+        "id": "relation",
+        "label": "Kept a working relationship with Jess",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "relation >= 5",
+            "score": "met",
+            "why": "Still working together."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The relationship is strained."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "Wrote a factual note",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "noteDoc == \"factual\"",
+            "score": "met",
+            "why": "On record."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Nothing written."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written problem, ask then act, and channel",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "minRoute",
+        "label": "Minutes until the proper route was offered",
+        "value": "isNull(routeAt) ? -1 : timeAt(routeAt) / 60",
+        "format": "number",
+        "expert": "10 or less"
+      },
+      {
+        "id": "breaches",
+        "label": "Privacy breaches by you",
+        "value": "breaches",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "relation",
+        "label": "Working relationship with Jess at the end (of 10)",
+        "value": "round(relation)",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-6 min",
+        "text": "Ask whether she is on the care team and whether she already looked; acknowledge her curiosity."
+      },
+      {
+        "at": "6-10 min",
+        "text": "Decline your login; point her to the help desk for her own account and her own patients."
+      },
+      {
+        "at": "8-14 min",
+        "text": "Decline the census-board photo."
+      },
+      {
+        "at": "After",
+        "text": "Report the earlier access to the privacy officer and write a factual note."
+      }
+    ],
+    "debrief": {
+      "upheld": {
+        "headline": "Privacy kept, colleague kept",
+        "body": "You asked before answering, declined kindly, kept patient information off phones, reported the access you learned of, and kept the relationship. That is the expert path."
+      },
+      "costly": {
+        "headline": "Kept, at a cost",
+        "body": "The criteria show the cost: a late answer, a refusal with no way forward, an unreported access, a threat or a public post, or a relationship worse than it needed to be."
+      },
+      "breached": {
+        "headline": "Privacy breached",
+        "body": "A shared login or a photo of patient information is a breach. Curiosity is not a job need; access only what you need for your work."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No note was written before the run's limit."
+      }
+    },
+    "modelReasoning": "Logins are personal and access is limited to what each person needs for their job (the minimum necessary rule; the treatment exception covers the care team, not curiosity). Ask first: Jess is not on the care team and already opened the chart this morning. Acknowledge her curiosity, decline your login and the census-board photo, point her to the help desk for her own work, report the earlier access to the privacy officer as the policy requires, and write a factual note. Avoid threats or public posts."
+  },
+  "safetyNote": "Teaching case for exam practice; fictional people. Not legal or clinical advice."
+}
