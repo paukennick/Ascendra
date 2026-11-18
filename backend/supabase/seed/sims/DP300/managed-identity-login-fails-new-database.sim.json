@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "managed-identity-login-fails-new-database",
+  "title": "Go-live: the invoicing app's managed identity cannot log in to the new database",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "dba@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:15 app-invoicing: 'Login failed for user <token-identified principal>' (18456) on every connection; invoicing at 09:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:00: invoicing failed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:00: invoicing running",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "App Service app-invoicing",
+          "spokenLabel": "the invoicing app",
+          "kind": "system-assigned managed identity",
+          "status": "{harmed ? \"connecting as the server admin\" : fixed ? \"connected\" : \"login failed\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "srv",
+          "label": "sql-inv-2 (new server)",
+          "spokenLabel": "the new server",
+          "kind": "Entra admin: DBA group",
+          "status": "{fixed and not harmed ? \"Entra auth on\" : \"Entra auth on\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "db",
+          "label": "Database invoicing",
+          "spokenLabel": "the invoicing database",
+          "kind": "copied last night",
+          "status": "{harmed ? \"app runs as server admin\" : fixed ? \"user app-invoicing, least privilege\" : \"no user for app-invoicing\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "db",
+          "label": "token login",
+          "status": "{fixed and not harmed ? \"connected\" : \"18456\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Troubleshooting authentication and authorization issues",
+  "secondaryObjectives": [
+    "Creating users from Microsoft Entra identities",
+    "Applying the principle of least privilege for all securables"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam DP-300: Administering Microsoft Azure SQL Solutions (skills as of October 27, 2026; page last updated 2026-10-30): data platform resources 15-20%, secure environment 20-25%, monitor, configure and optimize 20-25%, automation 15-20%, HA/DR 20-25%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/dp-300",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Identify and resolve session blocking'; 'Monitor by using Extended Events'; 'Identify performance issues using dynamic management views (DMVs)'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, Microsoft Entra authentication for Azure SQL",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: identities must 'be created as Microsoft Entra principals in the database(s) they need to access'; Azure RBAC roles such as SQL DB Contributor 'are used to secure management-related deployment operations, not database connectivity access'; a contained database user is 'CREATE USER [MSEntraUser] FROM EXTERNAL PROVIDER'; managed identity authentication is token-based and 'preferable since authentication is passwordless'; creating a user for a managed identity needs Microsoft Graph read (Application.Read.All). The page does not mention error 18456 or '<token-identified principal>'; that wording is from memory (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the database administrator at Haldane Freight. Last night the invoicing database was moved to a new logical server, sql-inv-2, by a database copy. The invoicing app now connects with its system-assigned managed identity, app-invoicing, as planned in the security review. Every connection fails. Month-end invoicing runs at 09:00.",
+    "handover": [
+      "On the old server, app-invoicing had a contained database user with db_datareader, db_datawriter and EXECUTE on schema inv.",
+      "The new server's Microsoft Entra admin is the DBA group, and you are in it."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the app's identity, the new server and the database users it has.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:15",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2700,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Month-end invoicing runs at 09:00, 45 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "usersAt": {
+      "type": "time",
+      "init": null
+    },
+    "sidAt": {
+      "type": "time",
+      "init": null
+    },
+    "rbacAt": {
+      "type": "time",
+      "init": null
+    },
+    "connAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "user",
+        "rbac",
+        "firewall"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "users",
+        "sid",
+        "rbac",
+        "conn",
+        "user",
+        "cleanup",
+        "sa",
+        "contrib",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "users": {
+      "label": "As the Entra admin: SELECT name, type_desc FROM sys.database_principals WHERE type IN ('E','X')",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(usersAt)",
+          "then": [
+            {
+              "set": "usersAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -S sql-inv-2.database.windows.net -d invoicing --authentication-method ActiveDirectoryDefault -Q \"SELECT name, type_desc FROM sys.database_principals WHERE type IN ('E','X')\"\n{fixed and not harmed ? \"dba-group       EXTERNAL_GROUP\napp-invoicing   EXTERNAL_USER\" : \"dba-group       EXTERNAL_GROUP\napp-invoicing-old   EXTERNAL_USER  (sid of the old app's identity)\"}"
+        },
+        {
+          "finding": "The copied database has a user for the old app's identity, not for app-invoicing's new managed identity."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sid": {
+      "label": "Compare the user's SID with the app's managed identity",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(sidAt)",
+          "then": [
+            {
+              "set": "sidAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp identity show -g rg-inv -n app-invoicing --query principalId -o tsv\n7c51e0b2-...\ndba@cloudshell:~$ sqlcmd ... -Q \"SELECT name, CONVERT(uniqueidentifier, sid) FROM sys.database_principals WHERE name LIKE 'app-invoicing%'\"\n{fixed and not harmed ? \"app-invoicing  (sid matches 7c51e0b2-...)\" : \"app-invoicing-old  2f09a4c1-...  (does not match)\"}"
+        },
+        {
+          "finding": "The app's identity is a different principal; nothing in the database maps to it."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "rbac": {
+      "label": "az role assignment list for app-invoicing",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(rbacAt)",
+          "then": [
+            {
+              "set": "rbacAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az role assignment list --assignee 7c51e0b2-... --all --query \"[].roleDefinitionName\" -o tsv\nSQL DB Contributor"
+        },
+        {
+          "finding": "Someone gave the identity an Azure role, which manages the resource but grants no database access."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "conn": {
+      "label": "The app's connection string",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(connAt)",
+          "then": [
+            {
+              "set": "connAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp config connection-string list -g rg-inv -n app-invoicing --query \"[0].value\" -o tsv\nServer=tcp:sql-inv-2.database.windows.net,1433;Database=invoicing;Authentication=Active Directory Managed Identity;"
+        },
+        {
+          "finding": "The connection string is right: passwordless, managed identity."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "user": {
+      "label": "CREATE USER [app-invoicing] FROM EXTERNAL PROVIDER; grant the same three permissions it had",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd -S sql-inv-2.database.windows.net -d invoicing --authentication-method ActiveDirectoryDefault -Q \"CREATE USER [app-invoicing] FROM EXTERNAL PROVIDER; ALTER ROLE db_datareader ADD MEMBER [app-invoicing]; ALTER ROLE db_datawriter ADD MEMBER [app-invoicing]; GRANT EXECUTE ON SCHEMA::inv TO [app-invoicing];\"\nCommands completed successfully."
+        },
+        {
+          "log": "The managed identity now has a contained user in the database with exactly the permissions it had before: no owner rights, no password.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "cleanup": {
+      "label": "Drop the stale user and the useless RBAC role; add the user creation to the copy runbook",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ sqlcmd ... -Q \"DROP USER [app-invoicing-old]\"\ndba@cloudshell:~$ az role assignment delete --assignee 7c51e0b2-... --role 'SQL DB Contributor'\n(runbook 'Database copy to a new server': step 7 re-create contained users for the target's identities)"
+        },
+        {
+          "log": "No orphaned principal remains, the identity has no management rights it does not need, and the next copy includes the user step.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "sa": {
+      "label": "Change the app's connection string to the server admin SQL login and password",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp config connection-string set -g rg-inv -n app-invoicing ... 'Server=...;User ID=sqladmin;Password=********;'\n(app restarted)"
+        },
+        {
+          "log": "Invoicing connects as the server administrator: full control of every database, and a password in app settings, against the security review.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "contrib": {
+      "label": "Give app-invoicing the SQL Server Contributor role as well",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "dba@cloudshell:~$ az role assignment create --assignee 7c51e0b2-... --role 'SQL Server Contributor' --scope .../servers/sql-inv-2\n(created)"
+        },
+        {
+          "log": "Azure roles manage the server resource; they do not let the identity log in to a database. Still 18456.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Restart the app and run its health check (which queries inv.Invoices)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "dba@cloudshell:~$ az webapp restart -g rg-inv -n app-invoicing; curl -s https://app-invoicing.../health\n{harmed ? \"db: ok (connected as sqladmin)\" : fixed ? \"db: ok (app-invoicing, 3 roles/grants)\" : \"db: Login failed for user '<token-identified principal>'\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "user",
+                  "label": "The copied database had no user for the app's new managed identity"
+                },
+                {
+                  "value": "rbac",
+                  "label": "The identity lacked an Azure role on the server"
+                },
+                {
+                  "value": "firewall",
+                  "label": "The app's IP was blocked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: month-end invoicing runs.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "09:00: invoicing cannot connect; month-end invoices are late.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the login failed, what you created, and why not the admin login or an Azure role.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates authentication from database principals.",
+          "modelAnswer": "The token was valid, but the copied database held a user for the old app's identity; nothing mapped to app-invoicing's new managed identity, so the login failed."
+        },
+        {
+          "label": "Created",
+          "criteria": "Least privilege.",
+          "modelAnswer": "CREATE USER [app-invoicing] FROM EXTERNAL PROVIDER with db_datareader, db_datawriter and EXECUTE on schema inv, the same as before."
+        },
+        {
+          "label": "Not those",
+          "criteria": "Knows what each grants.",
+          "modelAnswer": "The admin login would give full control and a stored password; Azure roles like SQL Server Contributor manage the resource and grant no database access. The stale user and role were removed."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2700,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Month-end invoicing runs at 09:00, 45 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The app now connects as the server administrator with a stored password."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with no user for the identity leaves invoicing unable to connect at 09:00.",
+      "source": {
+        "cite": "Microsoft Learn, Microsoft Entra authentication for Azure SQL",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-overview",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: identities must 'be created as Microsoft Entra principals in the database(s) they need to access'; Azure RBAC roles such as SQL DB Contributor 'are used to secure management-related deployment operations, not database connectivity access'; a contained database user is 'CREATE USER [MSEntraUser] FROM EXTERNAL PROVIDER'; managed identity authentication is token-based and 'preferable since authentication is passwordless'; creating a user for a managed identity needs Microsoft Graph read (Application.Read.All). The page does not mention error 18456 or '<token-identified principal>'; that wording is from memory (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "adminApp": {
+      "label": "App running as server admin",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Switching to the admin login made invoicing work with full control of the server and a password in configuration."
+    },
+    "invoicingLate": {
+      "label": "Month-end invoicing failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 09:00 the identity still had no user in the database."
+    },
+    "leastPriv": {
+      "label": "Contained user, least privilege, runbook fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(usersAt) and not isNull(sidAt) and not isNull(verifiedAt) and causeDoc == \"user\"",
+      "narrative": "app-invoicing has a contained user with its three permissions; stale principals and roles are gone."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Invoicing connects, but the cleanup, the runbook, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "adminApp",
+    "invoicingLate",
+    "leastPriv",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the database's principals and compared SIDs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(usersAt) and not isNull(sidAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(usersAt) or not isNull(sidAt) or not isNull(rbacAt) or not isNull(connAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "App connects by 09:00 with least privilege",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The app now connects as the server administrator with a stored password.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Stale principals removed, runbook fixed; app checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"user\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:15-08:19",
+        "text": "Database has only app-invoicing-old; SID differs from the app's identity; an Azure role that grants nothing; connection string correct."
+      },
+      {
+        "at": "08:19-08:23",
+        "text": "CREATE USER FROM EXTERNAL PROVIDER with three grants; drop stale user and role; runbook."
+      },
+      {
+        "at": "08:23-08:25",
+        "text": "Health check: db ok."
+      }
+    ],
+    "debrief": {
+      "adminApp": {
+        "headline": "Working, and far too powerful",
+        "body": "The app needed one contained user with three permissions. The admin login gives it everything and brings back the password the managed identity removed."
+      },
+      "invoicingLate": {
+        "headline": "Authentication worked; authorization did not",
+        "body": "A token login succeeds only if the database has a principal for that identity. Create it FROM EXTERNAL PROVIDER; Azure roles do not grant database access."
+      },
+      "leastPriv": {
+        "headline": "Good: the right principal, the right rights",
+        "body": "You saw the copied database had the old identity's user, created one for the new identity with the same permissions, checked the app, cleaned up, and fixed the copy runbook."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The connection string and the token are fine; the copied database simply has no principal for the app's new managed identity, only one for the old app. Create a contained user FROM EXTERNAL PROVIDER for app-invoicing with the same three permissions it had, and check the app. Azure roles manage resources and grant no database access; the admin login would work by giving the app everything. Then drop the stale user and role and add the step to the copy runbook."
+  }
+}
