@@ -675,6 +675,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("BSNRN", "insulin-given-to-wrong-bed-bsn"),
   band("BSNRN", "preop-consent-after-opioid-bsn"),
   entry("CCRNNEO", "green-vomit-day-three"),
+  entry("CCRNNEO", "yellow-at-twenty-hours"),
   // ---- end REQ-334 ----
 ];
 

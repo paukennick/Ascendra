@@ -1,0 +1,443 @@
+{
+  "slug": "yellow-at-twenty-hours",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: reads and plots by hour and risk, phototherapy now, calls, checks DAT and neuro, tells the parents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tsb",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "plotQ",
+          "choice": "hour",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "act",
+          "action": "plot",
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 5,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "photo",
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "patho"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "abeQ",
+          "choice": "early",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 10,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 12,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 13,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "photoC": "met",
+          "plotC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 0,
+          "toKey": 125
+        },
+        "stateHash": "ec987fe31b77a453"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Plots and starts phototherapy, but checks everything else before calling 9 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "tsb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "plotQ",
+          "choice": "hour",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "plot",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "photo",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "labs",
+          "seq": 6,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "neuro",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "patho"
+          },
+          "seq": 8,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 9,
+          "tick": 150
+        },
+        {
+          "type": "teach",
+          "prompt": "abeQ",
+          "choice": "early",
+          "seq": 10,
+          "tick": 150
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 150
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "photoC": "met",
+          "plotC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 630,
+          "toKey": 120
+        },
+        "stateHash": "ac7a0f65b034eb5b"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "skinFirst",
+      "title": "Calls promptly but holds the lights for skin-to-skin and never plots",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "tsb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "plotQ",
+          "choice": "hour",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "patho"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "call"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "abeQ",
+          "choice": "early",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "photo",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 8,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 9,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "reportC": "met",
+          "photoC": "missed",
+          "plotC": "missed",
+          "lookC": "missed",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": 60
+        },
+        "stateHash": "a9c41d5688d26b4b"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "physio",
+      "title": "Failure: calls it physiologic, gives water and leaves it for the morning",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "tsb",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "plotQ",
+          "choice": "hour",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "physio"
+          },
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "water",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "morning"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 6,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "abe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "photoC": "missed",
+          "plotC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "9d798ed1bb841386"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "breast",
+      "title": "Failure: calls it breast milk jaundice and defers the lights",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "breast"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "skin",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "abe",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "photoC": "missed",
+          "plotC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "250670370af5814b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
