@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 import Feather from "@expo/vector-icons/Feather";
 import { Stack, useLocalSearchParams } from "expo-router";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import * as Crypto from "expo-crypto";
 import { api, ApiError } from "@/api/client";
 import { Alert } from "@/lib/alert";
@@ -124,6 +125,8 @@ export default function LabScreen() {
 
   const lab = view?.lab;
   const run = view?.run ?? null;
+  // REQ-332: the lab, for a reviewer's quick note.
+  useReviewerFacts({ trackId, lab: { id: labId, title: lab?.title ?? title ?? null } });
   const open = run?.status === "open";
   const current = open ? lab?.steps.find((s) => s.index === run!.stepsDone) ?? null : null;
 

@@ -8,6 +8,7 @@ import { LoadError } from "@/components/LoadError";
 import { Alert } from "@/lib/alert";
 import { friendlyError } from "@/lib/errorMessage";
 import { spacing } from "@/lib/theme";
+import { isQuickNote, quickNoteAbout } from "@/lib/quickNote";
 import { useGoBack } from "@/lib/useGoBack";
 import {
   aboutLine,
@@ -76,7 +77,8 @@ export default function FeedbackForm() {
       if (editId) {
         const res = await api.get<{ feedback: Feedback }>(`/api/reviewer/feedback/${encodeURIComponent(editId)}`);
         setForm(formFrom(res.feedback));
-        setAbout(aboutLine(res.feedback));
+        // REQ-332: a quick note keeps its "where" line; its note is under "Anything else?".
+        setAbout(isQuickNote(res.feedback) ? `${quickNoteAbout(res.feedback).replace(/^About: /, "")} (quick note: its text is under “${TEXT_LABEL.otherComments}”)` : aboutLine(res.feedback));
       } else {
         const q = [params.trackId ? `trackId=${encodeURIComponent(params.trackId)}` : "", params.simId ? `simId=${encodeURIComponent(params.simId)}` : ""]
           .filter(Boolean)

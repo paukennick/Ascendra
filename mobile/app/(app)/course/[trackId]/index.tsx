@@ -47,6 +47,7 @@ import { asksAtStart, goalAnswerBody, parseLevelState, type CourseGoal, type Lev
 import { friendlyError } from "@/lib/errorMessage";
 import { usePersistentSidebarWidth, useWideWeb } from "@/components/WebColumn";
 import { GiveFeedbackButton } from "@/components/GiveFeedback";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -203,6 +204,9 @@ export default function CourseDashboard() {
   // rolled up by the exam blueprint, with coverage shown apart from accuracy
   // (src/lib/progress.ts, backend/lib/readiness.ts).
   const readiness = readinessSummary(readinessData);
+  // REQ-332: the course, for a reviewer's quick note (and its title for the
+  // course's other screens, which know only its id).
+  useReviewerFacts({ trackId, courseTitle: track?.title ?? null });
 
   return (
     <Screen>

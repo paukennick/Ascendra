@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
+import { useReviewerFacts } from "@/lib/reviewerFacts";
 import * as Crypto from "expo-crypto";
 import { api } from "@/api/client";
 import { ReportProblem } from "@/components/ReportProblem";
@@ -80,6 +81,15 @@ export default function ReviewSessionScreen() {
   // While a result is on screen the answered item is still "current" for display.
   const [shown, setShown] = useState<ReviewSessionItem | null>(null);
   const item = result ? shown : current;
+  // REQ-332: the review question showing, for a reviewer's quick note.
+  useReviewerFacts({
+    trackId: trackId ?? null,
+    courseTitle: item?.trackTitle ?? null,
+    objectiveId: item?.objectiveId ?? null,
+    lessonTitle: item?.objectiveTitle ?? null,
+    unitTitle: item?.unitTitle ?? null,
+    item: session && item ? { kind: "review", id: session.id, position: item.position } : null,
+  });
   // REQ-113 (M3): the typed answer is kept on the device per question until
   // it is graded, so leaving or Android closing the app doesn't lose it.
   const draft = useAnswerDraft("review", session && item ? `${session.id}-${item.position}` : null);

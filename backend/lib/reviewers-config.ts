@@ -204,3 +204,130 @@ export function parseFeedbackFilter(url: URL): { reviewerId: string | null; trac
   if (course && !isUuid(course)) return "course must be a course id";
   return { reviewerId: reviewer ? reviewer.toLowerCase() : null, trackId: course ? course.toLowerCase() : null };
 }
+
+// ---------------------------------------------------------------------------
+// Quick notes (REQ-332, migration 089)
+// ---------------------------------------------------------------------------
+//
+// The floating Feedback button's short note: the text (required), an optional
+// tag, and where the reviewer was when they sent it, as the app captured it.
+// It is a reviewer_feedback row with kind 'quick'; the note is stored in
+// other_comments so the full form can open and edit it later. The app's copy
+// of these lists is mobile/src/lib/quickNote.ts (a backend test reads it).
+
+export const QUICK_TAGS = ["inaccurate", "unrealistic", "unclear", "sensitive", "bug", "praise"] as const;
+export type QuickTag = (typeof QUICK_TAGS)[number];
+export const QUICK_NOTE_MAX = 2000;
+export const EMPTY_QUICK_NOTE_MESSAGE = "Write a note before sending.";
+
+// The context keys a quick note keeps, and what each may hold. Anything else
+// the app sends (a newer app, say) is dropped, never stored.
+type CtxRule = { kind: "path" } | { kind: "text"; max: number } | { kind: "id" } | { kind: "slug"; max: number } | { kind: "int"; max: number } | { kind: "enum"; values: readonly string[] };
+export const ITEM_KINDS = ["lesson", "review", "exam", "quiz", "comparison", "lab", "pbq", "unit-check", "placement"] as const;
+export const QUICK_CONTEXT_RULES = {
+  route: { kind: "path" },
+  screen: { kind: "text", max: 80 },
+  unitId: { kind: "id" },
+  objectiveId: { kind: "id" },
+  lessonStage: { kind: "slug", max: 20 },
+  itemKind: { kind: "enum", values: ITEM_KINDS },
+  itemId: { kind: "id" },
+  itemPosition: { kind: "int", max: 10_000 },
+  simRunId: { kind: "id" },
+  simPhase: { kind: "slug", max: 64 },
+  simPhaseLabel: { kind: "text", max: 120 },
+  simTick: { kind: "int", max: 10_000_000 },
+  simClock: { kind: "text", max: 16 },
+  examSessionId: { kind: "id" },
+  examQuestion: { kind: "int", max: 10_000 },
+  examQuestionCount: { kind: "int", max: 10_000 },
+  labId: { kind: "id" },
+} as const satisfies Record<string, CtxRule>;
+export type QuickContextKey = keyof typeof QUICK_CONTEXT_RULES;
+export type QuickContext = Partial<Record<QuickContextKey, string | number>>;
+
+// Ids are uuids or short slugs (lab and item ids); a route is a path with no
+// query string (the app sends the pathname only; anything after ? is cut).
+const CTX_ID = /^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$/;
+const CTX_SLUG = /^[A-Za-z0-9][A-Za-z0-9_.-]*$/;
+const CTX_PATH = /^\/[A-Za-z0-9/_.\-[\]()%]*$/;
+
+// Null when there is nothing usable; never an error (a bad context must not
+// lose the reviewer's note -- the bad parts are left out).
+export function parseQuickContext(v: unknown): QuickContext | null {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const src = v as Record<string, unknown>;
+  const out: QuickContext = {};
+  for (const [key, rule] of Object.entries(QUICK_CONTEXT_RULES) as [QuickContextKey, CtxRule][]) {
+    const raw = src[key];
+    if (raw === undefined || raw === null || raw === "") continue;
+    switch (rule.kind) {
+      case "path": {
+        if (typeof raw !== "string") break;
+        const p = raw.split(/[?#]/)[0].slice(0, 200);
+        if (CTX_PATH.test(p)) out[key] = p;
+        break;
+      }
+      case "text": {
+        if (typeof raw !== "string") break;
+        const t = raw.replace(/\s+/g, " ").trim().slice(0, rule.max);
+        if (t && !hasUnstorableText(t)) out[key] = t;
+        break;
+      }
+      case "id":
+        if (typeof raw === "string" && CTX_ID.test(raw)) out[key] = UUID.test(raw) ? raw.toLowerCase() : raw;
+        break;
+      case "slug":
+        if (typeof raw === "string" && raw.length <= rule.max && CTX_SLUG.test(raw)) out[key] = raw;
+        break;
+      case "int":
+        if (typeof raw === "number" && Number.isInteger(raw) && raw >= 0 && raw <= rule.max) out[key] = raw;
+        break;
+      case "enum":
+        if (typeof raw === "string" && rule.values.includes(raw)) out[key] = raw;
+        break;
+    }
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+export interface QuickNoteInput {
+  trackId: string | null;
+  simId: string | null;
+  note: string;
+  tag: QuickTag | null;
+  context: QuickContext | null;
+}
+
+// POST /api/reviewer/feedback { kind: "quick", note, tag?, trackId?, simId?, context? }
+export function parseQuickNoteInput(body: unknown): QuickNoteInput | string {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return "the request body must be an object";
+  const b = body as Record<string, unknown>;
+  const trackId = b.trackId === undefined || b.trackId === null || b.trackId === "" ? null : b.trackId;
+  if (trackId !== null && !isUuid(trackId)) return "trackId must be a course id";
+  const simId = b.simId === undefined || b.simId === null || b.simId === "" ? null : b.simId;
+  if (simId !== null && !isUuid(simId)) return "simId must be a simulation id";
+  const note = optionalText(b.note, "note", QUICK_NOTE_MAX);
+  if (isErr(note)) return note.error;
+  if (!note) return EMPTY_QUICK_NOTE_MESSAGE;
+  let tag: QuickTag | null = null;
+  if (b.tag !== undefined && b.tag !== null && b.tag !== "") {
+    if (!(QUICK_TAGS as readonly unknown[]).includes(b.tag)) return `tag must be one of: ${QUICK_TAGS.join(", ")}`;
+    tag = b.tag as QuickTag;
+  }
+  return {
+    trackId: trackId === null ? null : (trackId as string).toLowerCase(),
+    simId: simId === null ? null : (simId as string).toLowerCase(),
+    note,
+    tag,
+    context: parseQuickContext(b.context),
+  };
+}
+
+// A quick note as a feedback row: the note in otherComments, nothing else.
+export function quickNoteAsFeedback(q: QuickNoteInput): FeedbackInput {
+  const texts = Object.fromEntries(Object.keys(TEXTS).map((k) => [k, null])) as Record<TextKey, string | null>;
+  texts.otherComments = q.note;
+  const ratings = Object.fromEntries(Object.keys(RATINGS).map((k) => [k, null])) as Record<RatingKey, number | null>;
+  return { trackId: q.trackId, simId: q.simId, name: null, role: null, roleOther: null, areas: [], tried: [], ratings, texts, recommend: null, followUp: null };
+}
