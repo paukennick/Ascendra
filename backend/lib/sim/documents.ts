@@ -683,6 +683,16 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("AZ305", "cosmos-query-without-partition-key-429-az305"),
   band("GCPACE", "service-account-key-on-public-repo-ace"),
   band("SC500", "containerapp-keyvault-revision-sc500"),
+  entry("PL300", "merge-duplicates-double-region-revenue"),
+  entry("PL300", "return-rate-trend-on-a-pie-chart"),
+  entry("AWSAIF", "ticket-labels-change-on-every-run"),
+  entry("AWSAIF", "manual-in-every-prompt-triples-bill"),
+  entry("AWSAIF", "guardrail-blocks-payroll-questions"),
+  entry("GCPGAIL", "hr-assistant-grounded-on-the-web"),
+  entry("AI901", "hotel-reviews-hide-staff-complaints"),
+  entry("GCPGAIL", "claims-assistant-pilot-on-an-api-key"),
+  entry("GCPMLE", "bqml-churn-predictions-without-training-transforms"),
+  entry("GCPMLE", "partner-dataset-shares-raw-emails"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
