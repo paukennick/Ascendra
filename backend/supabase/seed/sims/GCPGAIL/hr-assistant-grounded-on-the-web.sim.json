@@ -1,0 +1,923 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hr-assistant-grounded-on-the-web",
+  "title": "Leave policy: the HR assistant quotes other employers' rules",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "HR assistant model configuration (Gemini on Google Cloud), Tallis & Rowe Engineering (fictional)",
+      "flags": [
+        {
+          "id": "ask",
+          "label": "Head of people, Hannah Mercer",
+          "text": "The HR assistant told three people they get 20 days of parental leave. Our policy is 16 weeks. The assistant goes to all 1,400 staff at 10:00 and I need it right.",
+          "when": "true",
+          "severity": "info"
+        },
+        {
+          "id": "seen",
+          "label": "Pattern",
+          "text": "Answers cite public websites, not the handbook.",
+          "when": "not isNull(lookAt) and not fixed",
+          "severity": "warning"
+        },
+        {
+          "id": "lock",
+          "label": "Launch",
+          "text": "10:00: the assistant launched to all staff as configured.",
+          "when": "not isNull(lockedAt)",
+          "severity": "error"
+        }
+      ],
+      "charts": [],
+      "tables": [],
+      "code": [
+        {
+          "id": "code",
+          "label": "hr-assistant: generation settings",
+          "language": "Model configuration",
+          "lines": [
+            {
+              "id": "c0",
+              "text": "tools: googleSearch (grounding with Google Search)",
+              "when": "fix == \"bug\"",
+              "mark": "not isNull(lookAt) ? \"error\" : \"none\""
+            },
+            {
+              "id": "c1",
+              "text": "tools: retrieval.vertexAiSearch.datastore = .../dataStores/hr-policies",
+              "when": "fix == \"own\"",
+              "mark": "\"changed\""
+            },
+            {
+              "id": "c2",
+              "text": "tools: googleSearch; system instruction: answer only from Tallis & Rowe policy",
+              "when": "fix == \"instr\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c3",
+              "text": "tools: googleSearch; temperature 0",
+              "when": "fix == \"temp\"",
+              "mark": "\"warning\""
+            },
+            {
+              "id": "c4",
+              "text": "model: gemini (enterprise); safety settings: default"
+            }
+          ]
+        }
+      ],
+      "meters": [
+        {
+          "id": "due",
+          "label": "Launch",
+          "value": "10:00"
+        }
+      ]
+    }
+  },
+  "objective": "Describing grounding in LLMs, and differentiating grounding with first-party enterprise data, third-party data, and world data",
+  "secondaryObjectives": [
+    "Identifying common foundation model limitations: data dependency, knowledge cutoff, bias, fairness, hallucinations, edge cases"
+  ],
+  "sources": [
+    {
+      "cite": "Google Cloud, Generative AI Leader exam guide: Section 1 Fundamentals of gen AI (~30%), Section 2 Google Cloud's gen AI offerings (~35%), Section 3 Techniques to improve gen AI model output (~20%), Section 4 Business strategies for a successful gen AI solution (~15%)",
+      "checkedAt": "2026-11-17",
+      "url": "https://services.google.com/fh/files/misc/generative_ai_leader_exam_guide_english.pdf",
+      "note": "Read through a summarizing fetch of the PDF on 2026-11-17 (no version or date printed). Quoted: 2.5 'Identifying how agents use tools to interact with the external environment and achieve tasks (e.g., extensions, functions, data stores, and plugins)'; 4.3 'Describing privacy considerations (e.g., privacy risks, data anonymization and pseudonymization)'. This is a leader-level exam; the bands use security-analyst cases, so the level is the base's (decision for Nick). (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Google Cloud documentation, Grounding with Google Search",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/grounding/grounding-with-google-search",
+      "note": "Read through a summarizing fetch on 2026-11-18. Use it to 'connect your model with world knowledge, a wide possible range of topics, or up-to-date information on the Internet'; grounded responses include groundingMetadata with webSearchQueries, groundingChunks and groundingSupports; 'For ideal results, use a temperature of 1.0'."
+    },
+    {
+      "cite": "Google Cloud documentation, Grounding with your data (Agent Search data stores)",
+      "checkedAt": "2026-11-18",
+      "url": "https://docs.cloud.google.com/vertex-ai/generative-ai/docs/multimodal/ground-with-your-data",
+      "note": "Read through a summarizing fetch on 2026-11-18. Grounding with Agent Search uses your own website or document data stores; in REST a tools entry with retrieval.vertexAiSearch.datastore (projects/PROJECT_ID/locations/global/collections/default_collection/dataStores/DATASTORE_ID); 'the responses include grounding metadata, which identifies the parts of the response that were derived from your data'; it can be combined with Google Search grounding."
+    },
+    {
+      "cite": "Author's scenario (REQ-335)",
+      "checkedAt": "2026-11-18",
+      "note": "Every organization, person, count and deadline is invented teaching data; tool output is an authored rendering in the tool style."
+    }
+  ],
+  "brief": {
+    "situation": "You configure the HR assistant at Tallis & Rowe Engineering (fictional). It uses a Gemini model on Google Cloud with grounding turned on so it would 'stop making things up'. In the pilot it answered leave questions with figures from other companies' websites. It launches to all 1,400 staff at 10:00. It is 09:05.",
+    "handover": [
+      "The HR handbook and policy PDFs are indexed in an Agent Search data store, hr-policies, built last week.",
+      "The pilot's grounding setting was copied from a marketing demo."
+    ],
+    "howItWorks": [
+      "Pick a step from the action list: look, change, check or ship. Nothing you pick is typed or executed: every step shows an authored result.",
+      "Each step takes working minutes, and the clock moves by the minutes it takes. The deadline runs on the same clock.",
+      "Shipping is final for this case. Afterwards you record what you found and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:05",
+    "tick": "1min",
+    "maxDuration": "150min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadline": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "The deadline is an invented teaching value."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "fix": {
+      "type": "enum",
+      "values": [
+        "bug",
+        "own",
+        "instr",
+        "temp"
+      ],
+      "init": "bug"
+    },
+    "lookAt": {
+      "type": "time",
+      "init": null
+    },
+    "changedAt": {
+      "type": "time",
+      "init": null
+    },
+    "lastChangeAt": {
+      "type": "time",
+      "init": null
+    },
+    "testAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPassed": {
+      "type": "bool",
+      "init": false
+    },
+    "rowsAlteredOutsideFix": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 1000000
+    },
+    "sentAs": {
+      "type": "enum",
+      "values": [
+        "unsent",
+        "wrong",
+        "right"
+      ],
+      "init": "unsent"
+    },
+    "sentAt": {
+      "type": "time",
+      "init": null
+    },
+    "lockedAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "c0",
+        "c1",
+        "c2"
+      ],
+      "init": "unset"
+    },
+    "checkDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "k0",
+        "k1",
+        "k2"
+      ],
+      "init": "unset"
+    }
+  },
+  "derived": {
+    "fixed": {
+      "expr": "(fix == \"own\")"
+    },
+    "correct": {
+      "expr": "(fix == \"own\" or fix == \"instr\")"
+    },
+    "sent": {
+      "expr": "sentAs != \"unsent\""
+    },
+    "sentSec": {
+      "expr": "not isNull(sentAt) ? timeAt(sentAt) : -1"
+    },
+    "lookedFirst": {
+      "expr": "not isNull(lookAt) and (isNull(changedAt) or timeAt(lookAt) <= timeAt(changedAt))"
+    },
+    "checkedCurrent": {
+      "expr": "testPassed and not isNull(testAt) and timeAt(testAt) >= timeAt(lastChangeAt)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "work": {
+      "label": "Working the problem",
+      "clock": "turns",
+      "actions": [
+        "look",
+        "change",
+        "check",
+        "ship",
+        "wait",
+        "finish"
+      ]
+    },
+    "report": {
+      "label": "Record",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "work",
+  "actions": {
+    "look": {
+      "label": "Ask the five pilot questions and read where each answer's grounding chunks come from",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "if": "isNull(lookAt)",
+          "then": [
+            {
+              "set": "lookAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "output": "Parental leave: 16 weeks paid (source: hr-policies, Handbook 4.2)\n5 of 5 answers cite hr-policies"
+            }
+          ],
+          "else": [
+            {
+              "output": "Parental leave: 20 days (sources: two public HR blogs, a government page)\nCarry-over of vacation: 5 days (source: a staffing agency site)\n0 of 5 answers cite hr-policies"
+            }
+          ]
+        },
+        {
+          "if": "fixed",
+          "then": [
+            {
+              "finding": "Answers come from the company's own documents, with the handbook section cited."
+            }
+          ],
+          "else": [
+            {
+              "finding": "Grounding with Google Search connects the model to world data on the internet, not to the company's own policy."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "4min"
+        }
+      ]
+    },
+    "change": {
+      "label": "Change what the model is grounded on",
+      "group": "Change",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "params": [
+        {
+          "id": "f",
+          "kind": "choice",
+          "label": "Change",
+          "options": [
+            {
+              "value": "own",
+              "label": "Ground on the hr-policies Agent Search data store instead of Google Search"
+            },
+            {
+              "value": "instr",
+              "label": "Keep Google Search grounding and instruct the model to answer only from company policy"
+            },
+            {
+              "value": "temp",
+              "label": "Keep Google Search grounding and set temperature 0"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "if": "isNull(changedAt)",
+          "then": [
+            {
+              "set": "changedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "set": "lastChangeAt",
+          "to": "t"
+        },
+        {
+          "set": "fix",
+          "to": "f"
+        },
+        {
+          "set": "testPassed",
+          "to": "false"
+        },
+        {
+          "log": "Changed: {f}.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "check": {
+      "label": "Run the 30 HR test questions and check each answer's citations",
+      "group": "Check",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "set": "testAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "fix == \"own\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "30 HR test questions: 29 correct, all citing hr-policies\nQuestions with no policy answer: says it does not know"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"instr\"",
+              "then": [
+                {
+                  "set": "testPassed",
+                  "to": "true"
+                },
+                {
+                  "output": "30 HR test questions: 17 correct, 9 'cannot find the policy', 4 wrong"
+                }
+              ]
+            },
+            {
+              "when": "fix == \"temp\"",
+              "then": [
+                {
+                  "output": "30 HR test questions: 11 correct, 19 citing public websites"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "output": "30 HR test questions: 10 correct, 20 citing public websites"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "ship": {
+      "label": "Launch the assistant to all staff",
+      "group": "Ship",
+      "available": "not busy and not sent",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "sentAs",
+          "to": "correct ? \"right\" : \"wrong\""
+        },
+        {
+          "set": "sentAt",
+          "to": "t"
+        },
+        {
+          "if": "correct",
+          "then": [
+            {
+              "output": "Launched: answers cite the handbook."
+            }
+          ],
+          "else": [
+            {
+              "output": "Launched with answers from other employers' policies."
+            }
+          ]
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "wait": {
+      "label": "Wait 10 minutes",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "log": "You wait 10 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "finish": {
+      "label": "Done: record what you found",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running step to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You stop and write it up.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Record the cause and the check",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Why answers were wrong",
+              "options": [
+                {
+                  "value": "c0",
+                  "label": "Grounding used Google Search (world data), so answers came from other employers' pages"
+                },
+                {
+                  "value": "c1",
+                  "label": "The model's knowledge cutoff was old"
+                },
+                {
+                  "value": "c2",
+                  "label": "Staff asked unclear questions"
+                }
+              ]
+            },
+            {
+              "id": "check",
+              "label": "How you know it is right",
+              "options": [
+                {
+                  "value": "k0",
+                  "label": "The HR test set is correct and cites hr-policies"
+                },
+                {
+                  "value": "k1",
+                  "label": "The answers sound confident"
+                },
+                {
+                  "value": "k2",
+                  "label": "Not checked"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "set": "checkDoc",
+          "to": "check"
+        },
+        {
+          "log": "Recorded: cause {cause}, check {check}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Step running",
+      "wait": {
+        "skipLabel": "Let the step finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "Working minutes per step are invented teaching values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "lock",
+      "when": "t >= deadline and not sent",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "set": "lockedAt",
+          "to": "t"
+        },
+        {
+          "log": "10:00: the assistant launched to all staff as configured.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the head of people: why answers were wrong, what you changed, and how you know.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "The assistant was grounded with Google Search, which connects it to world data on the internet, so it cited other employers' policies.",
+          "modelAnswer": "World-data grounding, no handbook."
+        },
+        {
+          "label": "What you changed",
+          "criteria": "Grounded it on the hr-policies data store, first-party enterprise data, so answers come from the handbook with citations; an instruction cannot give the model data it does not have; temperature changes sampling, not the source.",
+          "modelAnswer": "Retrieval from hr-policies."
+        },
+        {
+          "label": "How you know",
+          "criteria": "29 of 30 test questions right, each citing hr-policies; unanswerable questions say so.",
+          "modelAnswer": "Citations checked."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Author's scenario (REQ-335)",
+          "checkedAt": "2026-11-18",
+          "note": "The case's deadline; invented."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not sent",
+      "class": "recovered",
+      "rationale": "Shipping nothing ships nothing wrong, but the deadline passes without the fix.",
+      "source": {
+        "cite": "Author's scenario (REQ-335)",
+        "checkedAt": "2026-11-18",
+        "note": "An invented teaching scenario."
+      }
+    }
+  },
+  "endings": {
+    "wrongSent": {
+      "label": "Wrong policy answers launched",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and sentAs == \"wrong\"",
+      "narrative": "1,400 staff get leave rules that are not the company's."
+    },
+    "notSent": {
+      "label": "Nothing shipped",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented and not sent",
+      "narrative": "Nothing wrong launched, but the launch slipped."
+    },
+    "right": {
+      "label": "Right, checked, on time",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and sentAs == \"right\" and fixed and sentSec <= deadline and checkedCurrent and lookedFirst",
+      "narrative": "Staff get the company's own leave rules, with the handbook section cited."
+    },
+    "gaps": {
+      "label": "Right, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "The result is right, but it went late, unchecked, before you looked, or with a weaker fix."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The case reached its time limit with nothing recorded."
+    }
+  },
+  "endingOrder": [
+    "wrongSent",
+    "notSent",
+    "right",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "looked",
+        "label": "Read where answers were grounded before changing settings",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "lookedFirst",
+            "score": "met",
+            "why": "Looked first."
+          },
+          {
+            "when": "not isNull(lookAt)",
+            "score": "partial",
+            "why": "Looked only after a change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never looked before acting."
+          }
+        ]
+      },
+      {
+        "id": "fixed",
+        "label": "Grounded on the first-party policy data store",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed",
+            "score": "met",
+            "why": "Grounded on the company's own policy data store."
+          },
+          {
+            "when": "fix == \"instr\"",
+            "score": "partial",
+            "why": "The model still has no access to the handbook, so many answers are refusals or guesses."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{fix == \"temp\" ? \"Temperature changes sampling, not the source: answers still come from other employers' pages.\" : \"The assistant is still grounded on world data, not on the company's policies.\"}"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "Shipped nothing wrong",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "sentAs != \"wrong\"",
+            "score": "met",
+            "why": "Nothing wrong shipped."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Shipped a wrong result."
+          }
+        ]
+      },
+      {
+        "id": "checked",
+        "label": "The HR test set passed after the last change, before launch",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "checkedCurrent and (not sent or timeAt(testAt) <= sentSec)",
+            "score": "met",
+            "why": "Checked after the last change, before shipping."
+          },
+          {
+            "when": "not isNull(testAt)",
+            "score": "partial",
+            "why": "Checked, but it failed or came before a later change."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Never checked."
+          }
+        ]
+      },
+      {
+        "id": "note",
+        "label": "The record names the cause and the check",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"c0\" and checkDoc == \"k0\"",
+            "score": "met",
+            "why": "Cause and check both right."
+          },
+          {
+            "when": "causeDoc == \"c0\" or checkDoc == \"k0\"",
+            "score": "partial",
+            "why": "Half right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither is recorded right."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written explanation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "rightK",
+        "label": "Right result shipped",
+        "value": "sentAs == \"right\" ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "altered",
+        "label": "Rows changed outside the fix",
+        "value": "rowsAlteredOutsideFix",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "sentAtMin",
+        "label": "Minutes until shipped",
+        "value": "sent ? sentSec / 60 : 0",
+        "format": "number",
+        "expert": "about 14"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-4 min",
+        "text": "0 of 5 answers cite the handbook."
+      },
+      {
+        "at": "4-9 min",
+        "text": "Ground on hr-policies."
+      },
+      {
+        "at": "9-12 min",
+        "text": "29 of 30 correct with citations."
+      },
+      {
+        "at": "12-14 min",
+        "text": "Launch."
+      }
+    ],
+    "debrief": {
+      "right": {
+        "headline": "Good: ground on the data that holds the answer",
+        "body": "Company policy is first-party data. Grounding on the web brings world data, which is right for public facts and wrong for your own rules."
+      },
+      "gaps": {
+        "headline": "Right, with gaps",
+        "body": "The result is right; it went late, unchecked, before you looked, or with a weaker fix than the cause called for."
+      },
+      "wrongSent": {
+        "headline": "Wrong policies launched",
+        "body": "A lower temperature makes answers more repeatable, not more correct; the source decides correctness."
+      },
+      "notSent": {
+        "headline": "Nothing shipped",
+        "body": "Safe, but the deadline passed without the fix."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was recorded before the case's limit."
+      }
+    },
+    "modelReasoning": "The answers cite public websites, so the grounding source is the problem: Google Search grounding connects the model to world data, while the leave policy lives in the company's handbook. Ground on the hr-policies data store and check the test questions cite it. An instruction to use company policy cannot supply the policy; a lower temperature changes sampling, not where facts come from."
+  }
+}
