@@ -657,6 +657,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "clinic-eviction-no-way-out"),
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
+  // ---- REQ-337 (docs/sims.md 22.41): mental health depth, depth-mh. Session
+  // screen, clinical-session profile; MH_DEPTH_SLUGS below lists them. ----
+  entry("WAPSYCHJP", "wajp-client-hired-by-your-practice"),
+  band("EPPP", "eppp-client-hired-by-your-practice"),
+  // ---- end REQ-337 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
@@ -678,7 +683,10 @@ export const DATA_CONSOLE_SLUGS: readonly string[] = [
 
 // REQ-225: the EPPP client-session documents and the objective titles they
 // are registered to (each must be an active objective of course EPPP).
-export const EPPP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "EPPP");
+// FAIL-2520: selected by slug (the REQ-225 set), not by course, so the
+// REQ-337 EPPP sims and bands cannot break the REQ-225 tests (FAIL-2002).
+const EPPP_FIRST_SET = ["suicide-risk-safety-plan", "duty-to-protect-threat", "diagnostic-intake-mood"];
+export const EPPP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "EPPP" && EPPP_FIRST_SET.includes(e.slug));
 export const EPPP_OBJECTIVES = [
   "Assess suicide risk and plan safety in a clinical interview",
   "Apply duty-to-warn and duty-to-protect obligations",
@@ -806,7 +814,10 @@ export const CNC_OBJECTIVES: Readonly<Record<string, string>> = {
 // REQ-288: the ASWB client-session documents and the objective titles they are
 // registered to (active objectives of their course; seed/tracks/aswb.ts exports
 // the same titles as ASWB_CLINICAL_SIM_OBJECTIVES and ASWB_MASTERS_SIM_OBJECTIVES).
-export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS");
+// FAIL-2520: selected by slug (the REQ-288/289 set), so later ASWB sims
+// (REQ-337) cannot break the REQ-288 tests (FAIL-2002).
+const ASWB_FIRST_SET = ["aswbc-suicide-violence-risk", "aswbc-threat-identifiable-person", "aswbc-termination-nonpayment", "aswbm-involuntary-engagement", "aswbm-child-abuse-report", "aswbm-boundaries-small-town", "aswbc-boundaries-small-town", "aswbm-termination-nonpayment", "aswbm-suicide-violence-risk"];
+export const ASWB_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => (e.course === "ASWBCLINICAL" || e.course === "ASWBMASTERS") && ASWB_FIRST_SET.includes(e.slug));
 export const ASWB_OBJECTIVES: Readonly<Record<string, string>> = {
   "aswbc-suicide-violence-risk": "Assess suicide and violence risk in a clinical social work session",
   "aswbc-threat-identifiable-person": "Respond to a client's threat against an identifiable person under the NASW Code and state law",
@@ -848,7 +859,8 @@ export const ITIL5_DESK_OBJECTIVES: Readonly<Record<string, readonly string[]>> 
 
 // REQ-289: the Washington psychology jurisprudence session (a band of the EPPP
 // duty-to-protect case) and its objective.
-export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "WAPSYCHJP");
+// FAIL-2520: by slug, so the REQ-337 jurisprudence sims cannot break it.
+export const WAJP_SESSION_DOCUMENTS: readonly DocumentEntry[] = ALL_DOCUMENTS.filter((e) => e.course === "WAPSYCHJP" && e.slug === "wajp-duty-to-protect-threat");
 export const WAJP_OBJECTIVES: Readonly<Record<string, string>> = {
   "wajp-duty-to-protect-threat": "Apply the duty to warn or protect when a client threatens an identifiable person",
 };

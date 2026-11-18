@@ -1,0 +1,1488 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "wajp-client-hired-by-your-practice",
+  "title": "Session: Renee's new job is at your own practice",
+  "screen": {
+    "type": "session",
+    "level": 1,
+    "session": {
+      "client": {
+        "name": "Renee Alvarez",
+        "presentation": "{distress >= 6 ? \"Tearful, arms crossed\" : distress >= 3 ? \"Tense, turning her phone over in her hands\" : \"Bright, leaning forward\"}; {rapport >= 6 ? \"she is talking with you openly\" : rapport >= 3 ? \"she is careful with what she says\" : \"she has shut down\"}."
+      },
+      "gauges": [
+        {
+          "id": "rapport",
+          "label": "Rapport",
+          "spokenLabel": "Rapport",
+          "value": "rapport",
+          "max": 10,
+          "bands": [
+            3,
+            6
+          ],
+          "words": [
+            "guarded",
+            "warming",
+            "engaged"
+          ]
+        },
+        {
+          "id": "distress",
+          "label": "Distress",
+          "spokenLabel": "Distress",
+          "value": "distress",
+          "max": 10,
+          "bands": [
+            3,
+            6,
+            8
+          ],
+          "words": [
+            "settled",
+            "uneasy",
+            "distressed",
+            "overwhelmed"
+          ]
+        },
+        {
+          "id": "disclosure",
+          "label": "Disclosure",
+          "spokenLabel": "Disclosure",
+          "value": "disclosed",
+          "max": 10,
+          "bands": [
+            3,
+            7
+          ],
+          "words": [
+            "saying little",
+            "opening up",
+            "speaking freely"
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "gym",
+          "label": "Outside the office",
+          "text": "{gymPlanned ? \"The gym: a nod, no therapy talk; she will say if it feels uncomfortable.\" : askedSwitch ? \"You asked her to change classes.\" : \"She attends the same early spin class you do.\"}",
+          "when": "gymKnown"
+        },
+        {
+          "id": "job",
+          "label": "The new job",
+          "text": "Front office at your own group practice: billing, scheduling and payroll, three days a week, starting in two weeks. Your partner hired her and does not know she sees you.",
+          "when": "jobKnown",
+          "alert": "jobKnown and not conflictExplained and not keptBoth"
+        },
+        {
+          "id": "choice",
+          "label": "Her choice",
+          "text": "She is taking the job: her children need the insurance. She does not want to start over with a stranger.",
+          "when": "choiceExplored"
+        },
+        {
+          "id": "plan",
+          "label": "Transition",
+          "text": "Two more sessions; three psychologists outside the practice; a signed authorization for a call to the one she chooses.",
+          "when": "endingPlanned"
+        },
+        {
+          "id": "concern",
+          "label": "Concern",
+          "text": "{keptBoth ? \"You told her both roles can continue.\" : \"\"} {endedAbruptly ? \"You ended therapy today.\" : \"\"} {partnerTold ? \"You said you would tell your partner she sees you.\" : \"\"} {transferInside ? \"You offered your partner as her next psychologist.\" : \"\"}",
+          "when": "keptBoth or endedAbruptly or partnerTold or transferInside",
+          "alert": "keptBoth or endedAbruptly or partnerTold or transferInside"
+        }
+      ],
+      "record": {
+        "label": "Session note so far",
+        "items": [
+          {
+            "label": "Where she will work: {jobKnown ? \"your practice\" : \"not yet asked\"}",
+            "when": "jobAsked"
+          },
+          {
+            "label": "Conflict explained to her",
+            "when": "conflictExplained"
+          },
+          {
+            "label": "Transition planned with a referral outside the practice",
+            "when": "endingPlanned"
+          },
+          {
+            "label": "Documented: plan {planDoc}",
+            "when": "documented"
+          }
+        ]
+      }
+    }
+  },
+  "objective": "Recognize multiple relationships that impair objectivity and end them properly",
+  "secondaryObjectives": [
+    "Set fees, bartering and termination in line with the client welfare and fee rules",
+    "Decide when health care and mental health information may be disclosed without authorization"
+  ],
+  "sources": [
+    {
+      "cite": "WAC 246-924-357, Multiple relationships (WSR 93-07-036): no undertaking or continuing a professional relationship with a client when a personal, financial, supervisory, political, administrative or legal relationship with the client or a related person impairs (or could impair) objectivity; if so, end it with notice, in an appropriate manner, and help the client obtain services from another professional",
+      "checkedAt": "2026-11-17",
+      "url": "https://lawfilesext.leg.wa.gov/law/WAC/WAC%20246%20%20TITLE/WAC%20246%20-924%20%20CHAPTER/WAC%20246%20-924%20-357.htm",
+      "note": "Read 2026-11-17 on the Legislature's page for the section (summarizing fetch with short quotes: 'The psychologist shall not undertake or continue a professional relationship with a client'; authority RCW 18.83.050(5)). The list of relationship kinds is paraphrased from that summary."
+    },
+    {
+      "cite": "Chapter 246-924 WAC, rules of ethical conduct, as the Washington jurisprudence course records them: 246-924-359 (terminate when the client no longer needs or benefits from the service, and offer help finding alternatives); 246-924-363 (disclose without written consent only as chapter 70.02 RCW allows); 246-924-354 (records)",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/wac/default.aspx?cite=246-924-351",
+      "note": "Relayed from the course seed (backend/supabase/seed/tracks/wa-psych-jurisprudence.ts, sources read 2026-11-14 for REQ-289); not re-read for this case."
+    },
+    {
+      "cite": "Chapter 70.02 RCW as the Washington jurisprudence course records it: 70.02.030 (a valid authorization is in writing, dated and signed, names the information, the recipient and the patient, and has an expiration date or event); 70.02.230 (mental health records stay confidential except as the chapter allows)",
+      "checkedAt": "2026-11-14",
+      "url": "https://app.leg.wa.gov/rcw/default.aspx?cite=70.02",
+      "note": "Relayed from the course seed (wa-psych-jurisprudence.ts, read 2026-11-14); not re-read for this case."
+    },
+    {
+      "cite": "APA, Ethical Principles of Psychologists and Code of Conduct (2002, amended 2010 and 2016, effective 2017-01-01): 1.04, 1.05 (reporting does not apply when an intervention would violate confidentiality rights), 3.04, 3.05(a)-(b) (multiple relationships not reasonably expected to impair or harm are not unethical), 4.01, 4.02, 4.05(b), 10.10(c)",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.apa.org/ethics/code",
+      "note": "Read 2026-11-17 on apa.org (summarizing fetch with short quotes, e.g. 3.05(a) 'refrain from entering into a multiple relationship if' it could impair objectivity or risk harm; 10.10(c) 'prior to termination psychologists provide pretermination counseling and suggest alternative service providers'). Paraphrased, not reproduced."
+    },
+    {
+      "cite": "Washington DOH, Jurisprudence Exam RCW and WAC References (the laws the exam draws on: chapters 18.83 and 18.130 RCW, 246-924 and 246-16 WAC, RCW 26.44.030, chapters 70.02 and 74.34 RCW)",
+      "checkedAt": "2026-11-14",
+      "url": "https://doh.wa.gov/licenses-permits-and-certificates/professions-new-renew-or-update/psychologist/jurisprudence-exam-rcw-and-wac-references",
+      "note": "Relayed from the course seed (read 2026-11-14); not re-read for this case."
+    },
+    {
+      "cite": "Ascendra Washington Psychology Jurisprudence course catalog (backend/supabase/seed/tracks/wa-psych-jurisprudence.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    }
+  ],
+  "brief": {
+    "situation": "You are a licensed psychologist in a small city in Washington and one of two co-owners of a group practice; your partner, Dr. Dana Whitfield, runs hiring. Renee Alvarez, 38 (a fictional client), has seen you weekly for four months for anxiety after her divorce, and she is doing well. She arrives smiling: she has news. You have 50 minutes.",
+    "handover": [
+      "Anxiety after a divorce; two children, 9 and 12; she has been looking for work with health insurance since the divorce.",
+      "Treatment: cognitive-behavioral therapy, weekly; her anxiety scores have come down by about half."
+    ],
+    "howItWorks": [
+      "Choose what to say and do from the action groups. Renee answers at once; then let the conversation continue, which moves the session clock by the minutes that exchange took.",
+      "Her rapport, distress and how much she discloses change with what you say. What she tells you depends on the trust you have built.",
+      "The hour ends at 50 minutes. After the session you write a short formulation and document."
+    ]
+  },
+  "clock": {
+    "start": "16:00",
+    "tick": "1min",
+    "maxDuration": "80min",
+    "calendar": "clock"
+  },
+  "params": {
+    "sessionEnd": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Common outpatient practice: a 50-minute session (the 'therapy hour')",
+        "checkedAt": "2026-11-17",
+        "note": "Author's scenario timing; the session can be ended earlier."
+      }
+    },
+    "easeRate": {
+      "value": 0.1,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    },
+    "riseRate": {
+      "value": 0.05,
+      "unit": "/min",
+      "source": {
+        "cite": "Simplified teaching model (author's)",
+        "checkedAt": "2026-11-17",
+        "note": "How rapport and distress move with each response is a teaching simplification for exam practice, not a validated model of a client."
+      }
+    }
+  },
+  "state": {
+    "rapport": {
+      "type": "number",
+      "init": 5,
+      "min": 0,
+      "max": 10
+    },
+    "distress": {
+      "type": "number",
+      "init": 2,
+      "min": 0,
+      "max": 10
+    },
+    "disclosed": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 10
+    },
+    "talking": {
+      "type": "bool",
+      "init": false
+    },
+    "reflectN": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 20
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    },
+    "walkedOut": {
+      "type": "bool",
+      "init": false
+    },
+    "gymKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "jobAsked": {
+      "type": "bool",
+      "init": false
+    },
+    "jobKnown": {
+      "type": "bool",
+      "init": false
+    },
+    "conflictExplained": {
+      "type": "bool",
+      "init": false
+    },
+    "choiceExplored": {
+      "type": "bool",
+      "init": false
+    },
+    "endingPlanned": {
+      "type": "bool",
+      "init": false
+    },
+    "gymPlanned": {
+      "type": "bool",
+      "init": false
+    },
+    "askedSwitch": {
+      "type": "bool",
+      "init": false
+    },
+    "keptBoth": {
+      "type": "bool",
+      "init": false
+    },
+    "endedAbruptly": {
+      "type": "bool",
+      "init": false
+    },
+    "partnerTold": {
+      "type": "bool",
+      "init": false
+    },
+    "pressured": {
+      "type": "bool",
+      "init": false
+    },
+    "transferInside": {
+      "type": "bool",
+      "init": false
+    },
+    "consulted": {
+      "type": "bool",
+      "init": false
+    },
+    "planDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "endWithNotice",
+        "continueBoth",
+        "endedToday",
+        "transferPartner"
+      ],
+      "init": "none"
+    },
+    "recordDoc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "facts",
+        "minimal"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {},
+  "processes": [
+    {
+      "id": "settles",
+      "when": "phase == \"session\" and rapport >= 6",
+      "update": {
+        "distress": "distress - easeRate * dt / 60"
+      }
+    },
+    {
+      "id": "frays",
+      "when": "phase == \"session\" and rapport < 3",
+      "update": {
+        "distress": "distress + riseRate * dt / 60"
+      }
+    }
+  ],
+  "phases": {
+    "session": {
+      "label": "In session",
+      "clock": "turns",
+      "actions": [
+        "checkIn",
+        "reflect",
+        "askJob",
+        "discussGym",
+        "askSwitch",
+        "explainConflict",
+        "exploreChoice",
+        "planEnding",
+        "keepBoth",
+        "endToday",
+        "tellPartner",
+        "pressureDecline",
+        "transferPartner",
+        "endSession"
+      ]
+    },
+    "note": {
+      "label": "After the session",
+      "clock": "stopped",
+      "actions": [
+        "consult",
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "session",
+  "actions": {
+    "checkIn": {
+      "label": "Open-ended check-in: 'You said you had news?'",
+      "group": "Open",
+      "available": "not talking and (disclosed < 1)",
+      "why": "You have opened the session.",
+      "effects": [
+        {
+          "log": "You ask an open question and give the client room to answer.",
+          "kind": "act"
+        },
+        {
+          "set": "gymKnown",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "disclosed",
+          "by": "1"
+        },
+        {
+          "finding": "\"I got a job! Real benefits, starts in two weeks.\" She laughs. \"Oh, and I joined the six a.m. spin class at the Y. I think that was your car Tuesday?\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "reflect": {
+      "label": "Reflect what you hear (empathic reflection)",
+      "group": "Respond",
+      "available": "not talking and (reflectN < 4)",
+      "why": "You have reflected a lot already; move the session on.",
+      "effects": [
+        {
+          "log": "You reflect the feeling under what was said, without judging it.",
+          "kind": "act"
+        },
+        {
+          "add": "rapport",
+          "by": "reflectN < 2 ? 1 : 0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "add": "reflectN",
+          "by": "1"
+        },
+        {
+          "finding": "Renee nods. \"It's the first thing since the divorce that feels like mine.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askJob": {
+      "label": "Ask about the new job: where it is and what she will do",
+      "group": "Explore",
+      "available": "not talking and (not jobKnown)",
+      "why": "She has told you.",
+      "effects": [
+        {
+          "log": "You ask where the job is and what the work involves.",
+          "kind": "act"
+        },
+        {
+          "set": "jobAsked",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 4",
+              "then": [
+                {
+                  "set": "jobKnown",
+                  "to": "true"
+                },
+                {
+                  "add": "disclosed",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"That's the funny part. It's here. Your practice. Front office: billing, scheduling, payroll, three days a week. Dr. Whitfield interviewed me. I didn't tell her I see you.\""
+                },
+                {
+                  "log": "A current client is about to work for your practice and handle its billing and payroll: an administrative and financial relationship with you, her psychologist.",
+                  "kind": "alarm"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "finding": "\"An office job in town. Good benefits.\" (She is not saying more yet.)"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "discussGym": {
+      "label": "Talk about meeting at the gym: how you will each handle it, and that you will not mention therapy there",
+      "group": "Address",
+      "available": "not talking and (gymKnown and not gymPlanned)",
+      "why": "Discussed.",
+      "effects": [
+        {
+          "log": "You talk through running into each other at the gym: a nod is fine, you will not bring up therapy, and she can tell you if it ever feels uncomfortable.",
+          "kind": "act"
+        },
+        {
+          "set": "gymPlanned",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "finding": "\"Okay. A nod. I can do a nod.\" She smiles."
+        },
+        {
+          "log": "An incidental contact that is not expected to impair your objectivity is not a prohibited multiple relationship (APA 3.05(a)); talking it through protects her privacy.",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "askSwitch": {
+      "label": "Ask her to find a different class so you won't run into each other",
+      "group": "Address",
+      "available": "not talking and (gymKnown and not askedSwitch)",
+      "why": "Asked.",
+      "effects": [
+        {
+          "log": "You ask her to pick another class or gym.",
+          "kind": "act"
+        },
+        {
+          "set": "askedSwitch",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1"
+        },
+        {
+          "add": "distress",
+          "by": "0.5"
+        },
+        {
+          "finding": "Her smile fades. \"Oh. Sure. I'll figure something out.\""
+        },
+        {
+          "log": "An incidental contact does not have to be avoided; asking her to change her routine for your comfort costs the alliance and is not what the rule asks.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "explainConflict": {
+      "label": "Explain honestly: being her psychologist while co-owning the practice that employs her, with her handling your billing and payroll, would compromise your objectivity, and why",
+      "group": "Address",
+      "available": "not talking and (jobKnown and not conflictExplained)",
+      "why": "Explained (or you do not know where the job is yet).",
+      "effects": [
+        {
+          "log": "You explain, plainly and without blame, why you cannot be both her psychologist and part-owner of the business that employs her and handles your billing.",
+          "kind": "act"
+        },
+        {
+          "set": "conflictExplained",
+          "to": "true"
+        },
+        {
+          "cases": [
+            {
+              "when": "rapport >= 5",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-0.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "1.5"
+                },
+                {
+                  "finding": "She is quiet, then: \"So I have to choose. That's not fair.\" A pause. \"But I get it. I'd be scheduling your appointments and seeing your paycheck.\""
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "add": "rapport",
+                  "by": "-1.5"
+                },
+                {
+                  "add": "distress",
+                  "by": "2"
+                },
+                {
+                  "finding": "\"Are you kidding me? I finally get a good job and you're making it about you?\""
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "3min"
+        }
+      ]
+    },
+    "exploreChoice": {
+      "label": "Explore what matters most to her (the job, the therapy, her children's insurance) and the options, making clear the choice is hers",
+      "group": "Explore",
+      "available": "not talking and (conflictExplained and not choiceExplored)",
+      "why": "Explored (explain the conflict first).",
+      "effects": [
+        {
+          "log": "You lay out the options without steering: keep the job and finish therapy here with a referral to someone outside the practice, or decline the job and continue.",
+          "kind": "act"
+        },
+        {
+          "set": "choiceExplored",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "1"
+        },
+        {
+          "add": "distress",
+          "by": "-1"
+        },
+        {
+          "finding": "\"I need the insurance. The kids need it. I'm taking the job.\" She wipes her eyes. \"I just don't want to start over with a stranger.\""
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "planEnding": {
+      "label": "Plan the ending together: two more sessions before she starts, names of psychologists outside the practice, and a warm handoff with her written authorization",
+      "group": "Plan",
+      "available": "not talking and (choiceExplored and not endingPlanned)",
+      "why": "Planned (explore her choice first).",
+      "effects": [
+        {
+          "log": "You plan the transition with her: two more sessions, three names outside your practice, and, with her signed authorization, a call to the one she picks.",
+          "kind": "act"
+        },
+        {
+          "set": "endingPlanned",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "She takes the list. \"Can you call Dr. Okafor first and tell her what's worked? Then I won't have to explain everything.\" She signs the authorization form you hand her."
+        },
+        {
+          "log": "Ended with notice and help finding another professional (WAC 246-924-357); a handoff only with a valid written authorization (RCW 70.02.030).",
+          "kind": "good"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "keepBoth": {
+      "label": "Tell her it can work: you will keep work and therapy completely separate",
+      "group": "Address",
+      "available": "not talking and (jobKnown and not keptBoth)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You reassure her that you can keep the roles apart.",
+          "kind": "act"
+        },
+        {
+          "set": "keptBoth",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "0.5"
+        },
+        {
+          "add": "distress",
+          "by": "-0.5"
+        },
+        {
+          "finding": "She relaxes. \"Oh good. I was worried for a second.\""
+        },
+        {
+          "log": "Washington's rule does not allow continuing a professional relationship when an administrative or financial relationship could reasonably be expected to impair your objectivity (WAC 246-924-357).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endToday": {
+      "label": "End therapy today: tell her you can no longer see her, starting now",
+      "group": "Address",
+      "available": "not talking and (not endedAbruptly)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You tell her that, because of the job, today has to be your last session.",
+          "kind": "act"
+        },
+        {
+          "set": "endedAbruptly",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2.5"
+        },
+        {
+          "add": "distress",
+          "by": "2.5"
+        },
+        {
+          "finding": "\"Today? Just like that?\" She stares at you. \"I thought you were on my side.\""
+        },
+        {
+          "log": "An abrupt ending with no notice, no transition and no referral is not 'an appropriate manner' (WAC 246-924-357; APA 10.10(c)).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "tellPartner": {
+      "label": "Tell her you will let Dr. Whitfield know she is in therapy with you, so the practice can decide whether to hire her",
+      "group": "Address",
+      "available": "not talking and (jobKnown and not partnerTold)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You say you will tell your partner that Renee sees you for therapy.",
+          "kind": "act"
+        },
+        {
+          "set": "partnerTold",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-2"
+        },
+        {
+          "add": "distress",
+          "by": "2"
+        },
+        {
+          "finding": "\"You can't tell her that. That's my business.\""
+        },
+        {
+          "log": "Disclosing that she is in therapy with you, without her written authorization, is a disclosure chapter 70.02 RCW does not allow (WAC 246-924-363; APA 4.05(b)).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "pressureDecline": {
+      "label": "Urge her to turn the job down so therapy can continue",
+      "group": "Address",
+      "available": "not talking and (jobKnown and not pressured)",
+      "why": "Said.",
+      "effects": [
+        {
+          "log": "You urge her to decline the job.",
+          "kind": "act"
+        },
+        {
+          "set": "pressured",
+          "to": "true"
+        },
+        {
+          "add": "rapport",
+          "by": "-1.5"
+        },
+        {
+          "add": "distress",
+          "by": "1.5"
+        },
+        {
+          "finding": "\"You want me to give up insurance for my kids so I can keep seeing you?\""
+        },
+        {
+          "log": "Whether to take the job is her decision; steering it toward your practice's convenience risks exploiting her trust (APA 3.05(a), 3.04).",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "transferPartner": {
+      "label": "Offer to transfer her to Dr. Whitfield, your partner in the practice",
+      "group": "Plan",
+      "available": "not talking and (jobKnown and not transferInside)",
+      "why": "Offered.",
+      "effects": [
+        {
+          "log": "You offer to move her care to your partner.",
+          "kind": "act"
+        },
+        {
+          "set": "transferInside",
+          "to": "true"
+        },
+        {
+          "finding": "\"My new boss? I don't think so.\""
+        },
+        {
+          "log": "The same conflict would follow her to your partner, who would be her employer and her psychologist.",
+          "kind": "bad"
+        },
+        {
+          "set": "talking",
+          "to": "true"
+        },
+        {
+          "schedule": "talk",
+          "after": "2min"
+        }
+      ]
+    },
+    "endSession": {
+      "label": "Close the session",
+      "group": "Close",
+      "available": "not talking",
+      "why": "Let the conversation continue first.",
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "log": "You close the session and confirm the next appointment.",
+          "kind": "act"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    "consult": {
+      "label": "Consult a psychologist outside the practice, with no identifying details, before you write the note",
+      "group": "After the session",
+      "available": "not consulted",
+      "why": "Consulted.",
+      "effects": [
+        {
+          "set": "consulted",
+          "to": "true"
+        },
+        {
+          "log": "A colleague outside the practice agrees: end with notice and a referral outside the practice, and say nothing to your partner without Renee's authorization.",
+          "kind": "find"
+        }
+      ]
+    },
+    "document": {
+      "label": "Document the session and the plan",
+      "group": "Document",
+      "available": "not documented",
+      "why": "Documented.",
+      "params": [
+        {
+          "id": "note",
+          "kind": "form",
+          "label": "Session note",
+          "fields": [
+            {
+              "id": "plan",
+              "label": "Plan",
+              "options": [
+                {
+                  "value": "endWithNotice",
+                  "label": "End with two transition sessions and a referral outside the practice"
+                },
+                {
+                  "value": "continueBoth",
+                  "label": "Continue therapy while she works at the practice"
+                },
+                {
+                  "value": "endedToday",
+                  "label": "Therapy ended today"
+                },
+                {
+                  "value": "transferPartner",
+                  "label": "Transfer to Dr. Whitfield"
+                }
+              ]
+            },
+            {
+              "id": "record",
+              "label": "What the note says",
+              "options": [
+                {
+                  "value": "facts",
+                  "label": "The new job and why it conflicts, the rule, her choice, the transition plan and the signed authorization"
+                },
+                {
+                  "value": "minimal",
+                  "label": "Client starting a new job; therapy ending"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "planDoc",
+          "to": "plan"
+        },
+        {
+          "set": "recordDoc",
+          "to": "record"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        },
+        {
+          "log": "Documented: plan {planDoc}, note {recordDoc}.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "talk": {
+      "label": "The conversation goes on",
+      "wait": {
+        "skipLabel": "Let the conversation continue"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing",
+        "checkedAt": "2026-11-17",
+        "note": "Each exchange costs the minutes a real exchange of that kind takes, rounded to whole minutes."
+      },
+      "effects": [
+        {
+          "set": "talking",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "hourUp",
+      "when": "t >= sessionEnd and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "log": "The 50-minute hour is up. The session ends here.",
+          "kind": "alarm"
+        },
+        {
+          "phase": "note"
+        }
+      ]
+    },
+    {
+      "id": "walkOut",
+      "when": "rapport < 1 and phase == \"session\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "cancel": "talk"
+        },
+        {
+          "set": "talking",
+          "to": "false"
+        },
+        {
+          "set": "walkedOut",
+          "to": "true"
+        },
+        {
+          "log": "Renee stands, says she needs to think, and leaves before the hour is over.",
+          "kind": "alarm"
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"note\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "formulation"
+        }
+      ]
+    },
+    {
+      "id": "predict",
+      "when": "jobKnown",
+      "mode": "once",
+      "effects": [
+        {
+          "prompt": "conflict"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "conflict": {
+      "title": "Predict (not scored)",
+      "context": "Renee will work in your practice's front office, handling billing and payroll. Before you respond: what does Washington's rule ask of you here?",
+      "choices": [
+        {
+          "id": "endProperly",
+          "label": "One of the two relationships has to end; if it is therapy, end it with notice and a referral",
+          "effects": [
+            {
+              "log": "Prediction: end it properly.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Right. WAC 246-924-357 bars continuing when an administrative or financial relationship could reasonably impair your objectivity, and requires ending with notice and help finding another professional. Whether she takes the job is her choice."
+        },
+        {
+          "id": "separate",
+          "label": "Both can continue if you keep the roles separate",
+          "effects": [
+            {
+              "log": "Prediction: keep both.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Not here. Separating the roles is not possible when she handles your practice's billing and payroll and your partner is her employer; the rule says do not continue (WAC 246-924-357)."
+        },
+        {
+          "id": "decline",
+          "label": "She should turn the job down so therapy can continue",
+          "effects": [
+            {
+              "log": "Prediction: she declines.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "That is her decision, not yours. Steering her away from a job she needs, for your practice's convenience, risks exploiting her trust (APA 3.05(a))."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "formulation": {
+      "question": "Write your formulation: which relationship impairs your objectivity and which does not, and how you ended care and protected her privacy.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The rule",
+          "criteria": "The job is an administrative and financial relationship with a current client (her employer's co-owner; she handles your billing and payroll), which WAC 246-924-357 says not to undertake or continue; APA 3.05(a). The gym is incidental and not reasonably expected to impair: discuss it, do not avoid it.",
+          "modelAnswer": "Renee will work for my practice, handling its billing and payroll, while my partner and I own it. That administrative and financial relationship could reasonably be expected to impair my objectivity, so under WAC 246-924-357 I cannot continue as her psychologist once she starts. Meeting at the gym is incidental and not expected to impair anything (APA 3.05(a)); we agreed how to handle it."
+        },
+        {
+          "label": "Ending it properly",
+          "criteria": "Her choice respected; notice and transition sessions; referral outside the practice; a handoff only with a signed authorization (RCW 70.02.030); nothing disclosed to the partner (WAC 246-924-363; chapter 70.02 RCW); the note records the reasons and the plan.",
+          "modelAnswer": "The choice of job was hers; she chose the job. We planned two transition sessions and I gave her three psychologists outside the practice; with her written authorization I will call the one she picks. I will not tell my partner she was my client: that is her information, and chapter 70.02 RCW does not allow it without her authorization. My note records the conflict, the rule, her choice and the plan."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "clinical-session",
+    "thresholds": {
+      "allianceTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Rapport at the close of the session."
+        }
+      },
+      "allianceRecovered": {
+        "value": 3,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17"
+        }
+      },
+      "safetyWindow": {
+        "value": 1200,
+        "source": {
+          "cite": "Clinical-session outcome profile (docs/sims.md 9.2, 20.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Not used by this case's endings: the case is judged on whether the conflict was found and ended properly, not on a clock."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not jobKnown",
+      "class": "harm",
+      "rationale": "The administrative and financial relationship was never found, so therapy continues into a conflict the rule forbids.",
+      "source": {
+        "cite": "WAC 246-924-357, Multiple relationships (WSR 93-07-036): no undertaking or continuing a professional relationship with a client when a personal, financial, supervisory, political, administrative or legal relationship with the client or a related person impairs (or could impair) objectivity; if so, end it with notice, in an appropriate manner, and help the client obtain services from another professional",
+        "checkedAt": "2026-11-17",
+        "url": "https://lawfilesext.leg.wa.gov/law/WAC/WAC%20246%20%20TITLE/WAC%20246%20-924%20%20CHAPTER/WAC%20246%20-924%20-357.htm",
+        "note": "Read 2026-11-17 on the Legislature's page for the section (summarizing fetch with short quotes: 'The psychologist shall not undertake or continue a professional relationship with a client'; authority RCW 18.83.050(5)). The list of relationship kinds is paraphrased from that summary."
+      }
+    }
+  },
+  "endings": {
+    "walkout": {
+      "label": "She left mid-session",
+      "class": "harm",
+      "when": "walkedOut",
+      "terminal": true,
+      "narrative": "Renee left before the hour was over. She starts at your practice in two weeks with nothing settled about her care."
+    },
+    "breach": {
+      "label": "Her privacy was not yours to give",
+      "class": "harm",
+      "when": "documented and not walkedOut and partnerTold",
+      "terminal": true,
+      "narrative": "You meant to tell your partner that Renee is in therapy with you. That is her health care information, and the law does not let you disclose it to solve a hiring problem."
+    },
+    "missed": {
+      "label": "The conflict went unseen",
+      "class": "harm",
+      "when": "documented and not walkedOut and not jobKnown",
+      "terminal": true,
+      "narrative": "You never learned where Renee will work. In two weeks she will be running your practice's billing while you are her psychologist."
+    },
+    "continued": {
+      "label": "Both roles continue",
+      "class": "harm",
+      "when": "documented and not walkedOut and (keptBoth or planDoc == \"continueBoth\" or planDoc == \"transferPartner\")",
+      "terminal": true,
+      "narrative": "{planDoc == \"transferPartner\" ? \"Her care moves to her new employer.\" : \"Renee will be in therapy with you and on your practice's payroll at once.\"} The conflict the rule forbids is still there."
+    },
+    "abandoned": {
+      "label": "Ended without notice",
+      "class": "harm",
+      "when": "documented and not walkedOut and (endedAbruptly or planDoc == \"endedToday\")",
+      "terminal": true,
+      "narrative": "Therapy ended today, with no transition and no one to go to next. Renee leaves with the job and without care."
+    },
+    "endedWell": {
+      "label": "Ended well, and still trusted",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and not walkedOut and jobKnown and conflictExplained and choiceExplored and endingPlanned and planDoc == \"endWithNotice\" and not pressured and not transferInside and gymPlanned and not askedSwitch and recordDoc == \"facts\" and rapport >= allianceTarget",
+      "narrative": "Renee takes the job. She has two more sessions with you and a new psychologist who will hear from you, with her permission, before she starts."
+    },
+    "gaps": {
+      "label": "Ended, with gaps",
+      "class": "recovered",
+      "when": "documented and not walkedOut",
+      "terminal": true,
+      "narrative": "The conflict was found and therapy will end, but parts of the conversation, the plan or the note fell short."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "walkout",
+    "breach",
+    "missed",
+    "continued",
+    "abandoned",
+    "endedWell",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "recognized",
+        "label": "Recognized the impairing relationship (WAC 246-924-357)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "jobKnown and conflictExplained and not keptBoth and planDoc != \"continueBoth\"",
+            "score": "met",
+            "why": "Found where she will work and explained why it conflicts."
+          },
+          {
+            "when": "jobKnown and not keptBoth and planDoc != \"continueBoth\"",
+            "score": "partial",
+            "why": "Found it, but never explained the conflict to her."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{jobKnown ? \"Planned to continue both roles.\" : \"Never learned where she will work.\"}"
+          }
+        ]
+      },
+      {
+        "id": "endedWell",
+        "label": "Ended with notice and a referral outside the practice",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "endingPlanned and not endedAbruptly and not transferInside and planDoc == \"endWithNotice\"",
+            "score": "met",
+            "why": "Two transition sessions, names outside the practice, an authorized handoff."
+          },
+          {
+            "when": "not endedAbruptly and planDoc == \"endWithNotice\"",
+            "score": "partial",
+            "why": "The right plan on paper, but not made with her{transferInside ? \", and your partner was offered first\" : \"\"}."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "{endedAbruptly ? \"Ended without notice.\" : \"No proper ending.\"}"
+          }
+        ]
+      },
+      {
+        "id": "privacy",
+        "label": "Disclosed nothing without her authorization (chapter 70.02 RCW)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not partnerTold",
+            "score": "met",
+            "why": "Your partner was told nothing."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Planned to tell your partner she sees you."
+          }
+        ]
+      },
+      {
+        "id": "autonomy",
+        "label": "Left the job decision to her",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "choiceExplored and not pressured",
+            "score": "met",
+            "why": "Laid out the options; she chose."
+          },
+          {
+            "when": "not pressured",
+            "score": "partial",
+            "why": "Did not pressure her, but did not explore the choice with her."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Urged her to decline the job."
+          }
+        ]
+      },
+      {
+        "id": "gymCrit",
+        "label": "Handled the incidental contact without overreacting (APA 3.05(a))",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "gymPlanned and not askedSwitch",
+            "score": "met",
+            "why": "Agreed how to handle meeting at the gym."
+          },
+          {
+            "when": "not askedSwitch",
+            "score": "partial",
+            "why": "Did not talk about the gym."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Asked her to change classes."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The note records the conflict, her choice and the plan",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "recordDoc == \"facts\"",
+            "score": "met",
+            "why": "A full note."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line note that would not explain the ending to anyone reading it later."
+          }
+        ]
+      },
+      {
+        "id": "alliance",
+        "label": "Kept the working alliance",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not walkedOut and rapport >= allianceTarget",
+            "score": "met",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "not walkedOut and rapport >= allianceRecovered",
+            "score": "partial",
+            "why": "Rapport at the close: {rapport|0dp} of 10."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The alliance broke down."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "formulation",
+        "label": "Written formulation",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "found",
+        "label": "Learned where she will work",
+        "value": "jobKnown ? 1 : 0",
+        "format": "number",
+        "expert": "1"
+      },
+      {
+        "id": "rapportEnd",
+        "label": "Rapport at the close",
+        "value": "round(rapport)",
+        "format": "number",
+        "expert": "6 or more"
+      },
+      {
+        "id": "minutes",
+        "label": "Session minutes",
+        "value": "t / 60",
+        "format": "number",
+        "expert": "50 or less"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "0-10 min",
+        "text": "Check in, share her good news, and ask where the job is."
+      },
+      {
+        "at": "10-25 min",
+        "text": "Explain plainly why being her psychologist and part-owner of her employer conflicts; talk through the gym."
+      },
+      {
+        "at": "25-45 min",
+        "text": "Explore her choice; she takes the job. Plan two transition sessions, names outside the practice, and an authorized handoff."
+      },
+      {
+        "at": "After",
+        "text": "Document the conflict, the rule, her choice and the plan; tell your partner nothing."
+      }
+    ],
+    "debrief": {
+      "endedWell": {
+        "headline": "Good: a proper ending, and her privacy kept",
+        "body": "You found the conflict, named it honestly, let her choose, and ended with notice and a referral outside the practice (WAC 246-924-357). The gym needed only a conversation."
+      },
+      "gaps": {
+        "headline": "Ended, with gaps",
+        "body": "The conflict was found and therapy will end; the criteria below show what was missing."
+      },
+      "walkout": {
+        "headline": "She left",
+        "body": "Blunt or self-protective moves (ending today, asking her to give things up, telling her employer) push a client out of the room before anything is settled."
+      },
+      "breach": {
+        "headline": "Her privacy was not yours to give",
+        "body": "Whether she is in therapy with you is health care information. Without her written authorization, chapter 70.02 RCW does not allow you to tell your partner, even to fix a conflict (WAC 246-924-363; APA 4.05(b))."
+      },
+      "missed": {
+        "headline": "The conflict went unseen",
+        "body": "Good news can carry a conflict. Ask the plain questions: where, what you will do, who you will work with."
+      },
+      "continued": {
+        "headline": "Both roles continue",
+        "body": "WAC 246-924-357 bars continuing a professional relationship when an administrative or financial relationship could reasonably impair your objectivity. Moving her to your partner keeps the conflict in the practice."
+      },
+      "abandoned": {
+        "headline": "Ended without notice",
+        "body": "The rule asks you to end 'with notice and in an appropriate manner' and to help her find another professional. Today-is-the-last-session is neither."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "Nothing was documented before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Renee's new job puts her in an administrative and financial relationship with you: she will work for the practice you co-own and handle its billing and payroll. WAC 246-924-357 says a psychologist does not undertake or continue a professional relationship when such a relationship could reasonably impair objectivity, and that you end it with notice and help the client find another professional. Not every overlap qualifies: meeting at the gym is incidental and not reasonably expected to impair (APA 3.05(a)); talk it through. Explain the conflict honestly, let her choose (she takes the job), plan two transition sessions and a referral outside the practice, and hand off only with her written authorization (RCW 70.02.030). Do not tell your partner she sees you: that disclosure needs her authorization (WAC 246-924-363). Document the conflict, the rule, her choice and the plan."
+  }
+}
