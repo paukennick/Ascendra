@@ -1,0 +1,1064 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "gait-session-worst-headache-ever",
+  "title": "The worst headache of her life",
+  "objective": "Pathophysiology and medical management of stroke, aneurysm and arteriovenous malformation",
+  "secondaryObjectives": [
+    "Recognizing medical instability and emergencies: autonomic dysreflexia, raised intracranial pressure, new neurologic signs"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: neurology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/neurology/specialist-certification-examination-outline-neurology",
+      "note": "Relayed from the neurology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Knowledge for specialty practice (15%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra neurology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSNCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "MedlinePlus Medical Encyclopedia: Subarachnoid hemorrhage (reviewed 2025-02-11)",
+      "checkedAt": "2026-11-17",
+      "url": "https://medlineplus.gov/ency/article/000701.htm",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: the main symptom is 'a severe headache that starts suddenly', 'often worse near the back of the head', the 'worst headache ever'; also stiff neck, nausea and vomiting, decreased consciousness, vision problems and seizure; causes include bleeding from a cerebral aneurysm or an arteriovenous malformation; 'Subarachnoid bleeding is an emergency'; 'call 911'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "15:20 in an outpatient neurologic clinic. You are the physical therapist. Ms. Duvall, 54, is in gait training after an ischemic stroke 4 months ago; she also has a known unruptured cerebral aneurysm being watched by neurosurgery.",
+    "handover": [
+      "Halfway down the parallel bars she stops, grabs the back of her head and says, 'That's the worst headache I've ever had. It came on like a thunderclap.'",
+      "Her blood pressure at the start of the session was 138/84.",
+      "Clinic policy: a sudden severe headache or new neurologic signs during a session: stop, stay with the patient, call 911, and tell the referring neurologist."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "15:20",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.02,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Bleeding around the brain worsens without emergency care. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated once EMS takes her to a stroke center. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of deterioration. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 180,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 within 3 minutes of a sudden severe headache (clinic policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "hxAt": {
+      "type": "time",
+      "init": null
+    },
+    "neuroAt": {
+      "type": "time",
+      "init": null
+    },
+    "vitalsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "hx",
+        "neuro",
+        "vitals"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "neuro"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sah",
+        "tension",
+        "migraine"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "stopAt": {
+      "type": "time",
+      "init": null
+    },
+    "treadAt": {
+      "type": "time",
+      "init": null
+    },
+    "homeAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(92 - 20 * max(0, prog - 0.8) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(176 + 20 * max(0, prog - 0.5))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "10",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ems\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Ms. Duvall, 54, 4 months after a left hemisphere ischemic stroke",
+        "presentation": "Outpatient gait training; an unruptured 6 mm aneurysm under surveillance is in her history. {not isNull(stopAt) ? \"Seated, head supported.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              105,
+              120
+            ]
+          }
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "announce": {
+            "bands": [
+              160,
+              180
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone by ambulance.\" : (not isNull(stopAt) ? \"Lying on the mat, head and shoulders raised.\" : \"Walking the parallel bars with the treadmill next.\")}",
+      "measures": [
+        {
+          "id": "hxResult",
+          "label": "Headache",
+          "result": "Thunderclap onset, 10/10, occipital, worst ever.",
+          "when": "not isNull(hxAt)",
+          "flag": "true"
+        },
+        {
+          "id": "neuroResult",
+          "label": "Neuro check",
+          "result": "Drowsy, nauseated, neck stiff; speech as baseline.",
+          "when": "not isNull(neuroAt)"
+        },
+        {
+          "id": "vitalsResult",
+          "label": "Vitals",
+          "result": "BP 182/100, HR 90.",
+          "when": "not isNull(vitalsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Session stopped",
+            "when": "not isNull(stopAt)"
+          },
+          {
+            "label": "911 called",
+            "when": "route == \"ems\""
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleStop",
+          "label": "Sudden severe headache",
+          "text": "Stop; check neuro signs and blood pressure; 911.",
+          "met": "not isNull(hxAt) and isNull(stopAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "hx": {
+      "label": "Ask about the headache: onset, severity, location",
+      "group": "Examine",
+      "available": "not testPending and isNull(hxAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"hx\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neuro": {
+      "label": "Quick neuro check: alertness, speech, pupils, neck stiffness, vomiting",
+      "group": "Examine",
+      "available": "not testPending and isNull(neuroAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neuro\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "vitals": {
+      "label": "Blood pressure and heart rate",
+      "group": "Examine",
+      "available": "not testPending and isNull(vitalsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"vitals\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "stop": {
+      "label": "Stop the session, lie her down with head and shoulders raised, stay with her",
+      "group": "Treat",
+      "available": "isNull(stopAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "stopAt",
+          "to": "t"
+        },
+        {
+          "log": "Session stopped; lying on the mat with head and shoulders raised; you stay with her.",
+          "kind": "act"
+        }
+      ]
+    },
+    "tread": {
+      "label": "Move on to the treadmill once the headache eases",
+      "group": "Treat",
+      "available": "isNull(treadAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "treadAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.3, 2)"
+        },
+        {
+          "log": "She starts walking on the treadmill and vomits.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "home": {
+      "label": "Let her rest 15 minutes and drive home if better",
+      "group": "Treat",
+      "available": "isNull(homeAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "homeAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "She rests in the waiting room.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What do you suspect?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "sah",
+              "label": "A ruptured aneurysm with subarachnoid hemorrhage: thunderclap worst-ever headache, stiff neck, nausea, drowsiness, in a known aneurysm"
+            },
+            {
+              "value": "tension",
+              "label": "A tension headache from exertion"
+            },
+            {
+              "value": "migraine",
+              "label": "A migraine"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"sah\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"sah\""
+                },
+                {
+                  "log": "Suspected subarachnoid hemorrhage.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"tension\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"tension\""
+                },
+                {
+                  "log": "Read as tension headache.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"migraine\""
+                },
+                {
+                  "log": "Read as migraine.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911: 54-year-old, known unruptured aneurysm, sudden thunderclap worst-ever headache at 15:20, stiff neck, drowsy, BP 182/100"
+            },
+            {
+              "value": "neuro",
+              "label": "Leave a message for her neurologist to call back"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "EMS takes her to the comprehensive stroke center; you call her neurologist.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"neuro\""
+                },
+                {
+                  "log": "Message left for the neurologist.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell her neurologist and document the time of onset and findings",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her neurologist is told; onset time and findings are documented and sent with EMS.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Neurologic clinic gym",
+      "clock": "running",
+      "actions": [
+        "hx",
+        "neuro",
+        "vitals",
+        "stop",
+        "tread",
+        "home",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"hx\"",
+              "then": [
+                {
+                  "set": "hxAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Sudden onset like a thunderclap, 10 of 10, at the back of her head: the worst of her life.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neuro\"",
+              "then": [
+                {
+                  "set": "neuroAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Drowsier, nauseated, neck stiff to flexion; speech unchanged from her baseline aphasia.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "vitalsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "182/100, heart rate 90.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "EMS",
+      "wait": {
+        "skipLabel": "EMS"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves by ambulance for the stroke center.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What do you suspect, and what do you do?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A sudden, severe, worst-ever occipital headache with stiff neck, nausea and drowsiness in a person with a known aneurysm suggests aneurysmal subarachnoid hemorrhage, an emergency.",
+          "modelAnswer": "That sounds like her aneurysm has bled: a thunderclap, worst-ever headache at the back of her head, a stiff neck, nausea and drowsiness."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Stops, lies her down with head and shoulders raised, stays with her, checks neuro signs and blood pressure, calls 911 and the neurologist.",
+          "modelAnswer": "Stop, lie her down with her head up, stay with her, check her neuro and pressure, call 911, then her neurologist."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 180,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "911 within 3 minutes of a sudden severe headache (clinic policy: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "A suspected subarachnoid hemorrhage unescalated an hour on is harm here.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Subarachnoid hemorrhage (reviewed 2025-02-11)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000701.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the main symptom is 'a severe headache that starts suddenly', 'often worse near the back of the head', the 'worst headache ever'; also stiff neck, nausea and vomiting, decreased consciousness, vision problems and seizure; causes include bleeding from a cerebral aneurysm or an arteriovenous malformation; 'Subarachnoid bleeding is an emergency'; 'call 911'."
+      }
+    }
+  },
+  "endings": {
+    "rebleed": {
+      "label": "Deterioration",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She becomes unresponsive with a seizure; EMS is called late."
+    },
+    "safe": {
+      "label": "Bleed suspected and sent",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(treadAt) and isNull(homeAt) and (not isNull(stopAt) and timeAt(stopAt) <= 180) and (not isNull(neuroAt) and not isNull(vitalsAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is on her way to the stroke center."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches the stroke center, but the call was slow or she exercised on."
+    },
+    "time_up": {
+      "label": "Still in the clinic at 16:20",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "16:20 and no one called."
+    }
+  },
+  "endingOrder": [
+    "rebleed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "911 within 3 minutes of the headache",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ems\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "stopC",
+        "label": "Stopped and stayed with her",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(treadAt) or not isNull(homeAt)",
+            "score": "missed",
+            "why": "Continued or sent to rest alone."
+          },
+          {
+            "when": "not isNull(stopAt) and timeAt(stopAt) <= 180",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not stopped within 3 minutes."
+          }
+        ]
+      },
+      {
+        "id": "neuroC",
+        "label": "Checked neuro signs and blood pressure",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(neuroAt) and not isNull(vitalsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not both."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Suspected an aneurysmal subarachnoid hemorrhage",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"sah\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"tension\"",
+            "score": "missed",
+            "why": "Thunderclap worst-ever headache is a bleed until proven otherwise."
+          },
+          {
+            "when": "dxEnum == \"migraine\"",
+            "score": "missed",
+            "why": "Not with this onset and a known aneurysm."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Told the neurologist and documented",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: thunderclap headache with a known aneurysm is a bleed; stop, 911",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Headache to 911",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "15:20 to the session stopped",
+        "value": "isNull(stopAt) ? -1 : timeAt(stopAt)",
+        "format": "duration",
+        "expert": "under 1 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "15:20",
+        "text": "Thunderclap, worst-ever, occipital."
+      },
+      {
+        "at": "15:20",
+        "text": "Stop; lie her down; stay with her."
+      },
+      {
+        "at": "~15:21",
+        "text": "911."
+      },
+      {
+        "at": "~15:23",
+        "text": "Neuro check and pressure; tell her neurologist."
+      }
+    ],
+    "debrief": {
+      "rebleed": {
+        "headline": "Deterioration",
+        "body": "A sudden, severe, worst-ever headache is a subarachnoid hemorrhage until proven otherwise, especially with a known aneurysm. Stop, stay with her, call 911."
+      },
+      "safe": {
+        "headline": "Bleed suspected and sent",
+        "body": "You stopped at once, stayed with her, checked neuro signs and pressure, and called 911 within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check how soon you stopped and called."
+      },
+      "time_up": {
+        "headline": "Still in the clinic at 16:20",
+        "body": "Call 911 at once."
+      }
+    },
+    "modelReasoning": "Subarachnoid hemorrhage presents with a severe headache that starts suddenly, often at the back of the head and described as the worst ever, with stiff neck, nausea and vomiting, and decreased alertness; causes include a ruptured cerebral aneurysm or an arteriovenous malformation. It is an emergency: stop, stay with her, check neuro signs and blood pressure, and call 911."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "sahQ": {
+      "during": "testT",
+      "ask": "While you check: what is the main symptom of subarachnoid hemorrhage?",
+      "choices": [
+        {
+          "id": "sudden",
+          "label": "A severe headache that starts suddenly, often the worst ever"
+        },
+        {
+          "id": "slow",
+          "label": "A slowly building headache over weeks"
+        },
+        {
+          "id": "none",
+          "label": "No headache"
+        }
+      ],
+      "expect": "sudden",
+      "explain": "The main symptom is a severe headache that starts suddenly, often worse near the back of the head; many call it the worst headache ever.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Subarachnoid hemorrhage (reviewed 2025-02-11)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000701.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the main symptom is 'a severe headache that starts suddenly', 'often worse near the back of the head', the 'worst headache ever'; also stiff neck, nausea and vomiting, decreased consciousness, vision problems and seizure; causes include bleeding from a cerebral aneurysm or an arteriovenous malformation; 'Subarachnoid bleeding is an emergency'; 'call 911'."
+      }
+    },
+    "causeQ": {
+      "during": "leaveT",
+      "ask": "While EMS takes her: what can cause it?",
+      "choices": [
+        {
+          "id": "an",
+          "label": "A ruptured cerebral aneurysm or an arteriovenous malformation"
+        },
+        {
+          "id": "tension",
+          "label": "Muscle tension"
+        },
+        {
+          "id": "eyes",
+          "label": "Eye strain"
+        }
+      ],
+      "expect": "an",
+      "explain": "Bleeding from a cerebral aneurysm or from an arteriovenous malformation.",
+      "source": {
+        "cite": "MedlinePlus Medical Encyclopedia: Subarachnoid hemorrhage (reviewed 2025-02-11)",
+        "checkedAt": "2026-11-17",
+        "url": "https://medlineplus.gov/ency/article/000701.htm",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: the main symptom is 'a severe headache that starts suddenly', 'often worse near the back of the head', the 'worst headache ever'; also stiff neck, nausea and vomiting, decreased consciousness, vision problems and seizure; causes include bleeding from a cerebral aneurysm or an arteriovenous malformation; 'Subarachnoid bleeding is an emergency'; 'call 911'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
