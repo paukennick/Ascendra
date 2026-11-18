@@ -1,0 +1,875 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "expressroute-bgp-drops-over-prefix-limit",
+  "title": "Outage: the ExpressRoute private peering keeps dropping after a routing change",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "neteng@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "09:55 hub: no routes to 10.0.0.0/8 learned since 09:41; ExpressRoute private peering sessions down; planning run at 11:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "11:00: planning run failed",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "11:00: planning run OK",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "edge",
+          "label": "On-premises edge (2 routers)",
+          "spokenLabel": "the on-premises edge",
+          "kind": "BGP to Microsoft",
+          "status": "{harmed ? \"advertising 0.0.0.0/0\" : fixed ? \"advertising 14 summaries\" : \"advertising 4,350 prefixes\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "er",
+          "label": "ExpressRoute circuit (Standard)",
+          "spokenLabel": "the circuit",
+          "kind": "private peering, limit 4,000",
+          "status": "{fixed and not harmed ? \"both sessions up\" : \"both sessions down\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "hub",
+          "label": "Hub VNet + ER gateway",
+          "spokenLabel": "the hub",
+          "kind": "learned routes",
+          "status": "{harmed ? \"default route to on-premises: internet path blocked\" : fixed ? \"14 on-premises routes\" : \"0 on-premises routes\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "edge",
+          "to": "er",
+          "label": "BGP private peering",
+          "status": "{fixed and not harmed ? \"established\" : \"dropped\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Diagnosing and resolving ExpressRoute connection issues",
+  "secondaryObjectives": [
+    "Recommending a route advertisement configuration"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-700: Designing and Implementing Microsoft Azure Networking Solutions (page last updated 2026-06-29): core networking infrastructure 25-30%, connectivity services 20-25%, application delivery 15-20%, private access 10-15%, network security 15-20%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there (read by the first pass of this round): 'Design and implement user-defined routes (UDRs)', 'Associate a route table with a subnet', 'Diagnose and resolve routing issues', 'Monitor and troubleshoot network health by using Azure Network Watcher'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn, ExpressRoute routing requirements",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/azure/expressroute/expressroute-routing",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The page does not say when the session comes back after the count is reduced; that it re-establishes once the edge stops exceeding the limit, and the az CLI output, are from memory (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the network engineer at Lindqvist Foods. The data centers reach the Azure hub over an ExpressRoute circuit (Standard, private peering). At 09:40 the on-premises team turned on redistribution of their whole internal routing table into BGP toward Azure 'so every branch is reachable'. Since then Azure VMs cannot reach any on-premises network. The 11:00 production planning run reads the on-premises MES from Azure.",
+    "handover": [
+      "The on-premises edge routers are run by the data center network team; their change window is still open.",
+      "Before 09:40 the edge advertised 14 summary prefixes."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the on-premises edge, the circuit's private peering sessions and the routes Azure learns.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "09:55",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3900,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The production planning run starts at 11:00, 65 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "arpAt": {
+      "type": "time",
+      "init": null
+    },
+    "statsAt": {
+      "type": "time",
+      "init": null
+    },
+    "countAt": {
+      "type": "time",
+      "init": null
+    },
+    "skuAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "prefixes",
+        "circuit",
+        "gateway"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "arp",
+        "stats",
+        "count",
+        "sku",
+        "filter",
+        "guard",
+        "default",
+        "reset",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "arp": {
+      "label": "az network express-route list-route-tables (private peering, primary)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(arpAt)",
+          "then": [
+            {
+              "set": "arpAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network express-route list-route-tables -g rg-net -n er-lindqvist --peering-name AzurePrivatePeering --path primary --query 'value | length(@)'\n{harmed ? \"1  (0.0.0.0/0)\" : fixed ? \"14\" : \"0\"}"
+        },
+        {
+          "finding": "Azure is learning no routes from on-premises on the primary path."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "stats": {
+      "label": "Peering state and on-premises BGP log",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(statsAt)",
+          "then": [
+            {
+              "set": "statsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network express-route peering show -g rg-net --circuit-name er-lindqvist -n AzurePrivatePeering --query state\n{fixed and not harmed ? \"Enabled  (sessions Established, 14 prefixes received)\" : \"Enabled  (sessions Idle since 09:41)\"}\nedge-1 log: 09:41:03 %BGP-3-MAXPFX: neighbor 192.168.255.2 prefix count 4,350 exceeds limit; session closed by peer"
+        },
+        {
+          "finding": "The edge sent 4,350 prefixes; private peering accepts 4,000 on a Standard circuit, so the session drops, comes back, and drops again."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "count": {
+      "label": "How many prefixes does the edge now advertise?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(countAt)",
+          "then": [
+            {
+              "set": "countAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ ssh edge-1 'show bgp neighbor 192.168.255.2 advertised-routes | count'\n{harmed ? \"1\" : fixed ? \"14\" : \"4,350 (since redistribution at 09:40)\"}"
+        },
+        {
+          "finding": "Redistribution turned 14 summaries into thousands of specific routes."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "sku": {
+      "label": "Circuit SKU",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(skuAt)",
+          "then": [
+            {
+              "set": "skuAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network express-route show -g rg-net -n er-lindqvist --query 'sku'\ntier: Standard  family: MeteredData"
+        },
+        {
+          "finding": "Standard tier: the 4,000-prefix limit applies."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "filter": {
+      "label": "With the DC network team: stop redistributing and advertise the 14 summaries again (prefix list on both edges)",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (DC team, CHG-4410 rollback: no redistribute ospf into bgp; outbound prefix-list AZURE-SUMMARIES on neighbors to Microsoft)\nneteng@cloudshell:~$ (watching) az network express-route list-route-tables ... | length -> 14"
+        },
+        {
+          "log": "The advertised count falls back under the limit, both sessions re-establish, and Azure learns the summaries, which already cover every branch.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Agree a maximum-prefix warning on the edges at 3,000 and add an alert on the circuit's BGP availability",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (DC team: neighbor 192.168.255.2 maximum-prefix 3000 warning-only on both edges; route advertisement standard documented: summaries only)\nneteng@cloudshell:~$ az monitor metrics alert create -n er-bgp-down --scopes <circuit id> --condition 'avg BgpAvailability < 100' ..."
+        },
+        {
+          "log": "The edge warns long before the limit, the advertisement standard is written down, and Azure alerts when a session goes down.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "default": {
+      "label": "Advertise only a default route 0.0.0.0/0 from on-premises instead",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ (DC team: advertise default-originate toward Microsoft)\nneteng@cloudshell:~$ az network express-route list-route-tables ... -> 0.0.0.0/0 via 192.168.255.1"
+        },
+        {
+          "log": "On-premises is reachable again, and every Azure VM's internet path now goes to the data center: services that need Azure's internet path break, including Windows license activation.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "reset": {
+      "label": "Reset the ExpressRoute peering",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network express-route peering update ... --set state=Disabled; ... state=Enabled\n(peering reset; sessions come up at 10:0x and drop again within a minute)"
+        },
+        {
+          "log": "The session comes up, receives 4,350 prefixes again, and drops again.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check sessions, learned routes and the MES from Azure",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "neteng@cloudshell:~$ az network express-route list-route-tables ... | length; from plan-vm-01: Test-NetConnection mes.lindqvist.local -Port 443\n{harmed ? \"1 route (0.0.0.0/0)\nTcpTestSucceeded: True (but Azure services' internet path now via on-premises)\" : fixed ? \"14 routes; sessions Established\nTcpTestSucceeded: True\" : \"0 routes; sessions Idle\nTcpTestSucceeded: False\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "prefixes",
+                  "label": "Redistribution advertised 4,350 prefixes, over private peering's 4,000 limit, so BGP kept dropping"
+                },
+                {
+                  "value": "circuit",
+                  "label": "The provider's circuit failed"
+                },
+                {
+                  "value": "gateway",
+                  "label": "The ExpressRoute gateway was undersized"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the planning run reads the MES over ExpressRoute.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "11:00: the planning run fails; production lines start without a plan.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the sessions kept dropping, what was changed and by whom, and how it is prevented.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Uses both sides' evidence.",
+          "modelAnswer": "At 09:40 the edge redistributed the internal table and advertised 4,350 prefixes; a Standard circuit's private peering accepts 4,000, so the session closed (the edge logged MAXPFX) and Azure learned nothing."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Summarize on the edge.",
+          "modelAnswer": "With the DC network team the redistribution was rolled back and a prefix list advertises the 14 summaries again; both sessions are stable. A default route would have hijacked Azure's internet path; resetting the peering only repeated the drop."
+        },
+        {
+          "label": "Prevented",
+          "criteria": "Warn before the limit.",
+          "modelAnswer": "A maximum-prefix warning at 3,000 on the edges, a written advertisement standard, and an alert on BGP availability."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The production planning run starts at 11:00, 65 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: A default route from on-premises took over Azure's internet path."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the edge over the limit leaves Azure cut off from on-premises at 11:00.",
+      "source": {
+        "cite": "Microsoft Learn, ExpressRoute routing requirements",
+        "checkedAt": "2026-11-17",
+        "url": "https://learn.microsoft.com/azure/expressroute/expressroute-routing",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'ExpressRoute supports up to 4,000 IPv4 prefixes ... advertised to Microsoft through the Azure private peering' (10,000 with the premium add-on); 'The BGP session drops if the number of prefixes exceeds the limit'; advertising a default route into private peering 'block[s] the internet path from Azure' and 'breaks Windows and other VM license activation'. The page does not say when the session comes back after the count is reduced; that it re-establishes once the edge stops exceeding the limit, and the az CLI output, are from memory (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "defaultRoute": {
+      "label": "Default route hijacks Azure's internet path",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Advertising 0.0.0.0/0 restored on-premises access and sent all Azure internet traffic to the data center."
+    },
+    "planningFailed": {
+      "label": "Planning run failed",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 11:00 the edge still advertised more than 4,000 prefixes."
+    },
+    "summarized": {
+      "label": "Summaries restored, sessions stable, guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(arpAt) and not isNull(statsAt) and not isNull(verifiedAt) and causeDoc == \"prefixes\"",
+      "narrative": "The edge advertises its 14 summaries, both sessions are stable, and a maximum-prefix warning and an alert guard the limit."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Connectivity is back, but the maximum-prefix warning, the alert, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "defaultRoute",
+    "planningFailed",
+    "summarized",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the route table and the prefix count against the limit",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(arpAt) and not isNull(statsAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(arpAt) or not isNull(statsAt) or not isNull(countAt) or not isNull(skuAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Sessions stable by 11:00 without a default route",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"A default route from on-premises took over Azure's internet path.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Prefix warning and BGP alert; MES checked from Azure",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"prefixes\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "09:55-09:59",
+        "text": "0 learned routes; sessions idle; edge MAXPFX at 4,350; Standard circuit."
+      },
+      {
+        "at": "09:59-10:07",
+        "text": "DC team rolls back redistribution, prefix list for 14 summaries; maximum-prefix warning; alert."
+      },
+      {
+        "at": "10:07-10:09",
+        "text": "14 routes; sessions stable; MES reachable."
+      }
+    ],
+    "debrief": {
+      "defaultRoute": {
+        "headline": "Fewer prefixes, not one default",
+        "body": "The problem was the count. Return to the summaries; a default route over private peering blocks Azure's own internet path and breaks license activation."
+      },
+      "planningFailed": {
+        "headline": "Over the limit, the session drops",
+        "body": "Private peering on a Standard circuit accepts 4,000 IPv4 prefixes. Summarize on the edge and the session stays up."
+      },
+      "summarized": {
+        "headline": "Good: diagnosed from both sides",
+        "body": "You read the empty route table and the edge's maximum-prefix message, confirmed the circuit's limit, had the redistribution rolled back to summaries, checked the MES, and set guards."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Azure learns no on-premises routes and the edge logs a maximum-prefix close: redistribution pushed 4,350 prefixes over a Standard circuit's 4,000 limit, so the session drops. Have the edge go back to advertising its summaries, which already cover every branch, and the sessions stay up. A default route over private peering blocks Azure's internet path; a peering reset just drops again. Then warn on prefix count and alert on BGP availability."
+  }
+}
