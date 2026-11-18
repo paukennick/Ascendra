@@ -1,0 +1,1123 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "hip-repair-moaning-scale-says-zero",
+  "title": "The chart says zero",
+  "objective": "Reassess and modify the plan of care when outcomes fall short, and recognize when standard practice needs to change for an individual",
+  "secondaryObjectives": [
+    "Managing pain and symptoms as a person experiences them"
+  ],
+  "sources": [
+    {
+      "cite": "AACN. The Essentials: Core Competencies for Professional Nursing Education (2026 edition, announced April 2026)",
+      "checkedAt": "2026-11-11",
+      "url": "https://www.aacnnursing.org/essentials",
+      "note": "Relayed from the BSN-RN course's earlier cases (read 2026-11-11, primary web page), not re-read: the course's domains follow the Essentials; domain placement is the course catalog's."
+    },
+    {
+      "cite": "Ascendra BSN-RN course catalog (backend/supabase/seed/tracks/nursing.ts)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Johnson RF. Reference Notes for Palliative Care Consultation: Pain Assessment in Advanced Dementia Scale (PAINAD) (GVSU Pressbooks, 2018; tool by Warden, Hurley and Volicer 2003)",
+      "checkedAt": "2026-11-17",
+      "url": "https://pressbooks.gvsu.edu/palliativecarenotes/chapter/pain-assessment-in-advanced-dementia-scale-painad/",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: five items scored 0-2 (breathing, negative vocalization, facial expression, body language, consolability); 'The total score ranges from 0-10 points'; suggested '1-3=mild pain; 4- 6=moderate pain; 7-10=severe pain', not substantiated for this tool; observe 'after the administration of pain medication'; 'Observe the patient for five minutes before scoring'."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "20:00 on an orthopedic unit. You are the RN for Mrs. Abara, 88, on day 1 after surgical repair of a hip fracture. She has advanced dementia and speaks only a few words. Her daughter is at the bedside.",
+    "handover": [
+      "The care plan says: pain assessed with the 0-10 numeric scale every 4 hours; the ordered oral analgesic as needed 'when the patient requests'. Every score today is charted '0 - denies pain' and she has had no analgesic since surgery.",
+      "Since 18:00 she has been moaning, grabbing at the rails and pushing staff away when turned. The evening nurse suggested the as-needed antipsychotic 'for agitation'.",
+      "Unit policy: for a patient who cannot self-report, the nurse uses a validated observational pain tool, may give an ordered as-needed analgesic on its findings, and calls the provider to change a plan that is not working."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "20:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.014,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Untreated pain drives agitation and delirium. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.003,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It settles once her pain is treated and the plan is changed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of delirium and a fall. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The provider called within 5 minutes of a high PAINAD score (unit policy: call to change a plan that is not working)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 1800,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the analgesic to work and the rescore to be done."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "painadAt": {
+      "type": "time",
+      "init": null
+    },
+    "daughterAt": {
+      "type": "time",
+      "init": null
+    },
+    "deliriumAt": {
+      "type": "time",
+      "init": null
+    },
+    "marAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "painad",
+        "daughter",
+        "delirium",
+        "mar"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "call",
+        "dayteam"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "plan",
+        "agitation",
+        "fine"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "analgAt": {
+      "type": "time",
+      "init": null
+    },
+    "positionAt": {
+      "type": "time",
+      "init": null
+    },
+    "antipsychAt": {
+      "type": "time",
+      "init": null
+    },
+    "restrainAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(98 + 20 * max(0, prog - 0.4) + sin(t / 11) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "sbp": {
+      "expr": "round(158 + 10 * max(0, prog - 0.4))",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "dbp": {
+      "expr": "round(sbp * 0.55)",
+      "unit": "mmHg",
+      "precision": 0
+    },
+    "rr": {
+      "expr": "round(22 + 4 * max(0, prog - 0.4))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "spo2": {
+      "expr": "95",
+      "unit": "%",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (not isNull(analgAt) and route == \"call\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "bedside",
+    "level": 2,
+    "bedside": {
+      "tiles": [
+        {
+          "id": "hr",
+          "label": "Pulse",
+          "spokenLabel": "Pulse",
+          "value": "hr",
+          "unit": "/min",
+          "alarm": {
+            "high": 120
+          },
+          "announce": {
+            "bands": [
+              100,
+              120
+            ]
+          },
+          "colour": "ecg"
+        },
+        {
+          "id": "bp",
+          "label": "BP",
+          "spokenLabel": "Blood pressure",
+          "value": [
+            "sbp",
+            "dbp"
+          ],
+          "unit": "mmHg",
+          "alarm": {
+            "low": 90
+          },
+          "announce": {
+            "bands": [
+              100,
+              90
+            ]
+          },
+          "colour": "art"
+        },
+        {
+          "id": "rr",
+          "label": "RR",
+          "spokenLabel": "Respiratory rate",
+          "value": "rr",
+          "unit": "/min",
+          "alarm": {
+            "high": 24
+          },
+          "announce": {
+            "bands": [
+              20,
+              24
+            ]
+          },
+          "colour": "neutral"
+        },
+        {
+          "id": "spo2",
+          "label": "SpO2",
+          "spokenLabel": "Oxygen saturation",
+          "value": "spo2",
+          "unit": "%",
+          "alarm": {
+            "low": 92
+          },
+          "announce": {
+            "bands": [
+              94,
+              92
+            ]
+          },
+          "colour": "spo2"
+        }
+      ],
+      "waveforms": [
+        {
+          "kind": "ecg",
+          "from": {
+            "hr": "hr"
+          }
+        },
+        {
+          "kind": "pleth",
+          "from": {
+            "hr": "hr"
+          }
+        }
+      ],
+      "infusions": "Analgesic given: {not isNull(analgAt)|yesno}. Repositioned: {not isNull(positionAt)|yesno}.",
+      "banner": [
+        {
+          "when": "route == \"call\" and inClinic",
+          "text": "The provider is changing her pain plan."
+        }
+      ]
+    }
+  },
+  "actions": {
+    "painad": {
+      "label": "Score her with the PAINAD observational scale while you reposition her",
+      "group": "Assess",
+      "available": "not testPending and isNull(painadAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"painad\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "daughter": {
+      "label": "Ask her daughter how her mother shows pain and what helps her",
+      "group": "Assess",
+      "available": "not testPending and isNull(daughterAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"daughter\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "delirium": {
+      "label": "Screen for delirium and other causes: bladder, bowel, oxygen, the wound",
+      "group": "Assess",
+      "available": "not testPending and isNull(deliriumAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"delirium\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "mar": {
+      "label": "Review the medication record and the plan's pain outcomes",
+      "group": "Assess",
+      "available": "not testPending and isNull(marAt)",
+      "why": "Another assessment is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"mar\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Assessing (about 1 min)."
+        }
+      ]
+    },
+    "analg": {
+      "label": "Give the ordered as-needed analgesic on the PAINAD findings and plan to rescore",
+      "group": "Treat",
+      "available": "isNull(analgAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "analgAt",
+          "to": "t"
+        },
+        {
+          "log": "The ordered as-needed analgesic given; a PAINAD rescore is timed.",
+          "kind": "act"
+        }
+      ]
+    },
+    "position": {
+      "label": "Reposition her with pillows, her blanket and her music",
+      "group": "Treat",
+      "available": "isNull(positionAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "positionAt",
+          "to": "t"
+        },
+        {
+          "log": "Repositioned with the hip supported, her blanket and her music on.",
+          "kind": "act"
+        }
+      ]
+    },
+    "antipsych": {
+      "label": "Give the as-needed antipsychotic for her agitation",
+      "group": "Treat",
+      "available": "isNull(antipsychAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "antipsychAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.25, 2)"
+        },
+        {
+          "log": "The as-needed antipsychotic given; she becomes drowsy but still moans when moved.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "restrain": {
+      "label": "Put mitts on her and raise all four rails",
+      "group": "Treat",
+      "available": "isNull(restrainAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "restrainAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "Mitts on and four rails up; she pulls at them.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "Why is the plan failing?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "plan",
+              "label": "The plan does not fit her: she cannot self-report or request, so the numeric scale and 'when requested' miss severe pain; it must change"
+            },
+            {
+              "value": "agitation",
+              "label": "Dementia-related agitation"
+            },
+            {
+              "value": "fine",
+              "label": "She denies pain; the plan is working"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"plan\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"plan\""
+                },
+                {
+                  "log": "The plan fails her.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"agitation\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"agitation\""
+                },
+                {
+                  "log": "Read as agitation.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Read as working.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Escalate",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "call",
+              "label": "Call the provider now: post-op hip, advanced dementia, PAINAD 8, no analgesic since surgery because the plan needs her to ask; as-needed dose given; ask for scheduled analgesia and a PAINAD-based plan"
+            },
+            {
+              "value": "dayteam",
+              "label": "Leave a note for the day team to review"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"call\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"call\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The provider orders scheduled analgesia and changes the plan to PAINAD every 4 hours and after each dose, with nondrug measures; the antipsychotic is discontinued.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"dayteam\""
+                },
+                {
+                  "log": "A note is left for the morning.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Update the care plan with her daughter: the tool, scheduled analgesia, her comforts, rescoring after doses",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "The care plan now uses PAINAD, scheduled analgesia, rescoring after doses and her own comforts, agreed with her daughter.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Orthopedic unit, room 3",
+      "clock": "running",
+      "actions": [
+        "painad",
+        "daughter",
+        "delirium",
+        "mar",
+        "analg",
+        "position",
+        "antipsych",
+        "restrain",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the assessment",
+      "wait": {
+        "skipLabel": "the finding"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each assessment takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"painad\"",
+              "then": [
+                {
+                  "set": "painadAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Labored breathing (1), repeated moaning (2), grimacing (2), rigid and pushing away (2), unable to be consoled (1): PAINAD 8 of 10.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"daughter\"",
+              "then": [
+                {
+                  "set": "daughterAt",
+                  "to": "t"
+                },
+                {
+                  "log": "'She never says she hurts. She moans and grabs. At home she liked her blanket and her music.'",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"delirium\"",
+              "then": [
+                {
+                  "set": "deliriumAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Bladder scan 180 mL; dressing dry; saturation 95%; inattention and fluctuation worse than this morning.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "marAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No analgesic since surgery; every pain score '0'; the outcome 'pain controlled' is charted as met.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the PAINAD rescore",
+      "wait": {
+        "skipLabel": "the PAINAD rescore"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 30 min for the analgesic to work and the rescore to be done."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "On rescore her PAINAD is 2; she is resting with her music on.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Why is Mrs. Abara's plan failing, and what do you change?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "The plan relies on self-report and requests she cannot make, so '0' scores and 'pain controlled' are false; her behavior and a PAINAD of 8 show severe pain after hip surgery.",
+          "modelAnswer": "The plan only works if she can tell us or ask, and she can't. So the zeros are wrong, and the moaning and pushing away are pain. Her PAINAD is 8."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Uses PAINAD, gives the ordered as-needed analgesic and nondrug comfort, avoids antipsychotics and restraint, asks her daughter how she shows pain, and calls the provider to change to scheduled analgesia with PAINAD-based reassessment.",
+          "modelAnswer": "Score her with PAINAD, give the as-needed analgesic and her blanket and music, no antipsychotic or restraints, ask her daughter what her pain looks like, and call to get scheduled pain medicine and a PAINAD plan."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "clinical",
+    "thresholds": {},
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Severe untreated pain an hour on is harm here.",
+      "source": {
+        "cite": "Johnson RF. Reference Notes for Palliative Care Consultation: Pain Assessment in Advanced Dementia Scale (PAINAD) (GVSU Pressbooks, 2018; tool by Warden, Hurley and Volicer 2003)",
+        "checkedAt": "2026-11-17",
+        "url": "https://pressbooks.gvsu.edu/palliativecarenotes/chapter/pain-assessment-in-advanced-dementia-scale-painad/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: five items scored 0-2 (breathing, negative vocalization, facial expression, body language, consolability); 'The total score ranges from 0-10 points'; suggested '1-3=mild pain; 4- 6=moderate pain; 7-10=severe pain', not substantiated for this tool; observe 'after the administration of pain medication'; 'Observe the patient for five minutes before scoring'."
+      }
+    }
+  },
+  "endings": {
+    "delirium": {
+      "label": "Delirium and a fall",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "Her agitation becomes full delirium; at 21:30 she climbs over the rails and falls onto her operated hip."
+    },
+    "safe": {
+      "label": "Plan changed to fit her",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(painadAt)) and isNull(antipsychAt) and isNull(restrainAt) and (not isNull(analgAt))",
+      "narrative": "{timeAt(leftAt)|clock}: her PAINAD has fallen to 2 on scheduled analgesia, and her plan now fits how she shows pain."
+    },
+    "safeGaps": {
+      "label": "Changed, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: the plan is changed, but the call was slow, she was sedated or restrained, or no observational tool was used."
+    },
+    "time_up": {
+      "label": "Unchanged at 21:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "21:00 and the plan still says '0'."
+    }
+  },
+  "endingOrder": [
+    "delirium",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The provider called within 5 minutes of the PAINAD score to change the plan",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"call\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"call\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "toolC",
+        "label": "Used a validated observational tool instead of the numeric scale",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(painadAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not used."
+          }
+        ]
+      },
+      {
+        "id": "treatC",
+        "label": "Treated pain, not 'agitation' (no antipsychotic or restraint)",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(antipsychAt) or not isNull(restrainAt)",
+            "score": "missed",
+            "why": "Sedated or restrained."
+          },
+          {
+            "when": "not isNull(analgAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Pain not treated."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Asked her daughter, screened for other causes and repositioned her",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(daughterAt) and not isNull(deliriumAt) and not isNull(positionAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(daughterAt) or not isNull(deliriumAt) or not isNull(positionAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Saw that the plan, not the patient, was the problem",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"plan\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"agitation\"",
+            "score": "missed",
+            "why": "PAINAD 8 says pain."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "She cannot self-report."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Updated the care plan with the family",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: the plan's outcome is false; observational tool; treat pain; change the plan with her and her family",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "PAINAD to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "20:00 to the analgesic",
+        "value": "isNull(analgAt) ? -1 : timeAt(analgAt)",
+        "format": "duration",
+        "expert": "under 5 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "20:00",
+        "text": "PAINAD while repositioning: 8 of 10."
+      },
+      {
+        "at": "~20:01",
+        "text": "Give the ordered as-needed analgesic; blanket and music."
+      },
+      {
+        "at": "~20:02",
+        "text": "Call the provider to change the plan."
+      },
+      {
+        "at": "~20:05",
+        "text": "Daughter's insight, delirium screen; update the plan together."
+      }
+    ],
+    "debrief": {
+      "delirium": {
+        "headline": "Delirium and a fall",
+        "body": "A person who cannot self-report will chart '0' on a numeric scale. Use an observational tool, treat the pain, and change the plan; sedation and restraint make delirium and falls more likely."
+      },
+      "safe": {
+        "headline": "Plan changed to fit her",
+        "body": "You saw the plan's outcome was false, used an observational tool, treated pain rather than 'agitation', involved her daughter and called to change the plan within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Changed, with gaps",
+        "body": "Check how soon you called, whether she was sedated or restrained, and whether you scored her with an observational tool."
+      },
+      "time_up": {
+        "headline": "Unchanged at 21:00",
+        "body": "A plan whose outcomes are false must change now."
+      }
+    },
+    "modelReasoning": "Evaluation decides whether a plan continues, changes or ends. Mrs. Abara's plan assumed self-report and requests she cannot make, so its outcome ('pain controlled') was false. For a person with advanced dementia, use an observational tool such as PAINAD (breathing, vocalization, facial expression, body language, consolability; 0-10), treat pain with the ordered analgesic and her own comforts, and rescore after the intervention. Antipsychotics and restraint for 'agitation' that is really pain raise the risk of delirium and falls. Call the provider to change the plan to scheduled analgesia and PAINAD-based reassessment, built with her daughter."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "reQ": {
+      "during": "leaveT",
+      "ask": "While the analgesic works: when do you score her again?",
+      "choices": [
+        {
+          "id": "after",
+          "label": "After the intervention, observing for a few minutes before scoring"
+        },
+        {
+          "id": "never",
+          "label": "Only at the next 4-hour check"
+        },
+        {
+          "id": "ask",
+          "label": "When she asks"
+        }
+      ],
+      "expect": "after",
+      "explain": "Observe her after the pain medicine, for five minutes before scoring.",
+      "source": {
+        "cite": "Johnson RF. Reference Notes for Palliative Care Consultation: Pain Assessment in Advanced Dementia Scale (PAINAD) (GVSU Pressbooks, 2018; tool by Warden, Hurley and Volicer 2003)",
+        "checkedAt": "2026-11-17",
+        "url": "https://pressbooks.gvsu.edu/palliativecarenotes/chapter/pain-assessment-in-advanced-dementia-scale-painad/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: five items scored 0-2 (breathing, negative vocalization, facial expression, body language, consolability); 'The total score ranges from 0-10 points'; suggested '1-3=mild pain; 4- 6=moderate pain; 7-10=severe pain', not substantiated for this tool; observe 'after the administration of pain medication'; 'Observe the patient for five minutes before scoring'."
+      }
+    },
+    "toolQ": {
+      "during": "testT",
+      "ask": "While you assess: what does PAINAD observe?",
+      "choices": [
+        {
+          "id": "obs",
+          "label": "Breathing, vocalization, facial expression, body language, consolability"
+        },
+        {
+          "id": "num",
+          "label": "A 0-10 number she gives"
+        },
+        {
+          "id": "vital",
+          "label": "Heart rate only"
+        }
+      ],
+      "expect": "obs",
+      "explain": "Five items scored 0-2: breathing, negative vocalization, facial expression, body language and consolability; the total is 0-10.",
+      "source": {
+        "cite": "Johnson RF. Reference Notes for Palliative Care Consultation: Pain Assessment in Advanced Dementia Scale (PAINAD) (GVSU Pressbooks, 2018; tool by Warden, Hurley and Volicer 2003)",
+        "checkedAt": "2026-11-17",
+        "url": "https://pressbooks.gvsu.edu/palliativecarenotes/chapter/pain-assessment-in-advanced-dementia-scale-painad/",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: five items scored 0-2 (breathing, negative vocalization, facial expression, body language, consolability); 'The total score ranges from 0-10 points'; suggested '1-3=mild pain; 4- 6=moderate pain; 7-10=severe pain', not substantiated for this tool; observe 'after the administration of pain medication'; 'Observe the patient for five minutes before scoring'."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
