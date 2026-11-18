@@ -7956,7 +7956,10 @@ AZ-700 SNAT case's `awk '{print $1}'` was read as a template expression;
 braces doubled before the first commit. FAIL-2502, FAIL-2503, FAIL-2504 as
 above. FAIL-2505: the reworded forensics fix label ran to 208 characters, over the
 schema's 200; documents.test.ts caught it, the label is 128 characters, and the
-builder's factory now refuses longer labels.
+builder's factory now refuses longer labels. FAIL-2506:
+`depth-cloud.test.ts` failed `tsc` (TS2774, an always-defined helper used as a
+condition); fixed. The remaining `tsc` error, in `lib/test-discovery.test.ts`
+(`globSync` from `node:fs`), is unchanged from `origin/master`.
 
 **Per course, before and after.** Before is the count on `origin/master` when the round started; after counts this branch. Target: fewer than 60 objectives, 4 sims; 60 or more, 8. "Units with a sim" counts units holding a sim whose main objective is in it.
 

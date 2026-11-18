@@ -19354,6 +19354,31 @@
       "prevention_rules": [],
       "prevention_notes": "Factory assertion on label length; documents.test.ts covers every seeded document.",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2506",
+      "date": "2026-11-18",
+      "title": "depth-cloud.test.ts failed tsc: an always-defined function used as a condition",
+      "status": "fixed",
+      "severity": "low",
+      "symptom": "tsc --noEmit: lib/sim/depth-cloud.test.ts(179,49): error TS2774",
+      "how_detected": "tsc at the end of round 2",
+      "root_cause": "The 'list is not empty' test referenced the until helper in a boolean to keep it used; round 1 ran the tests but not tsc.",
+      "requirement": "REQ-335",
+      "affected": [
+        "backend/lib/sim/depth-cloud.test.ts"
+      ],
+      "fix_summary": "typeof until === 'function' check",
+      "fix_commits": [
+        "fd497d2e"
+      ],
+      "regression_tests": [
+        "npm run typecheck (tsc --noEmit)"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "tsc runs before handoff for any change to test files.",
+      "recurrence_of": ""
     }
   ]
 }
