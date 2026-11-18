@@ -733,6 +733,7 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("ABPTSECS", "too-early-to-test-day-four-weakness"),
   entry("ABPTSPCS", "he-used-to-say-ball"),
   entry("ABPTSNCS", "treadmill-ordered-freezing-in-doorways"),
+  entry("ABPTSOCS", "two-buses-and-a-copay-after-tka"),
   // ---- end REQ-334 ----
 ];
 
