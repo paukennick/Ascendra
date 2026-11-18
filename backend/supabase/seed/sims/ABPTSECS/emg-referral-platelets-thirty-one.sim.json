@@ -1,0 +1,1034 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "emg-referral-platelets-thirty-one",
+  "title": "Platelets thirty-one thousand",
+  "objective": "Screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; treat lymphedema as no contraindication to needle EMG, weighing the risk against what the study adds; and avoid testing with external temporary pacemakers",
+  "secondaryObjectives": [
+    "Lower bleeding risk in needle EMG for patients on anticoagulants or with bleeding tendencies: use the smallest-gauge needle, limit needle insertions, and skip deep muscles that can't be compressed or that lie near large vessels"
+  ],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: clinical electrophysiology (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/clinical-electrophysiology/specialist-certification-examination-outline-clinical-electrophysiology",
+      "note": "Relayed from the clinical electrophysiology specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Clinical sciences, critical inquiry and professional roles (19%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra clinical electrophysiology specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSECS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ramani PK, et al.. Nerve Conduction Studies and Electromyography. StatPearls (updated 2025-02-10), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-NCS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; lymphedema is not a contraindication to needle EMG, weighing risk against what the study adds; avoid testing with external temporary pacemakers; with anticoagulants or bleeding tendencies use the smallest-gauge needle, limit insertions and skip deep, non-compressible muscles near large vessels (the course objectives' wording)."
+    },
+    {
+      "cite": "Jinna S, et al.. Thrombocytopenia. StatPearls (updated 2025-12-01), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-PLT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: thrombocytopenia starts below 150,000/uL; the relationship between count and bleeding risk is not settled (the course objective's wording)."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:00 in an electrodiagnostic laboratory. You are the physical therapist performing a referred right upper limb EMG and nerve conduction study for Mrs. Okafor, 58, with hand numbness. She is on chemotherapy for lymphoma.",
+    "handover": [
+      "The referral asks to 'rule out carpal tunnel versus chemotherapy neuropathy'.",
+      "Laboratory policy: review labs, anticoagulants and skin before any needle study; a contraindication is discussed with the referring physician before testing."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:00",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Waiting is safe; deep needling is not. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.001,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Deferred. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of compartment hematoma. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The referring physician told within 5 minutes of the platelet count (laboratory policy: before testing)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 900,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish surface studies and rebook."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "labsAt": {
+      "type": "time",
+      "init": null
+    },
+    "skinAt": {
+      "type": "time",
+      "init": null
+    },
+    "ncsAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "labs",
+        "skin",
+        "ncs"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "md",
+        "none"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "defer",
+        "lymph",
+        "fine"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "needleAt": {
+      "type": "time",
+      "init": null
+    },
+    "deferAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(80 + 20 * max(0, prog - 0.7))",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(2 + 8 * max(0, prog - 0.7), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (isNull(needleAt) ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Mrs. Okafor, 58, referred for right arm EMG and nerve conduction studies",
+        "presentation": "Numbness in the right hand for 6 weeks; on chemotherapy for lymphoma. {not isNull(needleAt) ? \"Needle study under way.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 110
+          },
+          "announce": {
+            "bands": [
+              95,
+              110
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone home with a new plan.\" : (not isNull(needleAt) ? \"On the table, needle in the deltoid.\" : \"Seated, sleeve rolled up.\")}",
+      "measures": [
+        {
+          "id": "labsResult",
+          "label": "Labs",
+          "result": "Platelets 31,000/uL (chemotherapy nadir); no anticoagulant.",
+          "when": "not isNull(labsAt)",
+          "flag": "true"
+        },
+        {
+          "id": "skinResult",
+          "label": "Skin",
+          "result": "Intact skin; mild lymphedema of the forearm; port in the left chest.",
+          "when": "not isNull(skinAt)"
+        },
+        {
+          "id": "ncsResult",
+          "label": "Nerve conduction",
+          "result": "Prolonged median distal latencies; reduced sensory amplitudes in all nerves.",
+          "when": "not isNull(ncsAt)"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Needle EMG deferred",
+            "when": "isNull(needleAt)"
+          },
+          {
+            "label": "Nerve conduction studies only",
+            "when": "not isNull(ncsAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "rulePlt",
+          "label": "Platelets below 50,000",
+          "text": "Defer or limit needle EMG; nerve conductions can proceed.",
+          "met": "not isNull(labsAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "labs": {
+      "label": "Review today's blood count and her medicines",
+      "group": "Examine",
+      "available": "not testPending and isNull(labsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"labs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "skin": {
+      "label": "Inspect the arm: skin, swelling, lines",
+      "group": "Examine",
+      "available": "not testPending and isNull(skinAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"skin\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "ncs": {
+      "label": "Run the nerve conduction studies (surface electrodes)",
+      "group": "Examine",
+      "available": "not testPending and isNull(ncsAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"ncs\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "needle": {
+      "label": "Proceed with a full needle EMG including deep muscles",
+      "group": "Treat",
+      "available": "isNull(needleAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "needleAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.6, 2)"
+        },
+        {
+          "log": "Deep needling of the forearm and shoulder; a tense, painful swelling develops in the forearm.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "defer": {
+      "label": "Defer the needle EMG; keep to surface nerve conductions today",
+      "group": "Treat",
+      "available": "isNull(deferAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "deferAt",
+          "to": "t"
+        },
+        {
+          "log": "Needle EMG deferred; surface studies only.",
+          "kind": "act"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What does her screen mean for testing?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "defer",
+              "label": "Platelets below 50,000: defer or limit needle EMG; surface conductions are fine; lymphedema alone would not have stopped it"
+            },
+            {
+              "value": "lymph",
+              "label": "Lymphedema is the contraindication"
+            },
+            {
+              "value": "fine",
+              "label": "Fine to proceed fully"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"defer\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"defer\""
+                },
+                {
+                  "log": "Defer needle EMG.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"lymph\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"lymph\""
+                },
+                {
+                  "log": "Read lymphedema as the bar.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Read as fine.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Report",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "md",
+              "label": "Call the referring oncologist: platelets 31,000; needle EMG deferred; surface studies show median slowing and a diffuse sensory neuropathy; ask whether a limited needle study is worth it after recovery"
+            },
+            {
+              "value": "none",
+              "label": "Proceed and report afterward"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"md\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"md\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "The oncologist agrees to defer, and a limited needle study is booked after her counts recover if still needed.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"none\""
+                },
+                {
+                  "log": "Testing goes ahead.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Report the surface findings and the deferral reason",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Report sent: surface findings, deferral reason, plan.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "EMG laboratory",
+      "clock": "running",
+      "actions": [
+        "labs",
+        "skin",
+        "ncs",
+        "needle",
+        "defer",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"labs\"",
+              "then": [
+                {
+                  "set": "labsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Platelets 31,000 at her chemotherapy nadir; no anticoagulant.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"skin\"",
+              "then": [
+                {
+                  "set": "skinAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Skin intact; mild forearm lymphedema; her port is on the left.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "ncsAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Prolonged median motor and sensory latencies across the wrist, and reduced sensory amplitudes in every nerve tested.",
+                  "kind": "find"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "the end of the visit",
+      "wait": {
+        "skipLabel": "the end of the visit"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 15 min to finish surface studies and rebook."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves with surface results and a rebooked limited study.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "What does her screen mean for today's study?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "Platelets of 31,000 are below 50,000, so needle EMG is deferred or limited; her lymphedema is not a contraindication; surface nerve conductions carry no bleeding risk.",
+          "modelAnswer": "Her platelets are 31,000, under the 50,000 line, so no full needle study today. The lymphedema isn't the issue, and surface conductions are fine."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Defers needling, runs the surface studies, calls the oncologist about a limited study after recovery using the smallest needle, few insertions and no deep non-compressible muscles.",
+          "modelAnswer": "Defer the needle part, do the conductions, and call the oncologist. If we needle later, smallest needle, few insertions, nothing deep."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "The referring physician told within 5 minutes of the platelet count (laboratory policy: before testing)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Needling through a contraindication is harm here.",
+      "source": {
+        "cite": "Jinna S, et al.. Thrombocytopenia. StatPearls (updated 2025-12-01), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-PLT; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: thrombocytopenia starts below 150,000/uL; the relationship between count and bleeding risk is not settled (the course objective's wording)."
+      }
+    }
+  },
+  "endings": {
+    "hematoma": {
+      "label": "Compartment hematoma",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "A tense, expanding forearm hematoma develops after deep needling; she needs emergency surgical review."
+    },
+    "safe": {
+      "label": "Screened, deferred, reported",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and (not isNull(labsAt)) and isNull(needleAt) and (not isNull(deferAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she has surface results and a safe plan for any needle study."
+    },
+    "safeGaps": {
+      "label": "Handled, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she is safe, but the call was slow or the labs were not checked first."
+    },
+    "time_up": {
+      "label": "Undecided at 11:00",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:00 and no plan."
+    }
+  },
+  "endingOrder": [
+    "hematoma",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "The referring physician told within 5 minutes of the platelet count",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"md\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"md\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "labsC",
+        "label": "Reviewed the platelet count before needling",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(labsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not reviewed."
+          }
+        ]
+      },
+      {
+        "id": "deferC",
+        "label": "Deferred or limited the needle EMG",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(needleAt)",
+            "score": "missed",
+            "why": "Full deep needle EMG."
+          },
+          {
+            "when": "not isNull(deferAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not deferred."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Inspected the arm and ran the surface studies",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(skinAt) and not isNull(ncsAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "not isNull(skinAt) or not isNull(ncsAt)",
+            "score": "partial",
+            "why": "Partly."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Applied the platelet threshold, not the lymphedema",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"defer\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"lymph\"",
+            "score": "missed",
+            "why": "Lymphedema is not a contraindication; the platelets are."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "Platelets 31,000."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Reported",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: platelets under 50,000 defer or limit needle EMG; lymphedema is not a contraindication",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Platelet count to the call",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:00 to the lab review",
+        "value": "isNull(labsAt) ? -1 : timeAt(labsAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:00",
+        "text": "Labs: platelets 31,000."
+      },
+      {
+        "at": "~10:01",
+        "text": "Defer the needle study."
+      },
+      {
+        "at": "~10:02",
+        "text": "Call the oncologist."
+      },
+      {
+        "at": "~10:05",
+        "text": "Skin; surface conductions; report."
+      }
+    ],
+    "debrief": {
+      "hematoma": {
+        "headline": "Compartment hematoma",
+        "body": "Screen labs before needling: platelets below 50,000 defer or limit needle EMG. Lymphedema alone is not a contraindication."
+      },
+      "safe": {
+        "headline": "Screened, deferred, reported",
+        "body": "You reviewed her labs, deferred the needle study, ran the surface conductions and told the oncologist within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Handled, with gaps",
+        "body": "Check whether you reviewed labs first and how soon you called."
+      },
+      "time_up": {
+        "headline": "Undecided at 11:00",
+        "body": "Screen and decide before testing."
+      }
+    },
+    "modelReasoning": "Screen before electrodiagnostic testing: avoid open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; lymphedema is not a contraindication, weighing risk against benefit; avoid external temporary pacemakers. With bleeding risk, use the smallest needle, limit insertions and avoid deep, non-compressible muscles near large vessels. Mrs. Okafor's platelets are 31,000: do the surface studies, defer the needle study and tell the oncologist."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "lymQ": {
+      "during": "leaveT",
+      "ask": "While she leaves: is lymphedema a contraindication to needle EMG?",
+      "choices": [
+        {
+          "id": "no",
+          "label": "No; weigh the risk against what the study adds"
+        },
+        {
+          "id": "yes",
+          "label": "Yes, always"
+        },
+        {
+          "id": "unk",
+          "label": "Only on the left"
+        }
+      ],
+      "expect": "no",
+      "explain": "Lymphedema is not a contraindication to needle EMG; weigh the risk against what the study adds.",
+      "source": {
+        "cite": "Ramani PK, et al.. Nerve Conduction Studies and Electromyography. StatPearls (updated 2025-02-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-NCS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; lymphedema is not a contraindication to needle EMG, weighing risk against what the study adds; avoid testing with external temporary pacemakers; with anticoagulants or bleeding tendencies use the smallest-gauge needle, limit insertions and skip deep, non-compressible muscles near large vessels (the course objectives' wording)."
+      }
+    },
+    "pltQ": {
+      "during": "testT",
+      "ask": "While you review: at what platelet count is needle EMG deferred or limited?",
+      "choices": [
+        {
+          "id": "fifty",
+          "label": "Below 50,000"
+        },
+        {
+          "id": "onefifty",
+          "label": "Below 150,000"
+        },
+        {
+          "id": "none",
+          "label": "Platelets do not matter"
+        }
+      ],
+      "expect": "fifty",
+      "explain": "Defer or limit needle EMG with platelets below 50,000.",
+      "source": {
+        "cite": "Ramani PK, et al.. Nerve Conduction Studies and Electromyography. StatPearls (updated 2025-02-10), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-NCS; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: screen before testing: avoid studies over open skin infection, burns, recent grafts or casts; defer or limit needle EMG with platelets below 50,000; lymphedema is not a contraindication to needle EMG, weighing risk against what the study adds; avoid testing with external temporary pacemakers; with anticoagulants or bleeding tendencies use the smallest-gauge needle, limit insertions and skip deep, non-compressible muscles near large vessels (the course objectives' wording)."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
