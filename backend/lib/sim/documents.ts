@@ -671,6 +671,8 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCE", "nce-stress-and-insomnia-after-the-shop-closed"),
   entry("NCE", "nce-text-in-session-brother-killed"),
   entry("NCE", "nce-eight-weeks-flat-scores"),
+  entry("NCMHCE", "ncmhce-panic-cbt-session-five"),
+  band("NCMHCE", "ncmhce-stress-and-insomnia-after-the-shop-closed"),
   // ---- end REQ-337 ----
 ];
 
