@@ -7929,6 +7929,67 @@ patient data; no drug or dose; the vaccination clinic case is about booking.
 7. **A fetched page carried instructions for AI agents** (a request to file
    feedback); they were ignored and only the documentation was used.
 
+### 22.41 Mental health depth of the 2026-11-17 round (REQ-337, depth-mh)
+
+Nick (2026-11-17, 19:51 PT): "Courses have no sims still ... Some still have 1 or two. Let's build those out more robustly." Scope: EPPP, NCE, the Washington psychology jurisprudence course, and NCMHCE and the two ASWB courses where under the target. Target (round-1117b): a sim whose main objective is in every unit that has a fitting objective; at least 4 sims under 60 objectives, 8 at 60 or more; heaviest units first; purpose-written cases for a course's top two domains; a unit with nothing that honestly fits is recorded as no fit.
+
+**Screen and profile.** All on the existing client `session` screen with the `clinical-session` profile, learner-paced `turns`, engine 1.2 with `endingOrder` (as 22.5, 22.12, 22.22). No new screen, engine, schema or migration. The mental health courses are gated per course (REQ-259); the sims that touch suicide, abuse or sexual misconduct also carry `mature: true` (REQ-327), and their bands inherit it.
+
+**Per course** (counts by main objective, recounted from the seed on base b2c02f34):
+
+| Course | Objectives | Target | Before | After | Units covered after | No fit |
+|---|---|---|---|---|---|---|
+| WAPSYCHJP | 33 | 4 | 1 | 4 | III ethics rules, IV confidentiality, V mandatory reporting, VI discipline | I licensure and the board, II CE and renewal: licensing and CE rules, not a client session (labs) |
+| EPPP | 93 | 8 | 3 | 9 | I biological, II cognitive-affective, IV lifespan, V assessment, VI treatment, VIII ethics and law | III social and cultural bases (no objective passes the screen; theory comparisons); VII research methods (study design, statistics and program evaluation are desk work, not a client session) |
+| NCE | 57 | 4 | 3 | 6 | I ethics, II intake, III clinical focus, IV treatment planning, V skills | VI core attributes: no objective passes the screen (each meets at most one criterion) |
+| NCMHCE | 57 | 4 | 4 | 6 | I ethics (band), II intake, III clinical focus (band), IV planning, V skills | VI core attributes: as NCE |
+| ASWBCLINICAL | 73 | 8 | 4 | 8 | I, II, III | none |
+| ASWBMASTERS | 71 | 8 | 5 | 9 | I, II, III | none |
+
+**Cases** (15 authored, 7 bands; heaviest units first within each course):
+
+| Course (unit) | Slug | Objective (short) | What it teaches |
+|---|---|---|---|
+| WAPSYCHJP (III, 30) | `wajp-client-hired-by-your-practice` | Recognize multiple relationships that impair objectivity and end them properly | Her new job is at your own practice (billing, payroll): an administrative and financial relationship (WAC 246-924-357); the gym is incidental (APA 3.05(a)); her choice; an ending with notice and a referral outside the practice; nothing told to your partner without authorization |
+| EPPP (VIII) band | `eppp-client-hired-by-your-practice` | Identify and manage multiple relationships ... | The same session |
+| WAPSYCHJP (V, 15) 18+ | `wajp-adult-disclosure-children-at-risk` | Report suspected child abuse ... on time and to the right agency | An adult's own childhood abuse is not reportable on its own, but the same man now lives with two children: report at the first opportunity, within 48 hours (RCW 26.44.030(2), (1)(h)); tell her first; her own history is hers |
+| EPPP (VIII) band 18+ | `eppp-adult-disclosure-children-at-risk` | Protect confidentiality and privilege ... including mandated reporting of abuse | The same session |
+| WAPSYCHJP (VI, 10) 18+ | `wajp-former-psychologist-misconduct` | Identify unprofessional conduct under the UDA and the psychology-specific grounds | A former psychologist's sexual relationship two months after therapy: misconduct (WAC 246-924-358, five years; RCW 18.130.180(23)); no duty to report a client's account (WAC 246-16-235) and no disclosure without her authorization; her choice to file, with help |
+| EPPP (VI, 15) | `eppp-video-session-client-out-of-state` | Deliver telepsychology appropriately | She logs in from another state: location and callback number first, privacy, the visited state's rules before more sessions, the emergency plan updated, the video drops at minute 20 |
+| EPPP (II, 13) | `eppp-driving-fear-came-back` | Apply classical conditioning ... | Return of fear after a break and on a new route (spontaneous recovery, renewal; not reinstatement), generalization and discrimination; varied exposure with her consent |
+| EPPP (IV, 12) | `eppp-memory-worries-after-his-wife-died` | Distinguish normal cognitive aging from mild neurocognitive disorder and dementia | Walter first, his consent for his daughter's view; warning signs beyond aging; a nightly anticholinergic sleep aid and bereavement as reversible contributors; workup before any diagnosis |
+| EPPP (I, 10) | `eppp-herbal-booster-on-sertraline` | Recognize the effects of substances ... and interaction risks | St. John's wort added to sertraline; serotonin-related signs read as medical, not anxiety; the prescriber the same day; no change to the prescription by the psychologist |
+| NCE (III, 29) 18+ | `nce-stress-and-insomnia-after-the-shop-closed` | Recognize depression, hopelessness and ruminative thinking and the risk they carry | Depression behind 'stress and insomnia', rumination, hopelessness; a direct suicide question once there is trust; elevated, not imminent; a safety plan and follow-up in three days |
+| NCMHCE (III) band 18+ | `ncmhce-stress-and-insomnia-after-the-shop-closed` | the same title | The same session |
+| NCE (V, 30) | `nce-text-in-session-brother-killed` | Provide crisis intervention and contain intense feelings | News of a sudden death at minute 15: stabilize first, no grief processing or agenda, an unsafe drive caught, her sister, the next hours written down |
+| NCE (IV, 9) | `nce-eight-weeks-flat-scores` | Review progress ... and revise the treatment plan using assessment results | Eight flat GAD-7 scores reviewed with him; maintainers named; options and his choice; measurable goals; keep measuring |
+| NCMHCE (V, 30) | `ncmhce-panic-cbt-session-five` | Apply theory-based interventions ... within a treatment plan | CBT for panic: the catastrophic belief tested without reassurance, clearance confirmed, ambivalence explored, interoceptive exposure by her choice, homework |
+| ASWBCLINICAL (III, 32) 18+ | `aswbc-walk-in-after-the-fire` | Provide crisis intervention and stabilize a client in acute distress | Roberts' stages at a walk-in: ground, ask about risk and the children, sort problems, link her to lodging with her, a 48-hour plan, follow-up |
+| ASWBMASTERS (III) band 18+ | `aswbm-walk-in-after-the-fire` | the same title | The same session, a licensed (not clinical) social worker in the brief |
+| ASWBCLINICAL (I, 36) 18+ | `aswbc-refusing-admission-for-his-dog` | Protect client self-determination ... and recognize when imminent risk limits it | A capable man refusing admission: capacity (Appelbaum) and suicidal intent checked, no hold (RCW 71.05.153), the barrier (his dog) solved with his consent, his choice |
+| ASWBMASTERS (I) band 18+ | `aswbm-refusing-admission-for-his-dog` | the same title | The same session |
+| ASWBMASTERS (II, 33) | `aswbm-fifteen-asks-without-her-parents` | Assess a client's capacity for decisions ... including emancipation and age of consent | A 15-year-old can consent to outpatient counseling herself (RCW 71.34.530); capacity for the decision, not her age; honest confidentiality limits; no call home |
+| ASWBCLINICAL (II) band | `aswbc-fifteen-asks-without-her-parents` | the same title | The same session, an LICSW in the brief |
+| ASWBCLINICAL (I, 36) | `aswbc-subpoena-in-a-custody-fight` | Explain confidentiality and privileged communication ... and how HIPAA protects health information | An attorney's subpoena is not a court order: tell her, release nothing without her authorization or an order (RCW 70.02.060; 45 CFR 164.512(e)), a written response, NASW 1.07(j) if ordered, the record left as written |
+| ASWBMASTERS (I) band | `aswbm-subpoena-in-a-custody-fight` | the same title | The same session |
+
+Each authored case has one unscored prediction card, one written-reasoning moment, three to five critical criteria plus the alliance, KPIs with expert values, an expert path, a debrief per ending, and five to eight golden paths (Good, Mediocre, Bad; every ending but `time_up`, every criterion met and missed), built by `npm run sim:golden -- steps <const>` from `scripts/sim-golden/*.steps.ts` (each base exports `paths()` for its band). Bands patch objective, secondary objectives and sources only; the four ASWB bands also patch `brief.situation` so the learner holds that course's license.
+
+**Checked by** `lib/sim/mh-depth.test.ts`: schema, engine 1.2, the session screen and profile; each main objective in the unit it covers, and secondary objectives the course's own; sources dated and saying how they were read, every case citing its profession's code and every legal case the statute or regulation itself; learner text free of permission-only marks, non-US spelling, review claims and doses, and, for 18+ cases, the REQ-329 pattern-level word list; goldens; a behavior test per case (expert to target, a named harm path to its harm ending, a rupture to a walk-out, and documenting the right answers without doing the work never reaches the target); the target count per course; the case list against the registry block.
+
+**Content rules.** Suicide, abuse and sexual misconduct stay at the pattern level: direct questions without asking for details, means asked about without naming any, no method anywhere a learner reads. No dose is named. No sim claims a review by anyone. Washington law is the setting where a state is needed.
+
+**Sources** (each sim's `sources` say how they were read; read 2026-11-17 unless noted): WAC 246-924-357 and -358, WAC 246-16-220 and -235 and the chapter's combined PDF, RCW 18.130.180, RCW 26.44.030 (PDF), RCW 70.02.060, 70.02.240, 71.34.530 and 71.05.153 (Legislature pages); DOH's complaint-process FAQ; the APA Ethics Code (apa.org) and APA's telepsychology checklist; a summary (not the text) of APA's 2024 telepsychology guidelines; the Senate bill report on HB 1286 (PSYPACT mechanism only); the NASW Code of Ethics (socialworkers.org; amendments voted 2026-11-18, recheck by 2026-12-15); the 2014 ACA Code of Ethics (a state board's copy); HHS HIPAA FAQ 706; Craske et al. 2014 (PMC); NIA's Forgetfulness AgePage (2020); the AFP summary of the 2023 AGS Beers Criteria; the ZOLOFT label (8/2023) and NCCIH's St. John's wort page; Beck et al. 1985 (abstract); Nolen-Hoeksema et al. 2008 (abstract); the PHQ-9 and GAD-7 scoring guides; NICE CG113 (GAD key priorities and panic information); the NHS Scotland Matrix CBT-for-panic page; NCTSN's PFA page; an OJP abstract for Roberts' seven stages; the AMA Journal of Ethics summary of Appelbaum 2007. Relayed, not re-read: the C-SSRS screen, Stanley-Brown and 988 (2026-11-10/11), the NBCC and ASWB outlines (2026-11-11, 2026-11-14), the jurisprudence course's chapter 246-924 and 70.02 notes and DOH's reference list (2026-11-14), the EPPP content areas (2026-11-10).
+
+**Findings** (recorded, not worked around):
+
+1. **FAIL-2520 (recurrence of FAIL-2002).** `EPPP_SESSION_DOCUMENTS`, `ASWB_SESSION_DOCUMENTS` and `WAJP_SESSION_DOCUMENTS` were selected by course, so any new sim in those courses broke the first-wave tests. They are now selected by slug.
+2. **Two main objectives the keyword screen misses.** WAPSYCHJP V "Report suspected child abuse ... on time and to the right agency" (the screen finds only 'time') and EPPP IV "Distinguish normal cognitive aging ..." (no word matches). Both meet the rule on substance; `SCREEN_OVERRIDES` in the test records why. For Nick to confirm.
+3. **A reserved enum value.** A note-field option named `none` collides with the generator's initial value and the validator rejects the document ("duplicate enum values"); the options are named otherwise.
+4. **`time_up`** stays unreached in every case, as in 22.5, 22.12 and 22.22.
+
+**Decisions for Nick.** (a) The two screen overrides above. (b) Rupture-repair and countertransference sessions would teach NCE/NCMHCE unit VI well, but no objective there passes the screen; left as no fit. (c) The telepsychology case deliberately does not say which states belong to the psychology compact; it teaches checking the visited state's rules.
+
 ### 22.42 EMS and fitness depth of the 2026-11-17 round (REQ-338)
 
 Nick, 2026-11-17 (19:51 PT): "Courses have no sims still like the MS Health

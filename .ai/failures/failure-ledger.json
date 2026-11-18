@@ -19277,6 +19277,32 @@
       "prevention_rules": [],
       "prevention_notes": "Write noProgress rationales as a full sentence saying why that class applies; the REQ-338 test asserts the length",
       "recurrence_of": ""
+    },
+    {
+      "id": "FAIL-2520",
+      "date": "2026-11-17",
+      "title": "EPPP, ASWB and WAJP session sets selected by course break when the course gets another sim",
+      "status": "fixed",
+      "severity": "medium",
+      "symptom": "EPPP_SESSION_DOCUMENTS, ASWB_SESSION_DOCUMENTS and WAJP_SESSION_DOCUMENTS filtered ALL_DOCUMENTS by course code, so registering any later sim in those courses (REQ-337) would fail session.test.ts (length 3), aswb-session.test.ts (keys equal the set) and the WAJP single-band assertion.",
+      "how_detected": "review before registering the first REQ-337 sim",
+      "root_cause": "Recurrence of FAIL-2002 and FAIL-2240: test fixtures defined as 'every sim of course X' instead of the first set by slug; the NBCC set was fixed in FAIL-2240 but these three were left course-filtered.",
+      "requirement": "REQ-337",
+      "affected": [
+        "backend/lib/sim/documents.ts"
+      ],
+      "fix_summary": "Each set now filters by an explicit slug list (EPPP_FIRST_SET, ASWB_FIRST_SET, the WAJP band slug).",
+      "fix_commits": [],
+      "regression_tests": [
+        "backend/lib/sim/session.test.ts",
+        "backend/lib/sim/aswb-session.test.ts",
+        "backend/lib/sim/objectives.test.ts",
+        "backend/lib/sim/mh-depth.test.ts"
+      ],
+      "no_test_reason": "",
+      "prevention_rules": [],
+      "prevention_notes": "Sim test sets are named by slug; mh-depth.test.ts lists its own documents and checks they match the registry block.",
+      "recurrence_of": "FAIL-2002"
     }
   ]
 }
