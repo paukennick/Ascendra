@@ -1,0 +1,1093 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "pba-deployed-solution-evaluation",
+  "title": "Three months after go-live: is the expense system delivering its business case?",
+  "screen": {
+    "type": "governance-board",
+    "level": 1,
+    "governance": {
+      "risks": [
+        {
+          "id": "rEval",
+          "label": "Value not measured",
+          "spokenLabel": "Value not measured",
+          "owner": "\"Business analyst\"",
+          "rating": "eval == \"caseMeasures\" ? \"low\" : eval == \"survey\" ? \"medium\" : eval == \"accept\" ? \"critical\" : p >= 1 ? \"high\" : \"medium\"",
+          "appetite": "eval == \"caseMeasures\" ? \"within\" : eval == \"survey\" ? \"within\" : eval == \"accept\" ? \"above\" : p >= 1 ? \"above\" : \"within\"",
+          "status": "{eval == \"caseMeasures\" ? \"Measured against the business case\" : eval == \"survey\" ? \"Satisfaction survey\" : eval == \"accept\" ? \"Declared a success\" : \"Open\"}"
+        },
+        {
+          "id": "rDelta",
+          "label": "Gap not understood",
+          "spokenLabel": "Gap not understood",
+          "owner": "\"Business analyst\"",
+          "rating": "delta == \"explain\" ? \"low\" : delta == \"blameUsers\" ? \"medium\" : delta == \"newSystem\" ? \"critical\" : p >= 2 ? \"high\" : \"medium\"",
+          "appetite": "delta == \"explain\" ? \"within\" : delta == \"blameUsers\" ? \"within\" : delta == \"newSystem\" ? \"above\" : p >= 2 ? \"above\" : \"within\"",
+          "status": "{delta == \"explain\" ? \"Gap traced to deferred scope\" : delta == \"blameUsers\" ? \"Users pushed\" : delta == \"newSystem\" ? \"Replacement proposed\" : \"Open\"}"
+        },
+        {
+          "id": "rSignoff",
+          "label": "Value gap lost at closure",
+          "spokenLabel": "Value gap lost at closure",
+          "owner": "\"Sponsor\"",
+          "rating": "signoff == \"both\" ? \"low\" : signoff == \"hold\" ? \"medium\" : signoff == \"silent\" ? \"critical\" : p >= 3 ? \"high\" : \"medium\"",
+          "appetite": "signoff == \"both\" ? \"within\" : signoff == \"hold\" ? \"within\" : signoff == \"silent\" ? \"above\" : p >= 3 ? \"above\" : \"within\"",
+          "status": "{signoff == \"both\" ? \"Accepted on evidence; gap recorded\" : signoff == \"hold\" ? \"Sign-off withheld\" : signoff == \"silent\" ? \"Gap dropped\" : \"Open\"}"
+        }
+      ],
+      "stakeholders": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sBiz",
+          "label": "Business stakeholders",
+          "spokenLabel": "the business stakeholders' support",
+          "value": "biz",
+          "max": 10,
+          "bands": [
+            4,
+            6,
+            8
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "docket": [
+        {
+          "id": "dEval",
+          "kind": "Evaluation",
+          "label": "Week 1: evaluation",
+          "status": "{eval == \"caseMeasures\" ? \"Measured against the business case\" : eval == \"survey\" ? \"Satisfaction survey\" : eval == \"accept\" ? \"Declared a success\" : \"Due\"}",
+          "when": "p >= 1",
+          "flag": "p >= 1 and eval == \"none\""
+        },
+        {
+          "id": "dDelta",
+          "kind": "Gap analysis",
+          "label": "Week 2: gap",
+          "status": "{delta == \"explain\" ? \"Gap traced to deferred scope\" : delta == \"blameUsers\" ? \"Users pushed\" : delta == \"newSystem\" ? \"Replacement proposed\" : \"Due\"}",
+          "when": "p >= 2",
+          "flag": "p >= 2 and delta == \"none\""
+        },
+        {
+          "id": "dSignoff",
+          "kind": "Sign-off",
+          "label": "Week 3: phase-one closure",
+          "status": "{signoff == \"both\" ? \"Accepted on evidence; gap recorded\" : signoff == \"hold\" ? \"Sign-off withheld\" : signoff == \"silent\" ? \"Gap dropped\" : \"Due\"}",
+          "when": "p >= 3",
+          "flag": "p >= 3 and signoff == \"none\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Week",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Evaluating the deployed solution against the original business case and value proposition",
+  "secondaryObjectives": [
+    "Analyzing and communicating identified gaps/deltas between solution scope, requirements, and what was actually built",
+    "Validating a solution's test results, reports, and evidence against requirements and acceptance criteria"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+      "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the business analyst for a fictional engineering firm's new expense system, live for three months. The business case promised claims processed in 2 days instead of 9, and 1,200 finance hours saved a year.",
+    "handover": [
+      "Finance reports 'it's working'. Some staff still submit paper claims.",
+      "The release deferred receipt scanning to a later phase."
+    ],
+    "howItWorks": [
+      "The board shows the risk register against the appetite, each stakeholder's support in words and the docket.",
+      "Move on a week at a time. A decision comes to you at each review; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "biz": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "eval": {
+      "type": "enum",
+      "values": [
+        "none",
+        "caseMeasures",
+        "survey",
+        "accept"
+      ],
+      "init": "none"
+    },
+    "evalAt": {
+      "type": "time",
+      "init": null
+    },
+    "delta": {
+      "type": "enum",
+      "values": [
+        "none",
+        "explain",
+        "blameUsers",
+        "newSystem"
+      ],
+      "init": "none"
+    },
+    "deltaAt": {
+      "type": "time",
+      "init": null
+    },
+    "signoff": {
+      "type": "enum",
+      "values": [
+        "none",
+        "both",
+        "hold",
+        "silent"
+      ],
+      "init": "none"
+    },
+    "signoffAt": {
+      "type": "time",
+      "init": null
+    },
+    "measureAt": {
+      "type": "time",
+      "init": null
+    },
+    "gapAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), biz)"
+    },
+    "missCount": {
+      "expr": "((eval == \"accept\") ? 1 : 0) + ((delta == \"newSystem\") ? 1 : 0) + ((signoff == \"silent\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(eval == \"none\" or (eval == \"accept\") ? 1 : 0) + (delta == \"none\" or (delta == \"newSystem\") ? 1 : 0) + (signoff == \"none\" or (signoff == \"silent\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Solution evaluation",
+      "clock": "turns",
+      "actions": [
+        "measure",
+        "gap"
+      ]
+    },
+    "close": {
+      "label": "Evaluation record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "measure": {
+      "label": "Measure processing time and finance hours since go-live",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(measureAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "measureAt",
+          "to": "t"
+        },
+        {
+          "log": "Measure processing time and finance hours since go-live.",
+          "kind": "act"
+        },
+        {
+          "finding": "Median processing is 4 days, not 2; finance hours saved are on track for 700 a year, not 1,200."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "gap": {
+      "label": "Compare the delivered scope with the requirements",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(gapAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "gapAt",
+          "to": "t"
+        },
+        {
+          "log": "Compare the delivered scope with the requirements.",
+          "kind": "act"
+        },
+        {
+          "finding": "Receipt scanning was deferred; staff with paper receipts keep using paper claims, which take 9 days."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Results measured against the business case, the gap traced to deferred receipt scanning, and phase one accepted with the gap recorded"
+                },
+                {
+                  "value": "summary",
+                  "label": "System evaluated"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next review",
+      "wait": {
+        "skipLabel": "Go to the next review"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "eval == \"accept\"",
+              "then": [
+                {
+                  "log": "Week 2: the CFO's budget assumes 1,200 hours saved and cuts two finance posts; claims back up to 11 days.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "delta == \"newSystem\"",
+              "then": [
+                {
+                  "log": "Week 3: a replacement project is scoped at 400 thousand dollars for a gap a 40 thousand dollar feature closes.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "signoff == \"silent\"",
+              "then": [
+                {
+                  "log": "Week 4: receipt scanning is never scheduled; the promised savings never arrive.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The evaluation closes.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_eval",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the evaluation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "evalPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_delta",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the cause.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "deltaPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_signoff",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: closing phase one.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "signoffPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "evalPrompt": {
+      "title": "Against what?",
+      "context": "Finance says it's working.",
+      "choices": [
+        {
+          "id": "caseMeasures",
+          "label": "Evaluate against the business case: 4 days against 2, 700 hours against 1,200, with the data",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"caseMeasures\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "1"
+            },
+            {
+              "log": "The evaluation shows the shortfall.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Evaluation compares results with the value the business case promised."
+        },
+        {
+          "id": "survey",
+          "label": "Run a satisfaction survey",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"survey\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-1"
+            },
+            {
+              "log": "A survey runs.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Satisfaction isn't the promised value."
+        },
+        {
+          "id": "accept",
+          "label": "Report success because finance is happy",
+          "effects": [
+            {
+              "set": "eval",
+              "to": "\"accept\""
+            },
+            {
+              "set": "evalAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-2"
+            },
+            {
+              "log": "Success is reported.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The shortfall is hidden."
+        }
+      ]
+    },
+    "deltaPrompt": {
+      "title": "Why the shortfall?",
+      "context": "Deferred receipt scanning keeps paper claims alive.",
+      "choices": [
+        {
+          "id": "explain",
+          "label": "Show that the deferred receipt scanning explains most of the gap, with the paper-claim volumes, and recommend scheduling it",
+          "effects": [
+            {
+              "set": "delta",
+              "to": "\"explain\""
+            },
+            {
+              "set": "deltaAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "1"
+            },
+            {
+              "log": "Stakeholders see the gap and its cause.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Gaps between delivered scope and need are analyzed and communicated with evidence."
+        },
+        {
+          "id": "blameUsers",
+          "label": "Ask managers to force staff off paper",
+          "effects": [
+            {
+              "set": "delta",
+              "to": "\"blameUsers\""
+            },
+            {
+              "set": "deltaAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-1"
+            },
+            {
+              "log": "Managers are asked.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Staff with paper receipts have no other way to claim."
+        },
+        {
+          "id": "newSystem",
+          "label": "Recommend replacing the system",
+          "effects": [
+            {
+              "set": "delta",
+              "to": "\"newSystem\""
+            },
+            {
+              "set": "deltaAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-2"
+            },
+            {
+              "log": "Replacement is proposed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The system works; a deferred feature is missing."
+        }
+      ]
+    },
+    "signoffPrompt": {
+      "title": "Closing on acceptance criteria",
+      "context": "The phase-one acceptance criteria were met in testing.",
+      "choices": [
+        {
+          "id": "both",
+          "label": "Confirm phase one met its acceptance criteria from the test evidence, and record the value gap as an open item for phase two",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"both\""
+            },
+            {
+              "set": "signoffAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "Phase one closes with the gap recorded.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Acceptance is judged against criteria; the business case is evaluated separately and both are recorded."
+        },
+        {
+          "id": "hold",
+          "label": "Refuse sign-off until 2 days is reached",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"hold\""
+            },
+            {
+              "set": "signoffAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "Sign-off is refused.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The phase met its criteria; the value gap needs the next phase."
+        },
+        {
+          "id": "silent",
+          "label": "Sign off and drop the gap",
+          "effects": [
+            {
+              "set": "signoff",
+              "to": "\"silent\""
+            },
+            {
+              "set": "signoffAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Signed off; gap dropped.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Nobody owns the missing value."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the evaluation record for the sponsor.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Value",
+          "criteria": "4 days against 2; 700 hours against 1,200; caused by deferred receipt scanning.",
+          "modelAnswer": "Processing is 4 days against 2 and savings 700 hours against 1,200, because deferred receipt scanning keeps paper claims alive."
+        },
+        {
+          "label": "Closure",
+          "criteria": "Phase one accepted on its criteria; the gap owned for phase two.",
+          "modelAnswer": "Phase one met its acceptance criteria; receipt scanning is recommended for phase two to close the gap."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "governance",
+    "thresholds": {
+      "aboveAppetite": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No risk above appetite at the close without a treatment."
+        }
+      },
+      "supportTarget": {
+        "value": 6,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Each key stakeholder at 6 of 10 or more at the close."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (eval == \"survey\") and (delta == \"blameUsers\") and (signoff == \"hold\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, Professional in Business Analysis (PMI-PBA) exam: Needs Assessment 18%, Planning 22%, Analysis 35%, Traceability and Monitoring 15%, Evaluation 10%",
+        "checkedAt": "2026-11-17",
+        "url": "https://masteryexamprep-com.pages.dev/exams/pmi/pba/syllabus",
+        "note": "Read 2026-11-17 through summarizing fetches of two study pages: examcert.app (2026-08-16), which says its weights 'come from the current PMI exam outline', and masteryexamprep's PMI-PBA syllabus, which cites the PMI-PBA Handbook (revised 24 May 2022) and quotes tasks such as 'Initiate and document requirement changes using agreed change control processes and tooling' and 'Identify acceptance responsibilities (who accepts, evidence required, sign-off process) and align stakeholders'. Neither page quotes PMI's task statements on the requirements baseline; PMI's outline PDF was not opened. The objective wording is the course seed's, to verify. Reused for REQ-336 from this course's pmipba-claims-portal-baseline-signoff (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "evalHarm": {
+      "label": "Cuts on an unrealized benefit",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and eval == \"accept\"",
+      "narrative": "Posts were cut for savings that didn't exist; claims backed up."
+    },
+    "deltaHarm": {
+      "label": "Money for the wrong fix",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and delta == \"newSystem\"",
+      "narrative": "A replacement was scoped for a gap a small deferred feature would close."
+    },
+    "signoffHarm": {
+      "label": "Value never delivered",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and signoff == \"silent\"",
+      "narrative": "With the gap dropped, receipt scanning was never scheduled."
+    },
+    "target": {
+      "label": "Value evaluated honestly",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (eval == \"caseMeasures\") and (delta == \"explain\") and (signoff == \"both\") and record == \"honest\" and openCount <= aboveAppetite and minSupport >= supportTarget",
+      "narrative": "The sponsor knows what the system delivers, why it falls short, and what closes the gap."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "evalHarm",
+    "deltaHarm",
+    "signoffHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "evalCrit",
+        "label": "Evaluated the solution against the business case's measures",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "eval == \"caseMeasures\"",
+            "score": "met",
+            "why": "Measured."
+          },
+          {
+            "when": "eval == \"survey\"",
+            "score": "partial",
+            "why": "Wrong measure."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unmeasured."
+          }
+        ]
+      },
+      {
+        "id": "deltaCrit",
+        "label": "Analyzed and communicated the gap between scope and need",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "delta == \"explain\"",
+            "score": "met",
+            "why": "Explained."
+          },
+          {
+            "when": "delta == \"blameUsers\"",
+            "score": "partial",
+            "why": "Wrong cause."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Overreaction."
+          }
+        ]
+      },
+      {
+        "id": "signoffCrit",
+        "label": "Validated evidence against the criteria and recorded the open value gap",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "signoff == \"both\"",
+            "score": "met",
+            "why": "Both recorded."
+          },
+          {
+            "when": "signoff == \"hold\"",
+            "score": "partial",
+            "why": "Conflated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Lost value."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(measureAt) and not isNull(gapAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(measureAt) or not isNull(gapAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Measure against the business case before reporting."
+      },
+      {
+        "at": "Week 1",
+        "text": "Measure the results against the business case."
+      },
+      {
+        "at": "Week 2",
+        "text": "Trace the gap to the deferred scope and recommend it."
+      },
+      {
+        "at": "Week 3",
+        "text": "Accept on test evidence and record the value gap for phase two."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "evalHarm": {
+        "headline": "Evaluate against the case",
+        "body": "Measure results against the promised value."
+      },
+      "deltaHarm": {
+        "headline": "Find the delta",
+        "body": "Trace gaps to scope before recommending."
+      },
+      "signoffHarm": {
+        "headline": "Record the gap",
+        "body": "Accept on criteria and keep the value gap owned."
+      },
+      "target": {
+        "headline": "Good: value evaluated honestly",
+        "body": "Measured against the case, gap explained, closure on evidence."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Solution evaluation compares the deployed solution's results with the business case's value proposition. Gaps between delivered scope and need are analyzed with evidence and communicated. Acceptance of a phase rests on its criteria and test evidence; value gaps are recorded and owned rather than dropped."
+  }
+}
