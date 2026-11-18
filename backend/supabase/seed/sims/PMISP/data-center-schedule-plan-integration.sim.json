@@ -1,0 +1,1163 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "data-center-schedule-plan-integration",
+  "title": "A schedule that ignored the rest of the plan: procurement lead times, the risk register and the cost baseline",
+  "screen": {
+    "type": "project-dashboard",
+    "level": 1,
+    "dashboard": {
+      "mode": "predictive",
+      "heading": "Data center migration schedule, week {p}",
+      "commitments": [
+        {
+          "id": "obj",
+          "label": "Objective",
+          "text": "Move 140 systems to the new data center by 31 May with no unplanned outage."
+        }
+      ],
+      "columns": [
+        {
+          "id": "open",
+          "label": "Open"
+        },
+        {
+          "id": "risk",
+          "label": "Off plan"
+        },
+        {
+          "id": "done",
+          "label": "Decided on plan"
+        }
+      ],
+      "items": [
+        {
+          "id": "wProc",
+          "label": "Switch procurement",
+          "column": "proc == \"link\" ? \"done\" : proc == \"note\" ? \"risk\" : proc == \"ignore\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "proc == \"ignore\""
+        },
+        {
+          "id": "wRisk",
+          "label": "April freeze",
+          "column": "risk == \"calendar\" ? \"done\" : risk == \"reserve\" ? \"risk\" : risk == \"override\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "risk == \"override\""
+        },
+        {
+          "id": "wBase",
+          "label": "Performance measurement baseline",
+          "column": "base == \"pmb\" ? \"done\" : base == \"schedOnly\" ? \"risk\" : base == \"noBase\" ? \"risk\" : \"open\"",
+          "when": "true",
+          "flag": "base == \"noBase\""
+        }
+      ],
+      "issues": [
+        {
+          "id": "iProc",
+          "label": "Procurement lead times not in the schedule",
+          "when": "p >= 1",
+          "at": "604800",
+          "status": "{proc == \"link\" ? \"Procurement linked; moves re-sequenced\" : proc == \"note\" ? \"Noted, not linked\" : proc == \"ignore\" ? \"Impossible dates kept\" : \"Due\"}",
+          "open": "proc == \"none\""
+        },
+        {
+          "id": "iRisk",
+          "label": "Moves during the change freeze",
+          "when": "p >= 2",
+          "at": "1209600",
+          "status": "{risk == \"calendar\" ? \"Freeze calendar and reserve applied\" : risk == \"reserve\" ? \"End contingency only\" : risk == \"override\" ? \"Freeze waiver requested\" : \"Due\"}",
+          "open": "risk == \"none\""
+        },
+        {
+          "id": "iBase",
+          "label": "No controlled baseline",
+          "when": "p >= 3",
+          "at": "1814400",
+          "status": "{base == \"pmb\" ? \"PMB baselined; changes controlled\" : base == \"schedOnly\" ? \"Schedule-only baseline\" : base == \"noBase\" ? \"No baseline\" : \"Due\"}",
+          "open": "base == \"none\""
+        }
+      ],
+      "people": [
+        {
+          "id": "sSpon",
+          "label": "Sponsor",
+          "spokenLabel": "the sponsor's support",
+          "value": "spon",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sTeam",
+          "label": "Project team",
+          "spokenLabel": "the team's support",
+          "value": "team",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        },
+        {
+          "id": "sCust",
+          "label": "Customer",
+          "spokenLabel": "the customer's support",
+          "value": "cust",
+          "max": 100,
+          "bands": [
+            40,
+            60,
+            80
+          ],
+          "words": [
+            "opposed",
+            "unconvinced",
+            "supportive",
+            "championing"
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "mProc",
+          "label": "Switch order",
+          "at": "604800",
+          "status": "{proc == \"link\" ? \"Procurement linked; moves re-sequenced\" : proc == \"note\" ? \"Noted, not linked\" : proc == \"ignore\" ? \"Impossible dates kept\" : \"Due\"}"
+        },
+        {
+          "id": "mRisk",
+          "label": "Financial close",
+          "at": "1209600",
+          "status": "{risk == \"calendar\" ? \"Freeze calendar and reserve applied\" : risk == \"reserve\" ? \"End contingency only\" : risk == \"override\" ? \"Freeze waiver requested\" : \"Due\"}"
+        },
+        {
+          "id": "mBase",
+          "label": "Baseline",
+          "at": "1814400",
+          "status": "{base == \"pmb\" ? \"PMB baselined; changes controlled\" : base == \"schedOnly\" ? \"Schedule-only baseline\" : base == \"noBase\" ? \"No baseline\" : \"Due\"}"
+        }
+      ],
+      "meters": [
+        {
+          "id": "mSpi",
+          "label": "SPI",
+          "value": "{spi}"
+        },
+        {
+          "id": "mCpi",
+          "label": "CPI",
+          "value": "{cpi}"
+        }
+      ]
+    }
+  },
+  "objective": "Integrating scheduling-related components into the broader project management plan (scope, cost, quality, risk, procurement)",
+  "secondaryObjectives": [
+    "Developing a schedule approach based on a project's unique characteristics, EEFs, and OPAs",
+    "Establishing schedule configuration management policies (accessibility, storage, baseline/change control)"
+  ],
+  "sources": [
+    {
+      "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+      "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the project, the figures and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You join as scheduler on a data center migration at Halcyon Logistics, a fictional company. The schedule was built from the move list alone. Procurement, risk and cost plans live in other documents.",
+    "handover": [
+      "The schedule starts moves in week 6; the procurement plan shows network switches with a 14-week lead time.",
+      "The risk register lists a freeze on changes during the April financial close."
+    ],
+    "howItWorks": [
+      "The dashboard shows the commitments, the work items, the risks and issues, the people's support and the milestones.",
+      "Move on a week at a time. A decision comes to you at each status meeting; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-08T09:00",
+    "tick": "1d",
+    "maxDuration": "84d",
+    "calendar": "week"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "spon": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "team": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "cust": {
+      "type": "number",
+      "init": 70,
+      "min": 0,
+      "max": 100
+    },
+    "proc": {
+      "type": "enum",
+      "values": [
+        "none",
+        "link",
+        "note",
+        "ignore"
+      ],
+      "init": "none"
+    },
+    "procAt": {
+      "type": "time",
+      "init": null
+    },
+    "risk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "calendar",
+        "reserve",
+        "override"
+      ],
+      "init": "none"
+    },
+    "riskAt": {
+      "type": "time",
+      "init": null
+    },
+    "base": {
+      "type": "enum",
+      "values": [
+        "none",
+        "pmb",
+        "schedOnly",
+        "noBase"
+      ],
+      "init": "none"
+    },
+    "baseAt": {
+      "type": "time",
+      "init": null
+    },
+    "procplanAt": {
+      "type": "time",
+      "init": null
+    },
+    "risksAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(spon, team), cust)"
+    },
+    "missCount": {
+      "expr": "((proc == \"ignore\") ? 1 : 0) + ((risk == \"override\") ? 1 : 0) + ((base == \"noBase\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(proc == \"none\" or (proc == \"ignore\") ? 1 : 0) + (risk == \"none\" or (risk == \"override\") ? 1 : 0) + (base == \"none\" or (base == \"noBase\") ? 1 : 0)"
+    },
+    "spi": {
+      "expr": "1 - ((proc == \"note\") ? 0.04 : (proc == \"ignore\") ? 0.09 : 0) - ((risk == \"reserve\") ? 0.04 : (risk == \"override\") ? 0.09 : 0) - ((base == \"schedOnly\") ? 0.04 : (base == \"noBase\") ? 0.09 : 0)"
+    },
+    "cpi": {
+      "expr": "1 - ((proc == \"note\") ? 0.03 : (proc == \"ignore\") ? 0.08 : 0) - ((risk == \"reserve\") ? 0.03 : (risk == \"override\") ? 0.08 : 0) - ((base == \"schedOnly\") ? 0.03 : (base == \"noBase\") ? 0.08 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Schedule integration",
+      "clock": "turns",
+      "actions": [
+        "procplan",
+        "risks"
+      ]
+    },
+    "close": {
+      "label": "Schedule management note",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "procplan": {
+      "label": "Read the procurement plan's lead times",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(procplanAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "procplanAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the procurement plan.",
+          "kind": "act"
+        },
+        {
+          "finding": "Switches: 14-week lead time from order; the order isn't placed yet. Racks: 6 weeks."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "risks": {
+      "label": "Read the risk register and the calendar",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(risksAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "risksAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the risk register.",
+          "kind": "act"
+        },
+        {
+          "finding": "Change freeze 1 to 20 April for the financial close; two systems need vendor engineers available only on weekends."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1d"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the schedule management note",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the note says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Procurement lead times as predecessors, the freeze and weekend constraints from the risk register, and a PMB under change control"
+                },
+                {
+                  "value": "summary",
+                  "label": "Schedule baselined"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next status meeting",
+      "wait": {
+        "skipLabel": "Go to the next status meeting"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "proc == \"ignore\"",
+              "then": [
+                {
+                  "log": "Week 2: the first move weekend arrives with no switches; 40 people stand by and the move is cancelled.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "risk == \"override\"",
+              "then": [
+                {
+                  "log": "Week 3: finance refuses, then a move inside the freeze is forced through and breaks the close reporting job.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "base == \"noBase\"",
+              "then": [
+                {
+                  "log": "Week 4: three teams edit the shared schedule; dates shift without record and nobody can say whether the project is late.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "7d"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The integrated schedule is baselined.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "7d"
+        }
+      ]
+    },
+    {
+      "id": "t_proc",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 1: the move dates.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "procPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_risk",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 2: the April freeze.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "riskPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_base",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Week 3: baselining.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "basePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "procPrompt": {
+      "title": "Moves before the switches arrive",
+      "context": "The schedule moves systems in week 6; switches arrive week 15 at the earliest.",
+      "choices": [
+        {
+          "id": "link",
+          "label": "Add procurement activities and lead times as predecessors (order switches now, 14 weeks), and re-sequence the moves",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"link\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "10"
+            },
+            {
+              "log": "Moves now follow the switches' delivery.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A schedule integrates procurement: deliveries are predecessors of the work that needs them."
+        },
+        {
+          "id": "note",
+          "label": "Add a note that switches may be late",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"note\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-15"
+            },
+            {
+              "log": "A note is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The logic still shows impossible dates."
+        },
+        {
+          "id": "ignore",
+          "label": "Keep the dates: procurement will expedite",
+          "effects": [
+            {
+              "set": "proc",
+              "to": "\"ignore\""
+            },
+            {
+              "set": "procAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-25"
+            },
+            {
+              "log": "The dates stay.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Expediting can't beat a 14-week manufacturer lead time."
+        }
+      ]
+    },
+    "riskPrompt": {
+      "title": "Moves planned during the freeze",
+      "context": "Four moves fall inside the financial-close freeze.",
+      "choices": [
+        {
+          "id": "calendar",
+          "label": "Apply the freeze as a calendar constraint, schedule vendor-dependent moves on weekends, and add schedule reserve for the risks in the register",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"calendar\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "10"
+            },
+            {
+              "log": "The schedule respects the freeze and the register.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Risk responses and constraints belong in the schedule model."
+        },
+        {
+          "id": "reserve",
+          "label": "Add two weeks of contingency at the end",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"reserve\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-15"
+            },
+            {
+              "log": "Contingency is added.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It covers some slip but four moves still clash with the freeze."
+        },
+        {
+          "id": "override",
+          "label": "Ask finance to waive the freeze",
+          "effects": [
+            {
+              "set": "risk",
+              "to": "\"override\""
+            },
+            {
+              "set": "riskAt",
+              "to": "t"
+            },
+            {
+              "add": "cust",
+              "by": "-25"
+            },
+            {
+              "log": "Finance is asked to waive it.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The freeze protects the financial close; moving systems during it risks the close."
+        }
+      ]
+    },
+    "basePrompt": {
+      "title": "Baselining the integrated schedule",
+      "context": "Cost and schedule now agree.",
+      "choices": [
+        {
+          "id": "pmb",
+          "label": "Baseline schedule and cost together as the performance measurement baseline, store it under version control, and route changes through change control",
+          "effects": [
+            {
+              "set": "base",
+              "to": "\"pmb\""
+            },
+            {
+              "set": "baseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "10"
+            },
+            {
+              "log": "The PMB is set and controlled.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Schedule configuration management keeps a controlled baseline aligned with cost."
+        },
+        {
+          "id": "schedOnly",
+          "label": "Baseline the schedule only",
+          "effects": [
+            {
+              "set": "base",
+              "to": "\"schedOnly\""
+            },
+            {
+              "set": "baseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-15"
+            },
+            {
+              "log": "The schedule is baselined.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Earned value can't be measured against a cost plan that doesn't match."
+        },
+        {
+          "id": "noBase",
+          "label": "Don't baseline: the schedule will keep changing",
+          "effects": [
+            {
+              "set": "base",
+              "to": "\"noBase\""
+            },
+            {
+              "set": "baseAt",
+              "to": "t"
+            },
+            {
+              "add": "spon",
+              "by": "-25"
+            },
+            {
+              "log": "No baseline.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without a baseline, there is nothing to measure variance against or control changes to."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the schedule management note: how the schedule now reflects procurement, risk and cost, and how it is controlled.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Integration",
+          "criteria": "Switch lead times as predecessors; freeze and weekend constraints; reserve from the register.",
+          "modelAnswer": "Switch orders and their 14-week lead time now drive the moves; the April freeze and weekend vendor windows are calendar constraints; reserve covers the registered risks."
+        },
+        {
+          "label": "Control",
+          "criteria": "Schedule and cost baselined together as the PMB, versioned, under change control.",
+          "modelAnswer": "Schedule and cost form one performance measurement baseline, versioned and changed only through change control."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "project",
+    "thresholds": {
+      "spiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "SPI at the close."
+        }
+      },
+      "cpiTarget": {
+        "value": 0.95,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "CPI at the close."
+        }
+      },
+      "stakeholderTarget": {
+        "value": 60,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Every stakeholder at 60 of 100 or more."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (proc == \"note\") and (risk == \"reserve\") and (base == \"schedOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "PMI, PMI Scheduling Professional (PMI-SP) Examination Content Outline (2012, revision mark 4/20): Schedule Strategy 14%, Planning and Development 31%, Monitoring and Controlling 35%, Closeout 6%, Stakeholder Communications 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://mail.mosaicprojects.com.au/PDF-Gen/PMI-SP_exam_outline.pdf",
+        "note": "Read 2026-11-17 through a summarizing fetch of a copy of PMI's PDF hosted by a consultancy. Relevant text: Monitoring and Controlling Task 3 'Perform schedule analysis and audit ... in order to identify and report project schedule, status, changes, impacts or issues'; Task 5 'Incorporate approved risk mitigation activities into the schedule, by utilizing defined change control processes'; Task 6 'Update the schedule model and document schedule baseline changes, received through formal change-control processes'. The objective wording here is the course seed's. Reused for REQ-336 from this course's clinic-fitout-variance-pmisp (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "procHarm": {
+      "label": "A cancelled move weekend",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and proc == \"ignore\"",
+      "narrative": "The move weekend arrived without switches; it was cancelled with 40 people standing by."
+    },
+    "riskHarm": {
+      "label": "The financial close disrupted",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and risk == \"override\"",
+      "narrative": "A move forced into the freeze broke the close reporting job."
+    },
+    "baseHarm": {
+      "label": "An uncontrolled schedule",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and base == \"noBase\"",
+      "narrative": "Without a baseline, edits shifted dates silently; nobody could tell if the project was late."
+    },
+    "target": {
+      "label": "One integrated plan",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (proc == \"link\") and (risk == \"calendar\") and (base == \"pmb\") and record == \"honest\" and spi >= spiTarget and cpi >= cpiTarget and minSupport >= stakeholderTarget",
+      "narrative": "The schedule agrees with procurement, risk and cost, and changes go through control."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "procHarm",
+    "riskHarm",
+    "baseHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "procCrit",
+        "label": "Linked procurement lead times into the schedule logic",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "proc == \"link\"",
+            "score": "met",
+            "why": "Integrated."
+          },
+          {
+            "when": "proc == \"note\"",
+            "score": "partial",
+            "why": "Not linked."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Impossible plan."
+          }
+        ]
+      },
+      {
+        "id": "riskCrit",
+        "label": "Reflected risks and constraints from the risk plan in the schedule",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "risk == \"calendar\"",
+            "score": "met",
+            "why": "Integrated."
+          },
+          {
+            "when": "risk == \"reserve\"",
+            "score": "partial",
+            "why": "Partial."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Undermined a control."
+          }
+        ]
+      },
+      {
+        "id": "baseCrit",
+        "label": "Baselined with configuration and change control aligned to the cost baseline",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "base == \"pmb\"",
+            "score": "met",
+            "why": "Controlled."
+          },
+          {
+            "when": "base == \"schedOnly\"",
+            "score": "partial",
+            "why": "Not integrated."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No baseline."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(procplanAt) and not isNull(risksAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(procplanAt) or not isNull(risksAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 100)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "70 or more"
+      },
+      {
+        "id": "spiK",
+        "label": "SPI at the close",
+        "value": "spi",
+        "format": "number",
+        "expert": "1.00"
+      },
+      {
+        "id": "cpiK",
+        "label": "CPI at the close",
+        "value": "cpi",
+        "format": "number",
+        "expert": "1.00"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the procurement plan and the risk register before changing the schedule."
+      },
+      {
+        "at": "Week 1",
+        "text": "Add procurement lead times as predecessors and re-sequence."
+      },
+      {
+        "at": "Week 2",
+        "text": "Apply the freeze and weekend constraints and add reserve from the register."
+      },
+      {
+        "at": "Week 3",
+        "text": "Baseline schedule and cost together under change control."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "procHarm": {
+        "headline": "Integrate procurement",
+        "body": "Lead times are schedule logic."
+      },
+      "riskHarm": {
+        "headline": "Respect the constraints",
+        "body": "The schedule reflects the risk register's constraints."
+      },
+      "baseHarm": {
+        "headline": "Baseline and control",
+        "body": "Baseline schedule and cost together and control changes."
+      },
+      "target": {
+        "headline": "Good: one integrated plan",
+        "body": "Procurement and risk built into the logic, and an integrated, controlled baseline."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "A schedule is one component of the project management plan: procurement lead times are predecessors, risk responses and constraints (freezes, resource windows) are calendars and reserves, and the schedule baseline is set with the cost baseline as the performance measurement baseline. Configuration management keeps the baseline versioned and changed only through change control."
+  }
+}
