@@ -1,0 +1,427 @@
+{
+  "slug": "treadmill-ordered-freezing-in-doorways",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Expert at study pace: freezing, cue trial, calls the neurologist, falls and life, cues and cycling, activity plan, documents",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "pace",
+          "pace": 3,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "freeze",
+          "seq": 2,
+          "tick": 1
+        },
+        {
+          "type": "teach",
+          "prompt": "cycleQ",
+          "choice": "cycle",
+          "seq": 3,
+          "tick": 1
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 4,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "cuetry",
+          "seq": 5,
+          "tick": 13
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "team"
+          },
+          "seq": 6,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "team"
+          },
+          "seq": 7,
+          "tick": 25
+        },
+        {
+          "type": "teach",
+          "prompt": "bcQ",
+          "choice": "bc",
+          "seq": 8,
+          "tick": 25
+        },
+        {
+          "type": "act",
+          "action": "falls",
+          "seq": 9,
+          "tick": 25
+        },
+        {
+          "type": "chapter",
+          "chapter": "escalated",
+          "choice": "continue",
+          "seq": 10,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "life",
+          "seq": 11,
+          "tick": 37
+        },
+        {
+          "type": "act",
+          "action": "cue",
+          "seq": 12,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "goals",
+          "seq": 13,
+          "tick": 49
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 14,
+          "tick": 49
+        }
+      ],
+      "expect": {
+        "ending": "safe",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "reportC": "met",
+          "freezeC": "met",
+          "safeC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 60,
+          "toKey": 65
+        },
+        "stateHash": "b58019f21908ee0b"
+      },
+      "reasoning": {
+        "why": "met"
+      }
+    },
+    {
+      "id": "lateCall",
+      "title": "Good session, but calls the neurologist 8 minutes later",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "freeze",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cycleQ",
+          "choice": "cycle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "cuetry",
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "life",
+          "seq": 5,
+          "tick": 24
+        },
+        {
+          "type": "act",
+          "action": "cue",
+          "seq": 6,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "goals",
+          "seq": 7,
+          "tick": 36
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "team"
+          },
+          "seq": 8,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "team"
+          },
+          "seq": 9,
+          "tick": 130
+        },
+        {
+          "type": "teach",
+          "prompt": "bcQ",
+          "choice": "bc",
+          "seq": 10,
+          "tick": 130
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 11,
+          "tick": 130
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 86,
+        "criteria": {
+          "reportC": "partial",
+          "freezeC": "met",
+          "safeC": "met",
+          "lookC": "met",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": 590,
+          "toKey": 60
+        },
+        "stateHash": "87761279ffe6071d"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "noCue",
+      "title": "Cycles and calls, but never assesses freezing or tries a cue",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "life",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cycleQ",
+          "choice": "cycle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "cue",
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "team"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "refer",
+          "params": {
+            "how": "team"
+          },
+          "seq": 5,
+          "tick": 12
+        },
+        {
+          "type": "teach",
+          "prompt": "bcQ",
+          "choice": "bc",
+          "seq": 6,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tell",
+          "seq": 7,
+          "tick": 12
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "safeGaps",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 71,
+        "criteria": {
+          "reportC": "met",
+          "freezeC": "missed",
+          "safeC": "met",
+          "lookC": "partial",
+          "dxC": "met",
+          "told": "met"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "ac259050f5b18274"
+      },
+      "reasoning": {
+        "why": "partial"
+      }
+    },
+    {
+      "id": "treadmill",
+      "title": "Failure: follows the referral onto the treadmill",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "tread"
+          },
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "tread",
+          "seq": 2,
+          "tick": 0
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "freezeC": "missed",
+          "safeC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": -1
+        },
+        "stateHash": "2050a63d886e610b"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    },
+    {
+      "id": "gaitOnly",
+      "title": "Failure: sees the freezing, treats gait only, treadmill anyway",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "freeze",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "teach",
+          "prompt": "cycleQ",
+          "choice": "cycle",
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "reason",
+          "moment": "why",
+          "answered": true,
+          "seq": 3,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "diagnose",
+          "params": {
+            "dx": "pt"
+          },
+          "seq": 4,
+          "tick": 12
+        },
+        {
+          "type": "act",
+          "action": "tread",
+          "seq": 5,
+          "tick": 12
+        }
+      ],
+      "expect": {
+        "ending": "fall",
+        "class": "harm",
+        "rating": "bad",
+        "score": 0,
+        "criteria": {
+          "reportC": "missed",
+          "freezeC": "missed",
+          "safeC": "missed",
+          "lookC": "missed",
+          "dxC": "missed",
+          "told": "missed"
+        },
+        "kpis": {
+          "toReport": -1,
+          "toKey": 60
+        },
+        "stateHash": "9118b7ab90b9ab12"
+      },
+      "reasoning": {
+        "why": "missed"
+      }
+    }
+  ]
+}
