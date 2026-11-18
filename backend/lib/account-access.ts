@@ -21,7 +21,14 @@ import {
 export interface AccountAccess {
   level: AccessLevel;
   // null for an owner (decided by OWNER_EMAILS, not a grant)
-  grant: { id: string; grantedAt: string; expiresAt: string | null; grantedByName: string | null } | null;
+  grant: { id: string; grantedAt: string; expiresAt: string | null; grantedByName: string | null; reviewer: ReviewerMark | null } | null;
+}
+
+// REQ-331: the reviewer mark on a live grant (migration 088). A reviewer has
+// what the grant gives, plus the reviewer feedback form.
+export interface ReviewerMark {
+  since: string;
+  areas: string[];
 }
 
 type Env = NodeJS.ProcessEnv;
@@ -34,6 +41,8 @@ interface AccessRow {
   granted_at: Date | null;
   expires_at: Date | null;
   granted_by_name: string | null;
+  reviewer_at: Date | null;
+  reviewer_areas: string[] | null;
 }
 
 // One indexed read: the account, and a live grant bound to it or waiting
@@ -42,7 +51,7 @@ interface AccessRow {
 export async function accessFor(userId: string, env: Env = process.env): Promise<AccountAccess | null> {
   const row = await queryOne<AccessRow>(
     `select u.email, (u.email_verified_at is not null) as verified,
-            g.id as grant_id, g.user_id as grant_user_id, g.granted_at, g.expires_at,
+            g.id as grant_id, g.user_id as grant_user_id, g.granted_at, g.expires_at, g.reviewer_at, g.reviewer_areas,
             coalesce(nullif(trim(gb.display_name), ''), 'the account owner') as granted_by_name
        from app_users u
        left join lateral (
@@ -72,6 +81,7 @@ export async function accessFor(userId: string, env: Env = process.env): Promise
           grantedAt: new Date(row.granted_at!).toISOString(),
           expiresAt: row.expires_at ? new Date(row.expires_at).toISOString() : null,
           grantedByName: row.granted_by_name,
+          reviewer: row.reviewer_at ? { since: new Date(row.reviewer_at).toISOString(), areas: row.reviewer_areas ?? [] } : null,
         }
       : null,
   };
@@ -97,6 +107,12 @@ export async function isUnrestricted(userId: string, env: Env = process.env): Pr
   return (await accessFor(userId, env)) !== null;
 }
 
+// REQ-331: a live grant with a reviewer mark. Owners are not grants, so this
+// is false for them (lib/reviewers.ts lets owners use the form as well).
+export async function isReviewer(userId: string, env: Env = process.env): Promise<boolean> {
+  return (await accessFor(userId, env))?.grant?.reviewer != null;
+}
+
 export async function isOwner(userId: string, env: Env = process.env): Promise<boolean> {
   return (await accessFor(userId, env))?.level === "owner";
 }
@@ -116,6 +132,8 @@ export async function accessSummary(userId: string, env: Env = process.env) {
     level: a.level,
     grantedBy: a.grant?.grantedByName ?? null,
     expiresAt: a.grant?.expiresAt ?? null,
+    // REQ-331: { since, areas } for a reviewer, else null (the app's badge).
+    reviewer: a.grant?.reviewer ?? null,
   };
 }
 
@@ -148,13 +166,16 @@ export interface GrantListItem {
   expiresAt: string | null;
   note: string | null;
   claimedAt: string | null;
+  // REQ-331: the reviewer mark, or null
+  reviewer: { since: string; areas: string[]; note: string | null; addedAccess: boolean } | null;
 }
 
-const LIST_COLS = `a.id, a.email, a.granted_at, a.expires_at, a.note, a.claimed_at, a.user_id,
+export const LIST_COLS = `a.id, a.email, a.granted_at, a.expires_at, a.note, a.claimed_at, a.user_id,
+  a.reviewer_at, a.reviewer_areas, a.reviewer_note, a.reviewer_added_access,
   case when a.granted_by is null then 'command line' else coalesce(nullif(trim(gb.display_name), ''), gb.email) end as granted_by,
   (a.user_id is not null or exists(select 1 from app_users v where lower(v.email) = a.email and v.email_verified_at is not null)) as has_account`;
 
-interface ListRow {
+export interface ListRow {
   id: string;
   email: string;
   granted_at: Date;
@@ -164,9 +185,13 @@ interface ListRow {
   user_id: string | null;
   granted_by: string | null;
   has_account: boolean;
+  reviewer_at: Date | null;
+  reviewer_areas: string[] | null;
+  reviewer_note: string | null;
+  reviewer_added_access: boolean;
 }
 
-function toItem(r: ListRow, now = new Date()): GrantListItem {
+export function toItem(r: ListRow, now = new Date()): GrantListItem {
   const ended = r.expires_at !== null && new Date(r.expires_at).getTime() <= now.getTime();
   return {
     id: r.id,
@@ -177,12 +202,15 @@ function toItem(r: ListRow, now = new Date()): GrantListItem {
     expiresAt: r.expires_at ? new Date(r.expires_at).toISOString() : null,
     note: r.note,
     claimedAt: r.claimed_at ? new Date(r.claimed_at).toISOString() : null,
+    reviewer: r.reviewer_at
+      ? { since: new Date(r.reviewer_at).toISOString(), areas: r.reviewer_areas ?? [], note: r.reviewer_note, addedAccess: r.reviewer_added_access }
+      : null,
   };
 }
 
 export interface AccessHistoryItem {
   at: string;
-  action: "grant" | "change" | "revoke" | "claim" | "ceiling_reached";
+  action: "grant" | "change" | "revoke" | "claim" | "ceiling_reached" | "reviewer_on" | "reviewer_off";
   email: string;
   by: string | null;
   detail: Record<string, unknown>;
@@ -252,7 +280,9 @@ export async function grantAccess(
     if (live) {
       const userId = live.user_id ?? account?.id ?? null;
       await tx.query(
-        `update account_access set expires_at = $2, note = $3, granted_by = coalesce($4, granted_by), user_id = $5,
+        // REQ-331: an explicit grant on a reviewer's address means the owner
+      // wants the access itself, so unmarking the reviewer later keeps it.
+      `update account_access set expires_at = $2, note = $3, granted_by = coalesce($4, granted_by), user_id = $5, reviewer_added_access = false,
                 claimed_at = case when user_id is null and $5::uuid is not null then now() else claimed_at end, updated_at = now()
           where id = $1`,
         [live.id, input.until, input.note, actorId, userId]

@@ -17,6 +17,7 @@ import { WhatsNewDialog, useWhatsNewOnFocus } from "@/components/WhatsNew";
 import { GridRow, useGridColumns, usePersistentSidebarWidth } from "@/components/WebColumn";
 import { chunkRows } from "@/lib/webColumn";
 import { linkProps } from "@/lib/webLink";
+import { canGiveFeedback, GIVE_FEEDBACK_LABEL } from "@/lib/reviewers";
 
 function byLastStudied(a: Track, b: Track): number {
   const aTime = a.last_studied_at ? new Date(a.last_studied_at).getTime() : 0;
@@ -243,7 +244,10 @@ export default function Home() {
 
 function Footer() {
   const router = useRouter();
+  const { user } = useAuth();
   const links: [string, string][] = [
+    // REQ-331: reviewers (and owners) reach the reviewer feedback form here too.
+    ...(canGiveFeedback(user) ? ([[GIVE_FEEDBACK_LABEL, "/feedback"]] as [string, string][]) : []),
     ["About", "/about"],
     ["FAQ", "/faq"],
     ["Disclaimer", "/disclaimer"],

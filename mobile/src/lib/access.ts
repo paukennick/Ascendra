@@ -20,11 +20,13 @@ export interface AccessGrant {
   expiresAt: string | null;
   note: string | null;
   claimedAt: string | null;
+  // REQ-331: the reviewer mark, or null (absent from an older server)
+  reviewer?: { since: string; areas: string[]; note: string | null; addedAccess: boolean } | null;
 }
 
 export interface AccessHistoryItem {
   at: string;
-  action: "grant" | "change" | "revoke" | "claim" | "ceiling_reached";
+  action: "grant" | "change" | "revoke" | "claim" | "ceiling_reached" | "reviewer_on" | "reviewer_off";
   email: string;
   by: string | null;
   detail: Record<string, unknown>;
@@ -87,11 +89,15 @@ const ACTION_WORD: Record<AccessHistoryItem["action"], string> = {
   revoke: "removed from",
   claim: "applied to the new account of",
   ceiling_reached: "AI safety limit reached by",
+  // REQ-331
+  reviewer_on: "Reviewer mark given to",
+  reviewer_off: "Reviewer mark removed from",
 };
 
 export function historyLine(h: AccessHistoryItem, locale?: string): string {
   const by = h.by ? ` by ${h.by}` : "";
-  return `${shortDate(h.at, locale)}: ${h.action === "ceiling_reached" ? ACTION_WORD[h.action] : `Access ${ACTION_WORD[h.action]}`} ${h.email}${by}`;
+  const standalone = h.action === "ceiling_reached" || h.action === "reviewer_on" || h.action === "reviewer_off";
+  return `${shortDate(h.at, locale)}: ${standalone ? ACTION_WORD[h.action] : `Access ${ACTION_WORD[h.action]}`} ${h.email}${by}`;
 }
 
 // The grant form, checked before sending (the server checks again).

@@ -40,7 +40,7 @@ export default function DeleteAccountPage() {
         <li>Your profile: email address, display name, photo and password.</li>
         <li>Sign-in data: sessions, two-factor settings and backup codes, linked Google sign-in, and the sign-in log.</li>
         <li>Study data: courses you added, favorites, your study profile, answers (lessons, reviews, practice exams, labs and sims), mastery scores, review schedule, study sessions and any exam results you reported.</li>
-        <li>AI coach conversations, support requests and lesson reports.</li>
+        <li>AI coach conversations, support requests and lesson reports, and any reviewer feedback you sent and your reviewer status.</li>
         <li>The note you wrote on any question you reported.</li>
         <li>Records of which terms, policies and study notice you accepted (and any older course disclaimers), that you confirmed your age, the date of birth you gave for adults-only content, and each 18+ acknowledgment you made for a mental health course or for a course's adults-only simulations.</li>
       </ul>

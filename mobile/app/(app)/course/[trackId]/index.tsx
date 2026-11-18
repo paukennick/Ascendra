@@ -46,6 +46,7 @@ import { GoalStartSheet } from "@/components/LearnerLevel";
 import { asksAtStart, goalAnswerBody, parseLevelState, type CourseGoal, type Level } from "@/lib/learnerLevel";
 import { friendlyError } from "@/lib/errorMessage";
 import { usePersistentSidebarWidth, useWideWeb } from "@/components/WebColumn";
+import { GiveFeedbackButton } from "@/components/GiveFeedback";
 
 const QUICK_ACTIONS: { icon: React.ComponentProps<typeof Feather>["name"]; label: string; path: string }[] = [
   { icon: "message-circle", label: "Ask the coach", path: "chat" },
@@ -510,6 +511,9 @@ export default function CourseDashboard() {
             fullWidth={false}
             onPress={() => router.push({ pathname: `/course/${trackId}/outcome`, params: { trackTitle: track.title } })}
           />
+
+          {/* REQ-331: reviewers only (nothing for anyone else). */}
+          <GiveFeedbackButton trackId={trackId} />
 
           {/* REQ-119 (M6): names this exam's owner, not only CompTIA. */}
           {vendorLine ? (

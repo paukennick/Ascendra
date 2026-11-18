@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Platform, Switch, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
+import { Badge, Card, ChoiceSheet, Divider, ListRow, Muted, Screen, SectionHeader } from "@/components/ui";
 import { LOCK_AFTER_OPTIONS, lockAfterLabel } from "@/lib/autoLock";
 import { Alert } from "@/lib/alert";
-import { colors } from "@/lib/theme";
+import { colors, spacing } from "@/lib/theme";
+import { GIVE_FEEDBACK_LABEL, parseReviewer, REVIEWER_BADGE, reviewerSettingsLine } from "@/lib/reviewers";
 import { useAuth } from "@/auth/AuthContext";
 import { useBilling } from "@/billing/BillingContext";
 import { planSummary } from "@/lib/billing";
@@ -45,6 +46,7 @@ export default function Settings() {
   const { config, me } = useBilling();
   const { status: discounts } = useDiscounts();
   const access = parseAccess(user?.access);
+  const reviewer = parseReviewer(user?.access);
   // REQ-206: the row used to say "Off unless you turn them on" whatever was saved.
   const [reminders, setReminders] = useState<ReminderPrefs | null>(null);
   const userId = user?.id;
@@ -125,12 +127,29 @@ export default function Settings() {
         </>
       ) : null}
 
+      {/* REQ-331: a reviewer sees that they are one, and the way to the form. */}
+      {reviewer ? (
+        <>
+          <SectionHeader label="Reviewer" />
+          <Card style={{ gap: spacing.xs }}>
+            <View style={{ flexDirection: "row" }}>
+              <Badge label={REVIEWER_BADGE} icon="check-circle" />
+            </View>
+            <Muted>{reviewerSettingsLine(reviewer)}</Muted>
+            <ListRow icon="message-square" label={GIVE_FEEDBACK_LABEL} value="Your feedback" onPress={() => router.push("/feedback")} />
+          </Card>
+        </>
+      ) : null}
+
       {/* REQ-144: owners only; the server refuses everyone else too. */}
       {showAccessSettings(user) ? (
         <>
           <SectionHeader label="Access" />
           <Card style={{ gap: 0 }}>
             <ListRow icon="key" label="Unrestricted access" value="Give or remove" onPress={() => router.push("/settings/access")} />
+            <Divider />
+            {/* REQ-331: owner only; the server checks too. Reviewers are marked on the Access screen. */}
+            <ListRow icon="message-square" label="Reviewer feedback" value="What reviewers sent" onPress={() => router.push("/settings/reviewer-feedback")} />
           </Card>
         </>
       ) : null}

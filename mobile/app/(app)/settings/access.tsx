@@ -4,7 +4,9 @@ import { api } from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
 import { DateField } from "@/components/DatePicker";
 import { HoldRates } from "@/components/HoldRates";
-import { Body, Button, Card, Divider, ErrorBanner, H2, ListRow, Loading, Muted, Screen, SectionHeader, TextField } from "@/components/ui";
+import { Badge, Body, Button, Card, Chip, Divider, ErrorBanner, H2, ListRow, Loading, Muted, Screen, SectionHeader, TextField } from "@/components/ui";
+import { useRouter } from "expo-router";
+import { areaWords, markFormProblem, REVIEWER_BADGE, reviewerStatusLine, toggle, unmarkMessage, type ReviewerGrant } from "@/lib/reviewers";
 import { Alert } from "@/lib/alert";
 import { friendlyError } from "@/lib/errorMessage";
 import {
@@ -52,6 +54,15 @@ export default function AccessSettings() {
   const [done, setDone] = useState<string | null>(null);
   const [trackerLine, setTrackerLine] = useState<string | null>(null);
   const owner = showAccessSettings(user);
+  const router = useRouter();
+  // REQ-331: reviewers, marked by email with optional course categories and a note.
+  const [reviewers, setReviewers] = useState<ReviewerGrant[] | null>(null);
+  const [categories, setCategories] = useState<{ slug: string; name: string }[]>([]);
+  const [rEmail, setREmail] = useState("");
+  const [rAreas, setRAreas] = useState<string[]>([]);
+  const [rNote, setRNote] = useState("");
+  const [rError, setRError] = useState<string | null>(null);
+  const categoryName = useCallback((slug: string) => categories.find((c) => c.slug === slug)?.name ?? areaWords(slug), [categories]);
 
   const load = useCallback(async () => {
     try {
@@ -59,6 +70,14 @@ export default function AccessSettings() {
       setList(res);
       setAiMode(parseAiMode(res.aiMode));
       setError(null);
+      // REQ-331: an older server has no reviewer route; the section just stays empty.
+      api
+        .get<{ reviewers: ReviewerGrant[]; categories: { slug: string; name: string }[] }>("/api/access/reviewers")
+        .then((r) => {
+          setReviewers(r.reviewers);
+          setCategories(r.categories);
+        })
+        .catch(() => setReviewers([]));
     } catch (err) {
       setError(friendlyError(err));
     }
@@ -93,6 +112,49 @@ export default function AccessSettings() {
       setBusy(null);
     }
   }, [email, until, note, load]);
+
+  // REQ-331: mark an address as a reviewer (its grant gets the mark, or one is made).
+  const markReviewer = useCallback(async () => {
+    const problem = markFormProblem(rEmail, rNote);
+    setRError(problem);
+    if (problem) return;
+    setBusy("reviewer");
+    try {
+      await api.post("/api/access/reviewers", { email: rEmail.trim(), areas: rAreas, note: rNote.trim() || undefined });
+      setREmail("");
+      setRAreas([]);
+      setRNote("");
+      await load();
+    } catch (err) {
+      setRError(friendlyError(err));
+    } finally {
+      setBusy(null);
+    }
+  }, [rEmail, rAreas, rNote, load]);
+
+  const unmark = useCallback(
+    (g: ReviewerGrant) => {
+      Alert.alert("Remove reviewer?", unmarkMessage(g), [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: async () => {
+            setBusy(`r-${g.id}`);
+            try {
+              await api.delete(`/api/access/reviewers/${g.id}`);
+              await load();
+            } catch (err) {
+              setError(friendlyError(err));
+            } finally {
+              setBusy(null);
+            }
+          },
+        },
+      ]);
+    },
+    [load]
+  );
 
   // REQ-211: one labelled test error to Sentry, with Sentry's answer.
   const testTracker = useCallback(async () => {
@@ -173,6 +235,42 @@ export default function AccessSettings() {
         <Muted>If there's no account with an address yet, it applies once they sign up and verify it. Up to 50 addresses at a time.</Muted>
       </Card>
 
+      {/* REQ-331: reviewers. */}
+      <SectionHeader label="Reviewers" />
+      <Card>
+        <H2>Mark a reviewer</H2>
+        <Muted>
+          A reviewer gets unrestricted access (every course and full AI, within the daily AI limit) and the reviewer feedback form. The 18+
+          notices still apply to them. Removing the mark ends the access too, unless they had it before.
+        </Muted>
+        <TextField label="Email" value={rEmail} onChangeText={setREmail} placeholder="name@example.com" keyboardType="email-address" icon="mail" onSubmitEditing={markReviewer} />
+        {categories.length ? (
+          <>
+            <Muted>Areas they review (optional)</Muted>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: spacing.sm }}>
+              {categories.map((c) => (
+                <Chip key={c.slug} label={c.name} active={rAreas.includes(c.slug)} onPress={() => setRAreas((a) => toggle(a, c.slug))} />
+              ))}
+            </View>
+          </>
+        ) : null}
+        <TextField label="Note (optional, only you see it)" value={rNote} onChangeText={setRNote} placeholder="e.g. LMHC, reviewing NCMHCE" autoCapitalize="sentences" />
+        {rError ? <ErrorBanner message={rError} /> : null}
+        <Button label="Mark as reviewer" icon="check-circle" loading={busy === "reviewer"} onPress={markReviewer} />
+        <ListRow icon="message-square" label="Reviewer feedback" value="What reviewers sent" onPress={() => router.push("/settings/reviewer-feedback")} />
+      </Card>
+      {(reviewers ?? []).map((g) => (
+        <Card key={`r-${g.id}`} style={{ gap: spacing.xs }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" }}>
+            <Body>{g.email}</Body>
+            <Badge label={REVIEWER_BADGE} icon="check-circle" />
+          </View>
+          <Muted>{reviewerStatusLine(g, categoryName)}</Muted>
+          {g.reviewer?.note ? <Muted>{`Note: ${g.reviewer.note}`}</Muted> : null}
+          <Button label="Remove reviewer" variant="ghost" icon="x" loading={busy === `r-${g.id}`} onPress={() => unmark(g)} accessibilityLabel={`Remove reviewer ${g.email}`} />
+        </Card>
+      ))}
+
       <SectionHeader label="Owners" />
       <Card style={{ gap: 0 }}>
         {(list?.owners ?? []).map((o, i) => (
@@ -188,7 +286,10 @@ export default function AccessSettings() {
       {list?.grants.length ? (
         list.grants.map((g) => (
           <Card key={g.id} style={{ gap: spacing.xs }}>
-            <Body>{g.email}</Body>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" }}>
+              <Body>{g.email}</Body>
+              {g.reviewer ? <Badge label={REVIEWER_BADGE} icon="check-circle" /> : null}
+            </View>
             <Muted>{grantStatusLine(g)}</Muted>
             {aiMode !== "all" ? <Muted>{grantAiLine(g)}</Muted> : null}
             {g.note ? <Muted>{`Note: ${g.note}`}</Muted> : null}

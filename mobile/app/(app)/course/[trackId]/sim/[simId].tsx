@@ -33,6 +33,7 @@ import { governanceAlarmTexts, governanceNews, governanceSentence, type Governan
 import { TabletopPanel } from "@/sim/TabletopPanel";
 import { tabletopAlarmTexts, tabletopNews, tabletopSentence, type TabletopView } from "@/sim/runtime/tabletopView.ts";
 import { ReportProblem } from "@/components/ReportProblem";
+import { GiveFeedbackButton } from "@/components/GiveFeedback";
 import { StudyShortcutArea } from "@/components/StudyShortcuts";
 import { localHash } from "@/sim/runtime/session.ts";
 import { ActionBar, ChapterCard, DebriefView, EventLog, LaunchCard, PaceControl, PromptCard, ReasoningCard, SessionPanel, SkipOffer, TeachingCard, TopologyPanel, TreatmentPanel, VitalsPanel, WaitsRow, sessionSentence, treatmentSentence } from "@/sim/SimPanels";
@@ -344,6 +345,8 @@ export default function SimScreen() {
           {sim.notice ? <Card><View accessibilityLiveRegion="polite"><Muted>{sim.notice}</Muted></View></Card> : null}
           <DebriefView d={sim.debrief} onAgain={() => sim.start(true)} onBack={goBack} />
           <ReportProblem key={`report-${sim.debrief.runId}`} target={{ kind: "sim", runId: sim.debrief.runId }} />
+          {/* REQ-331: reviewers only; carries this course and sim. */}
+          <GiveFeedbackButton trackId={trackId} simId={info?.sim.id ?? simId} />
         </>
       ) : null}
     </Screen>

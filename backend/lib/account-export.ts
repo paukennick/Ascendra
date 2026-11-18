@@ -197,7 +197,10 @@ export const EXPORT_SECTIONS = {
   // REQ-144: unrestricted access given to this account, and its audit trail
   // (who gave, changed or ended it, and when). The giver is named, not their
   // email address.
+  // REQ-331 (migration 088): the reviewer mark on a grant -- when, the areas
+  // and the owner's note -- and whether marking created the grant.
   accessGrants: `select a.id, a.email, a.level, a.granted_at, a.expires_at, a.note, a.claimed_at, a.revoked_at,
+                        a.reviewer_at, a.reviewer_areas, a.reviewer_note, a.reviewer_added_access,
                         coalesce(nullif(trim(gb.display_name), ''), case when a.granted_by is null then 'command line' else 'the account owner' end) as granted_by
                    from account_access a left join app_users gb on gb.id = a.granted_by
                   where a.user_id = $1 order by a.granted_at asc, a.id asc`,
@@ -205,6 +208,13 @@ export const EXPORT_SECTIONS = {
                         case when e.actor_id is not null then coalesce(nullif(trim(ac.display_name), ''), 'the account owner') end as by
                    from account_access_events e left join app_users ac on ac.id = e.actor_id
                   where e.user_id = $1 order by e.created_at asc, e.id asc`,
+  // REQ-331 (migration 088): the feedback the account sent as a reviewer,
+  // with the course and sim it is about. Their own words, all of it.
+  reviewerFeedback: `select f.*, st.title as track_title, s.title as sim_title
+                       from reviewer_feedback f
+                       left join subject_tracks st on st.id = f.track_id
+                       left join sims s on s.id = f.sim_id
+                      where f.user_id = $1 order by f.created_at asc, f.id asc`,
   // REQ-166 (migration 058): verified group discounts -- only the result
   // (group, provider, when, until when, the provider's reference) -- and any
   // App Store offer codes handed to the account.
