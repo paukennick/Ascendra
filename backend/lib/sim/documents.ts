@@ -536,6 +536,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   band("CNPE", "policy-enforced-without-reading-reports-cnpe"),
   band("AWSDOP", "kinesis-poison-record-blocks-shard-dop"),
   // ---- end REQ-320 ----
+  // ---- REQ-335 (docs/sims.md 22.39): depth for the AWS, Azure and Google
+  // Cloud courses, round of 2026-11-17 (evening). New cases and bands,
+  // listed in lib/sim/depth-cloud.ts. Keep these together. ----
+  entry("AWSDEA", "s3-eventbridge-rule-never-fires"),
+  // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
   band("ABPTSGCS", "stroke-balance-fall-risk-geri"),

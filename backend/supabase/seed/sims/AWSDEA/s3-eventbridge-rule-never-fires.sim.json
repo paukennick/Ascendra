@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "s3-eventbridge-rule-never-fires",
+  "title": "Outage: the invoice workflow never starts after the move to EventBridge",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "data@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "08:50 finance: 0 invoices processed today; close load at 09:30",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "09:30: close load missing invoices",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "09:30: close load complete, invoices included",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "bucket",
+          "label": "S3 hl-landing",
+          "spokenLabel": "the landing bucket",
+          "kind": "invoices/ and orders/",
+          "status": "{harmed ? \"EventBridge on, orders/ trigger removed\" : fixed ? \"EventBridge delivery on, orders/ trigger kept\" : \"EventBridge delivery off\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "rule",
+          "label": "EventBridge invoices-to-stepfn",
+          "spokenLabel": "the EventBridge rule",
+          "kind": "Object Created, prefix invoices/",
+          "status": "{fixed and not harmed ? \"matching\" : \"enabled, 0 matches\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "sfn",
+          "label": "Step Functions invoice-load",
+          "spokenLabel": "the invoice workflow",
+          "kind": "state machine",
+          "status": "{fixed and not harmed ? \"running\" : \"no executions today\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "orders",
+          "label": "Lambda orders-validate",
+          "spokenLabel": "the orders function",
+          "kind": "S3 Event Notification",
+          "status": "{harmed ? \"no longer invoked\" : fixed ? \"invoked\" : \"invoked\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "bucket",
+          "to": "rule",
+          "label": "Object Created events",
+          "status": "{fixed and not harmed ? \"flowing\" : \"none\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "l2",
+          "from": "rule",
+          "to": "sfn",
+          "label": "StartExecution",
+          "status": "{fixed and not harmed ? \"flowing\" : \"idle\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Setting up event triggers: Amazon S3 Event Notifications and EventBridge",
+  "secondaryObjectives": [
+    "Orchestrating ETL workflows with Lambda, EventBridge, Amazon MWAA, AWS Step Functions, and AWS Glue workflows"
+  ],
+  "sources": [
+    {
+      "cite": "AWS Certification, AWS Certified Data Engineer - Associate (DEA-C01) exam guide: Data Ingestion and Transformation 34%, Data Store Management 26%, Data Operations and Support 22%, Data Security and Governance 18%",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/id_id/aws-certification/latest/data-engineer-associate-01/data-engineer-associate-01.md",
+      "note": "Read directly on 2026-11-17 (the page text was English). Domain 1's task statements are on a linked page not read in this round; the objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "AWS SDK for Python (Boto3) reference, S3 Client put_bucket_notification_configuration",
+      "checkedAt": "2026-11-17",
+      "url": "https://docs.aws.amazon.com/botocore/latest/reference/services/s3/client/put_bucket_notification_configuration.html",
+      "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'This action replaces the existing notification configuration with the configuration you include in the request body'; 'You can disable notifications by adding the empty NotificationConfiguration element'; EventBridgeConfiguration '{}' 'Enables delivery of events to Amazon EventBridge'. That EventBridge receives events only for objects created after delivery is turned on, and the event pattern fields (source aws.s3, detail-type Object Created) are from memory of the S3 user guide (to verify)."
+    }
+  ],
+  "brief": {
+    "situation": "You are the data engineer at Harbor Lane Foods, a fictional grocer. Partner invoices land in s3://hl-landing/invoices/. Yesterday a change replaced the old invoice Lambda with an EventBridge rule, invoices-to-stepfn, that starts a Step Functions workflow. Since then no invoice has been processed, and finance's close load reads the processed invoices at 09:30.",
+    "handover": [
+      "The same bucket's orders/ prefix still uses an S3 Event Notification that invokes orders-validate (Lambda); that one works.",
+      "The bucket is defined in a CloudFormation stack, hl-landing-stack."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the landing bucket, its two kinds of event delivery and what they start.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "08:50",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 2400,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "Finance's close load reads the processed invoices at 09:30, 40 minutes after the page."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "ruleAt": {
+      "type": "time",
+      "init": null
+    },
+    "notifAt": {
+      "type": "time",
+      "init": null
+    },
+    "objectsAt": {
+      "type": "time",
+      "init": null
+    },
+    "metricAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "delivery",
+        "pattern",
+        "iam"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "rule",
+        "notif",
+        "objects",
+        "metric",
+        "merge",
+        "template",
+        "putOnly",
+        "widen",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "rule": {
+      "label": "aws events describe-rule --name invoices-to-stepfn",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(ruleAt)",
+          "then": [
+            {
+              "set": "ruleAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws events describe-rule --name invoices-to-stepfn\nState: ENABLED\nEventPattern: source aws.s3 | detail-type Object Created | bucket hl-landing | key prefix invoices/"
+        },
+        {
+          "finding": "The rule is enabled and its pattern matches Object Created events from hl-landing under invoices/: the rule is not the problem if events arrive."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "notif": {
+      "label": "aws s3api get-bucket-notification-configuration --bucket hl-landing",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(notifAt)",
+          "then": [
+            {
+              "set": "notifAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws s3api get-bucket-notification-configuration --bucket hl-landing\n{harmed ? \"EventBridgeConfiguration: enabled\n(no LambdaFunctionConfigurations)\" : fixed ? \"LambdaFunctionConfigurations: orders-validate (s3:ObjectCreated:*, prefix orders/)\nEventBridgeConfiguration: enabled\" : \"LambdaFunctionConfigurations: orders-validate (s3:ObjectCreated:*, prefix orders/)\n(no EventBridgeConfiguration)\"}"
+        },
+        {
+          "finding": "The bucket sends nothing to EventBridge: there is no EventBridgeConfiguration. Only the orders/ Lambda notification is set."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "objects": {
+      "label": "aws s3 ls s3://hl-landing/invoices/ (today)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(objectsAt)",
+          "then": [
+            {
+              "set": "objectsAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws s3 ls s3://hl-landing/invoices/2026-11-17/ | wc -l\n14\ndata@cloudshell:~$ aws stepfunctions list-executions --state-machine-arn arn:aws:states:us-east-1:111122223333:stateMachine:invoice-load --query 'length(executions)'\n{fixed and not harmed ? \"14\" : \"0\"}"
+        },
+        {
+          "finding": "Fourteen invoices landed today and the workflow has run none of them."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "metric": {
+      "label": "CloudWatch: rule invoices-to-stepfn TriggeredRules (last hour)",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(metricAt)",
+          "then": [
+            {
+              "set": "metricAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws cloudwatch get-metric-statistics --namespace AWS/Events --metric-name TriggeredRules --dimensions Name=RuleName,Value=invoices-to-stepfn --statistics Sum --period 3600 ...\nSum: {fixed and not harmed ? \"14\" : \"0\"}"
+        },
+        {
+          "finding": "The rule has matched nothing since it was created."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "merge": {
+      "label": "Merge EventBridge delivery into the current configuration, put it back, start the 14 waiting invoices",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws s3api get-bucket-notification-configuration --bucket hl-landing > current.json\ndata@cloudshell:~$ jq '. + {{\"EventBridgeConfiguration\": {{}}}}' current.json > merged.json\ndata@cloudshell:~$ aws s3api put-bucket-notification-configuration --bucket hl-landing --notification-configuration file://merged.json\ndata@cloudshell:~$ ./start-backlog.sh invoices/2026-11-17/   # 14 executions started"
+        },
+        {
+          "log": "The put replaces the whole configuration, so the current one (with the orders/ trigger) goes back with EventBridge added. New objects now reach the rule; the 14 already landed were never evented, so they are started by hand.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "template": {
+      "label": "Add EventBridge delivery to hl-landing-stack's template and deploy it",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ git diff templates/hl-landing.yaml\n+      NotificationConfiguration:\n+        EventBridgeConfiguration:\n+          EventBridgeEnabled: true\ndata@cloudshell:~$ aws cloudformation deploy --stack-name hl-landing-stack --template-file templates/hl-landing.yaml\nSuccessfully created/updated stack - hl-landing-stack"
+        },
+        {
+          "log": "The setting now lives in the stack that owns the bucket, so the next deploy does not quietly turn it off again.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "putOnly": {
+      "label": "aws s3api put-bucket-notification-configuration with only EventBridgeConfiguration",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws s3api put-bucket-notification-configuration --bucket hl-landing --notification-configuration '{{\"EventBridgeConfiguration\": {{}}}}'\n(no output)"
+        },
+        {
+          "log": "The put replaced the whole configuration: EventBridge is on, and the orders/ Lambda trigger is gone. Orders now land unvalidated.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "widen": {
+      "label": "Widen the rule's pattern to every bucket and every prefix",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "data@cloudshell:~$ aws events put-rule --name invoices-to-stepfn --event-pattern file://any-s3-object-created.json\nRuleArn: arn:aws:events:us-east-1:111122223333:rule/invoices-to-stepfn"
+        },
+        {
+          "log": "A wider pattern matches nothing more: the bucket still sends no events to EventBridge.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check rule matches, workflow runs and the orders trigger",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "data@cloudshell:~$ aws cloudwatch get-metric-statistics ... TriggeredRules (last 15 min); aws lambda ... orders-validate Invocations (last 15 min)\n{harmed ? \"TriggeredRules: 3\norders-validate Invocations: 0 since the change\" : fixed ? \"TriggeredRules: 14 (backlog) + 2 new\norders-validate Invocations: 9\" : \"TriggeredRules: 0\norders-validate Invocations: 9\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "delivery",
+                  "label": "EventBridge delivery was not turned on for the bucket"
+                },
+                {
+                  "value": "pattern",
+                  "label": "The rule's event pattern was wrong"
+                },
+                {
+                  "value": "iam",
+                  "label": "The rule's role could not start the workflow"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: the close load finds today's invoices.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "09:30: the close load runs without today's invoices.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why the rule never fired, how you turned delivery on without breaking anything, and what stops it recurring.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Separates the rule from the bucket's delivery setting.",
+          "modelAnswer": "The rule was enabled and its pattern was right, but the bucket had no EventBridgeConfiguration, so S3 sent it no events. The change replaced a Lambda notification without turning on EventBridge delivery."
+        },
+        {
+          "label": "How",
+          "criteria": "Merges instead of replacing; handles the files that landed before.",
+          "modelAnswer": "PutBucketNotificationConfiguration replaces the whole configuration, so I read the current one, added EventBridgeConfiguration and put the merged document back, keeping the orders/ trigger. The 14 invoices already landed were never evented, so I started them by hand."
+        },
+        {
+          "label": "Lasting",
+          "criteria": "Puts the setting where the bucket is owned.",
+          "modelAnswer": "The bucket belongs to a CloudFormation stack; the setting is now in its template, so a later deploy will not remove it."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 2400,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "Finance's close load reads the processed invoices at 09:30, 40 minutes after the page."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The put replaced the configuration and removed the orders/ trigger."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the bucket still not sending events leaves the invoices unprocessed at the close load.",
+      "source": {
+        "cite": "AWS SDK for Python (Boto3) reference, S3 Client put_bucket_notification_configuration",
+        "checkedAt": "2026-11-17",
+        "url": "https://docs.aws.amazon.com/botocore/latest/reference/services/s3/client/put_bucket_notification_configuration.html",
+        "note": "Read through a summarizing fetch on 2026-11-17. Quoted: 'This action replaces the existing notification configuration with the configuration you include in the request body'; 'You can disable notifications by adding the empty NotificationConfiguration element'; EventBridgeConfiguration '{}' 'Enables delivery of events to Amazon EventBridge'. That EventBridge receives events only for objects created after delivery is turned on, and the event pattern fields (source aws.s3, detail-type Object Created) are from memory of the S3 user guide (to verify)."
+      }
+    }
+  },
+  "endings": {
+    "ordersTriggerLost": {
+      "label": "Orders trigger deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "The single-element put turned EventBridge on and silently removed the orders/ Lambda notification."
+    },
+    "closeMissed": {
+      "label": "Close load ran without invoices",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 09:30 the bucket still sent nothing to EventBridge."
+    },
+    "flowing": {
+      "label": "Events flowing, backlog started, template fixed",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(ruleAt) and not isNull(notifAt) and not isNull(verifiedAt) and causeDoc == \"delivery\"",
+      "narrative": "The bucket now sends events to EventBridge with the orders trigger intact; the backlog ran before the close load."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Invoices flow again, but the template, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "ordersTriggerLost",
+    "closeMissed",
+    "flowing",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the rule and the bucket's notification configuration",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(ruleAt) and not isNull(notifAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(ruleAt) or not isNull(notifAt) or not isNull(objectsAt) or not isNull(metricAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "EventBridge delivery on before 09:30, orders trigger kept",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The put replaced the configuration and removed the orders/ trigger.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Template fixed and the flow checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"delivery\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "08:50-08:54",
+        "text": "Rule enabled and pattern right; bucket has no EventBridgeConfiguration; 14 invoices waiting, 0 executions; TriggeredRules 0."
+      },
+      {
+        "at": "08:54-08:59",
+        "text": "Merge EventBridge delivery into the current configuration; start the backlog; add it to the template."
+      },
+      {
+        "at": "08:59-09:01",
+        "text": "TriggeredRules rising, orders-validate still invoked."
+      }
+    ],
+    "debrief": {
+      "ordersTriggerLost": {
+        "headline": "A put that replaces, not adds",
+        "body": "PutBucketNotificationConfiguration replaces the whole configuration. Read the current one, add EventBridgeConfiguration, and put the merged document back."
+      },
+      "closeMissed": {
+        "headline": "The rule was waiting for events that never came",
+        "body": "An EventBridge rule on S3 events needs the bucket to send them: EventBridge delivery is a bucket setting, separate from the rule."
+      },
+      "flowing": {
+        "headline": "Good: the missing half of the trigger",
+        "body": "You saw the rule was fine and the bucket was not sending, merged the setting instead of replacing the configuration, started the files that landed before the fix, and put the setting in the template."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "The rule is enabled and matches the right events, and TriggeredRules is zero, so the events never reach EventBridge: the bucket has no EventBridgeConfiguration. Turning it on is a bucket setting, and the API replaces the whole notification configuration, so read the current configuration, add EventBridge and put back the merged document, keeping the orders/ trigger. Objects that landed before are never evented, so start them by hand. Put the setting in the stack's template so a deploy does not undo it, then check both triggers."
+  }
+}
