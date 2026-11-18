@@ -1,0 +1,1022 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "argocd-prune-moved-database",
+  "title": "An Argo CD refactor: a prune that would delete the database, self-heal against an emergency scale-up, and a migration that needs a hook",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "oncall@harborline:~$",
+      "lines": [
+        {
+          "id": "firstLine",
+          "text": "argocd: application 'orders' OutOfSync: 14 resources would be pruned on the next automated sync",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "linePrune",
+          "text": "{prune == \"protect\" ? \"Prune stopped; the database adopted by orders-db\" : prune == \"manualOff\" ? \"Automation off; OutOfSync for a week\" : prune == \"letPrune\" ? \"Pruned: the database StatefulSet and its volume deleted\" : \"\"}",
+          "when": "prune != \"none\"",
+          "at": "timeAt(pruneAt)",
+          "error": "prune == \"letPrune\""
+        },
+        {
+          "id": "lineHeal",
+          "text": "{heal == \"gitChange\" ? \"12 replicas from Git; in sync\" : heal == \"healOff\" ? \"Self-heal off; live differs from Git\" : heal == \"fight\" ? \"Replicas flapping between 4 and 12\" : \"\"}",
+          "when": "heal != \"none\"",
+          "at": "timeAt(healAt)",
+          "error": "heal == \"fight\""
+        },
+        {
+          "id": "lineHook",
+          "text": "{hook == \"presync\" ? \"Migration ran as PreSync; rollout healthy\" : hook == \"manualJob\" ? \"Migrated by hand this time\" : hook == \"replace\" ? \"Replaced: old Pods removed, new ones still crashing\" : \"\"}",
+          "when": "hook != \"none\"",
+          "at": "timeAt(hookAt)",
+          "error": "hook == \"replace\""
+        }
+      ],
+      "nodes": [
+        {
+          "id": "nPrune",
+          "label": "orders app: pending prune",
+          "spokenLabel": "orders app: pending prune",
+          "kind": "Argo CD Application",
+          "status": "{prune == \"protect\" ? \"Prune stopped; the database adopted by orders-db\" : prune == \"manualOff\" ? \"Automation off; OutOfSync for a week\" : prune == \"letPrune\" ? \"Pruned: the database StatefulSet and its volume deleted\" : \"Waiting\"}",
+          "tone": "prune == \"protect\" ? \"up\" : prune == \"manualOff\" ? \"degraded\" : prune == \"letPrune\" ? \"down\" : p >= 1 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nHeal",
+          "label": "orders-api replicas",
+          "spokenLabel": "orders-api replicas",
+          "kind": "Deployment",
+          "status": "{heal == \"gitChange\" ? \"12 replicas from Git; in sync\" : heal == \"healOff\" ? \"Self-heal off; live differs from Git\" : heal == \"fight\" ? \"Replicas flapping between 4 and 12\" : \"Waiting\"}",
+          "tone": "heal == \"gitChange\" ? \"up\" : heal == \"healOff\" ? \"degraded\" : heal == \"fight\" ? \"down\" : p >= 2 ? \"degraded\" : \"up\""
+        },
+        {
+          "id": "nHook",
+          "label": "orders schema migration",
+          "spokenLabel": "orders schema migration",
+          "kind": "Job",
+          "status": "{hook == \"presync\" ? \"Migration ran as PreSync; rollout healthy\" : hook == \"manualJob\" ? \"Migrated by hand this time\" : hook == \"replace\" ? \"Replaced: old Pods removed, new ones still crashing\" : \"Waiting\"}",
+          "tone": "hook == \"presync\" ? \"up\" : hook == \"manualJob\" ? \"degraded\" : hook == \"replace\" ? \"down\" : p >= 3 ? \"degraded\" : \"up\""
+        }
+      ],
+      "links": [
+        {
+          "id": "link0",
+          "from": "nPrune",
+          "to": "nHeal",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        },
+        {
+          "id": "link1",
+          "from": "nHeal",
+          "to": "nHook",
+          "label": "depends on",
+          "status": "Connected",
+          "tone": "\"up\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Check-in",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configure synchronization in Argo CD: manual and automated sync, prune and self-heal, sync waves and hooks, sync options, and reading diffs",
+  "secondaryObjectives": [
+    "Troubleshoot common reconciliation patterns: OutOfSync caused by drift, ignoring differences, resource hooks, degraded health, and a sync that fails"
+  ],
+  "sources": [
+    {
+      "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+      "checkedAt": "2026-11-17",
+      "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Argo CD documentation, Sync Options (latest)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-cd.readthedocs.io/en/latest/user-guide/sync-options/",
+      "note": "Read 2026-11-17 through a summarizing fetch of the page found by search. Prune=false on a resource stops it being pruned (the app shows OutOfSync); Replace=true uses kubectl replace or create and 'has the potential to be destructive'; PruneLast prunes in a final wave after the rest is healthy; a resource's Prune sync option overrides the Application's prune policy."
+    },
+    {
+      "cite": "Argo CD documentation, Sync Phases and Waves; Automated Sync Policy (prune, selfHeal, ignoreDifferences)",
+      "checkedAt": "2026-11-17",
+      "url": "https://argo-cd.readthedocs.io/en/latest/user-guide/sync-options/",
+      "note": "Found by search 2026-11-17 (argo-cd.readthedocs.io user guide); read only through search results, to verify against the pages. PreSync hooks run before the application's manifests are applied; sync-wave annotations order resources within a phase; selfHeal re-applies Git when the live state drifts; ignoreDifferences excludes fields such as /spec/replicas from the diff."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The company, the cluster, the applications and the people are fictional. The minutes each check-in takes and the effects of each decision are teaching simplifications for exam practice."
+    }
+  ],
+  "brief": {
+    "situation": "You are the on-call platform engineer at Harborline Freight, a fictional logistics company. Its orders service is deployed by Argo CD from the platform Git repository with automated sync, prune and self-heal on. This morning a developer merged a refactor that moved the orders database's StatefulSet and PersistentVolumeClaim from apps/orders/ into a new apps/orders-db/ application that has not synced yet.",
+    "handover": [
+      "The orders Application: automated sync with prune: true and selfHeal: true, target revision main.",
+      "The refactor's pull request was approved for the code change; nobody reviewed the diff Argo CD will apply."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the map shows each component and its status in words.",
+      "Move on a check-in at a time. A decision comes to you at each check-in; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-09T08:00",
+    "tick": "1min",
+    "maxDuration": "120min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "prune": {
+      "type": "enum",
+      "values": [
+        "none",
+        "protect",
+        "manualOff",
+        "letPrune"
+      ],
+      "init": "none"
+    },
+    "pruneAt": {
+      "type": "time",
+      "init": null
+    },
+    "heal": {
+      "type": "enum",
+      "values": [
+        "none",
+        "gitChange",
+        "healOff",
+        "fight"
+      ],
+      "init": "none"
+    },
+    "healAt": {
+      "type": "time",
+      "init": null
+    },
+    "hook": {
+      "type": "enum",
+      "values": [
+        "none",
+        "presync",
+        "manualJob",
+        "replace"
+      ],
+      "init": "none"
+    },
+    "hookAt": {
+      "type": "time",
+      "init": null
+    },
+    "diffAt": {
+      "type": "time",
+      "init": null
+    },
+    "policyAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((prune == \"letPrune\") ? 1 : 0) + ((heal == \"fight\") ? 1 : 0) + ((hook == \"replace\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(prune == \"none\" or (prune == \"letPrune\") ? 1 : 0) + (heal == \"none\" or (heal == \"fight\") ? 1 : 0) + (hook == \"none\" or (hook == \"replace\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The rollout",
+      "clock": "turns",
+      "actions": [
+        "diff",
+        "policy"
+      ]
+    },
+    "close": {
+      "label": "Change record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "diff": {
+      "label": "argocd app diff orders",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(diffAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "diffAt",
+          "to": "t"
+        },
+        {
+          "output": "argocd app diff orders\n===== apps/StatefulSet orders/orders-db ======\n- (live) would be pruned\n===== /PersistentVolumeClaim orders/data-orders-db-0 ======\n- (live) would be pruned\n... 12 more: ConfigMaps, Services, a migration Job"
+        },
+        {
+          "log": "You read the diff Argo CD will apply.",
+          "kind": "act"
+        },
+        {
+          "finding": "The diff prunes the orders-db StatefulSet and its PersistentVolumeClaim data-orders-db-0 (the live database), because they left the orders app's path and the new orders-db app has not adopted them yet."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "policy": {
+      "label": "argocd app get orders -o yaml (sync policy)",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(policyAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "policyAt",
+          "to": "t"
+        },
+        {
+          "output": "syncPolicy:\n  automated:\n    prune: true\n    selfHeal: true\n  syncOptions: []"
+        },
+        {
+          "log": "You read the Application's sync policy.",
+          "kind": "act"
+        },
+        {
+          "finding": "Automated sync with prune: true and selfHeal: true; no sync options. The PersistentVolumeClaim has no Prune=false annotation, and its StorageClass reclaim policy is Delete."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the change record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The diff read, the prune stopped and the database adopted, the scale-up made in Git, the migration ordered by a hook, and what each cost"
+                },
+                {
+                  "value": "summary",
+                  "label": "Refactor deployed; no issues"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next check-in",
+      "wait": {
+        "skipLabel": "Go to the next check-in"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "prune == \"manualOff\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the orders app is still OutOfSync; two other fixes wait behind it.",
+                  "kind": "sys"
+                }
+              ]
+            },
+            {
+              "if": "prune == \"letPrune\"",
+              "then": [
+                {
+                  "log": "Check-in 2: the orders database is gone; its volume was deleted with the claim. Orders fail until a restore from last night's backup.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "heal == \"fight\"",
+              "then": [
+                {
+                  "log": "Check-in 3: Pods start and terminate every few seconds; a third of orders time out during the spike.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "hook == \"replace\"",
+              "then": [
+                {
+                  "log": "Check-in 4: the replaced Deployment has no serving Pods; orders are down until the migration is run.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "10min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The refactor is live and the on-call window ends.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "10min"
+        }
+      ]
+    },
+    {
+      "id": "t_prune",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 1: the next automated sync is minutes away.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "prunePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_heal",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 2: a traffic spike, and the on-call developer scaled orders-api by hand.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "healPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_hook",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Check-in 3: the new orders-api Pods crash on start.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "hookPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "prunePrompt": {
+      "title": "14 resources would be pruned, the database among them",
+      "context": "Argo CD will sync the orders app on its next poll. The diff prunes the database StatefulSet and its volume claim, which belong to the new orders-db app now. The reclaim policy is Delete, so the volume would go with the claim.",
+      "choices": [
+        {
+          "id": "protect",
+          "label": "Pause automated sync on the orders app, annotate the StatefulSet and claim with argocd.argoproj.io/sync-options: Prune=false, sync orders-db so it adopts them, then turn automation back on",
+          "effects": [
+            {
+              "set": "prune",
+              "to": "\"protect\""
+            },
+            {
+              "set": "pruneAt",
+              "to": "t"
+            },
+            {
+              "log": "Automation paused; the database resources carry Prune=false; orders-db adopts them.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Reading the diff and protecting the resources with a sync option stops the prune; the new app adopts them before automation resumes."
+        },
+        {
+          "id": "manualOff",
+          "label": "Turn automated sync off for orders and leave it OutOfSync until someone can look at it next week",
+          "effects": [
+            {
+              "set": "prune",
+              "to": "\"manualOff\""
+            },
+            {
+              "set": "pruneAt",
+              "to": "t"
+            },
+            {
+              "log": "Automated sync off; orders stays OutOfSync.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Safe, but the app drifts for a week and nobody adopts the database: the next person to press Sync with prune hits the same trap."
+        },
+        {
+          "id": "letPrune",
+          "label": "Let the automated sync run: Git is the source of truth",
+          "effects": [
+            {
+              "set": "prune",
+              "to": "\"letPrune\""
+            },
+            {
+              "set": "pruneAt",
+              "to": "t"
+            },
+            {
+              "log": "The sync prunes 14 resources.",
+              "kind": "bad"
+            },
+            {
+              "output": "argocd: sync orders: pruned apps/StatefulSet orders/orders-db, PersistentVolumeClaim orders/data-orders-db-0 (12 more)"
+            }
+          ],
+          "feedback": "Git is the source of truth, but a prune applies whatever the diff says; nobody read it, and the database left with the path."
+        }
+      ]
+    },
+    "healPrompt": {
+      "title": "Self-heal keeps undoing the emergency scale-up",
+      "context": "Orders traffic tripled. The developer ran kubectl scale to 12 replicas; self-heal put it back to 4 within seconds, twice. Git says replicas: 4, and an autoscaler is planned for next sprint.",
+      "choices": [
+        {
+          "id": "gitChange",
+          "label": "Change replicas to 12 in Git through a fast-tracked pull request and let Argo CD sync it; note ignoreDifferences on /spec/replicas for when the autoscaler owns the field",
+          "effects": [
+            {
+              "set": "heal",
+              "to": "\"gitChange\""
+            },
+            {
+              "set": "healAt",
+              "to": "t"
+            },
+            {
+              "log": "The pull request merges; Argo CD syncs 12 replicas and keeps them.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "With self-heal on, the change belongs in desired state. When an autoscaler owns replicas, ignoreDifferences keeps Argo CD from fighting it."
+        },
+        {
+          "id": "healOff",
+          "label": "Turn self-heal off for the orders app so the manual scale sticks",
+          "effects": [
+            {
+              "set": "heal",
+              "to": "\"healOff\""
+            },
+            {
+              "set": "healAt",
+              "to": "t"
+            },
+            {
+              "log": "Self-heal off; the 12 replicas stay, Git still says 4.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works today, but the live state now differs from Git silently, and the next sync puts it back to 4."
+        },
+        {
+          "id": "fight",
+          "label": "Put kubectl scale in a loop every 10 seconds until traffic drops",
+          "effects": [
+            {
+              "set": "heal",
+              "to": "\"fight\""
+            },
+            {
+              "set": "healAt",
+              "to": "t"
+            },
+            {
+              "log": "The loop and self-heal fight over the replica count.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Fighting the reconciler makes Pods start and stop every few seconds; orders time out while they flap."
+        }
+      ]
+    },
+    "hookPrompt": {
+      "title": "The new release needs its schema migration first",
+      "context": "The release adds a column. Argo CD applies the migration Job and the new Deployment in the same wave, so new Pods start before the column exists and crash; old Pods still serve.",
+      "choices": [
+        {
+          "id": "presync",
+          "label": "Make the migration a PreSync hook (argocd.argoproj.io/hook: PreSync, hook-delete-policy BeforeHookCreation) so it completes before the Deployment is applied, and sync",
+          "effects": [
+            {
+              "set": "hook",
+              "to": "\"presync\""
+            },
+            {
+              "set": "hookAt",
+              "to": "t"
+            },
+            {
+              "log": "The PreSync migration runs, then the Deployment rolls out cleanly.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A PreSync hook (or an earlier sync wave) makes the order part of desired state, for every future sync."
+        },
+        {
+          "id": "manualJob",
+          "label": "Run the migration by hand with kubectl, then press Sync again",
+          "effects": [
+            {
+              "set": "hook",
+              "to": "\"manualJob\""
+            },
+            {
+              "set": "hookAt",
+              "to": "t"
+            },
+            {
+              "log": "You run the Job by hand; the next sync rolls out.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It gets today's release out, but the order lives in your head: the next release with a migration crashes the same way."
+        },
+        {
+          "id": "replace",
+          "label": "Force a sync with Replace=true so everything is recreated together",
+          "effects": [
+            {
+              "set": "hook",
+              "to": "\"replace\""
+            },
+            {
+              "set": "hookAt",
+              "to": "t"
+            },
+            {
+              "log": "Argo CD replaces the resources; the old Pods go too.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Replace does not order anything; it recreated the Deployment, so the old Pods that were still serving went too."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the change record for the platform team: what the diff showed and how the prune was handled, and how the scale-up and the migration were made part of desired state.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "The prune",
+          "criteria": "Names the 14 pruned resources, the database among them, and how Prune=false and the new app's adoption kept it, with automation paused while it happened.",
+          "modelAnswer": "The diff pruned the orders database's StatefulSet and claim because they moved to orders-db. We paused automation, annotated them Prune=false, let orders-db adopt them and resumed."
+        },
+        {
+          "label": "Desired state",
+          "criteria": "The scale-up went through Git (with ignoreDifferences for a future autoscaler) and the migration became a PreSync hook, instead of fighting self-heal or forcing a replace.",
+          "modelAnswer": "Self-heal reverted the manual scale, so we changed replicas in Git. The migration now runs as a PreSync hook, so new Pods never start before the column exists."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3600,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "Service restored and the work closed within 60 minutes of the first report."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No fault introduced by the response itself."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (prune == \"manualOff\") and (heal == \"healOff\") and (hook == \"manualJob\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "Linux Foundation, Certified Argo Project Associate (CAPA) exam page: Argo Workflows 36%, Argo CD 34%, Argo Rollouts 18%, Argo Events 12%",
+        "checkedAt": "2026-11-17",
+        "url": "https://training.linuxfoundation.org/certification/lfs256-capa/",
+        "note": "Read 2026-11-17 through a summarizing fetch of the Linux Foundation's page (last modified 2026-05-06). Its Argo Workflows topics are workflow fundamentals, artifacts, templates, the workflow spec, DAGs ('Work with DAG (Directed-Acyclic Graphs)') and data processing jobs; it does not mention retries or exit handlers. A study page (kube-dojo.github.io/k8s/capa, same weights) lists retryStrategy, backoff and exit handlers as study topics. The objective wording is the course seed's. Reused for REQ-336 from this course's argo-nightly-dag-region-failure (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "pruneHarm": {
+      "label": "The database pruned",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and prune == \"letPrune\"",
+      "narrative": "The automated sync pruned the orders database and its volume; orders were down until last night's backup was restored."
+    },
+    "healHarm": {
+      "label": "Pods flapping under load",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and heal == \"fight\"",
+      "narrative": "A scale loop fought self-heal through the spike; Pods flapped and a third of orders timed out."
+    },
+    "hookHarm": {
+      "label": "Orders down after a forced replace",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and hook == \"replace\"",
+      "narrative": "The forced Replace=true sync recreated the Deployment; the old Pods stopped and the new ones crashed on the missing column."
+    },
+    "target": {
+      "label": "Synced safely, every change in desired state",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (prune == \"protect\") and (heal == \"gitChange\") and (hook == \"presync\") and record == \"honest\" and missCount <= newFaults and timeAt(doneAt) <= restoreWindow",
+      "narrative": "The refactor went live with the database intact, the spike served from Git's 12 replicas and the release migrated before it rolled out."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "pruneHarm",
+    "healHarm",
+    "hookHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "pruneCrit",
+        "label": "Stopped the destructive prune before it ran and let the new application adopt the database",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "prune == \"protect\"",
+            "score": "met",
+            "why": "Paused, protected with Prune=false and adopted."
+          },
+          {
+            "when": "prune == \"manualOff\"",
+            "score": "partial",
+            "why": "Safe but left OutOfSync."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The prune deleted the database."
+          }
+        ]
+      },
+      {
+        "id": "healCrit",
+        "label": "Made the scale-up a change to desired state instead of fighting the reconciler",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "heal == \"gitChange\"",
+            "score": "met",
+            "why": "Changed in Git; the reconciler agrees."
+          },
+          {
+            "when": "heal == \"healOff\"",
+            "score": "partial",
+            "why": "Works, but drift is left in place."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Fought the reconciler."
+          }
+        ]
+      },
+      {
+        "id": "hookCrit",
+        "label": "Ordered the migration before the Deployment with a hook or a wave",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "hook == \"presync\"",
+            "score": "met",
+            "why": "Ordered by a PreSync hook."
+          },
+          {
+            "when": "hook == \"manualJob\"",
+            "score": "partial",
+            "why": "Fixed once, by hand."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Replace=true took the serving Pods down."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(diffAt) and not isNull(policyAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(diffAt) or not isNull(policyAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the diff before the next automated sync, and the application's sync policy."
+      },
+      {
+        "at": "Check-in 1",
+        "text": "Pause automation, protect the database with Prune=false, sync orders-db to adopt it, then resume."
+      },
+      {
+        "at": "Check-in 2",
+        "text": "Make the scale-up a Git change, and plan ignoreDifferences for the autoscaler."
+      },
+      {
+        "at": "Check-in 3",
+        "text": "Make the migration a PreSync hook so it runs before the Deployment on every sync."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "pruneHarm": {
+        "headline": "A prune applies the diff, read or not",
+        "body": "Automated sync with prune deletes whatever left the path. Read the diff; protect stateful resources with Prune=false while another app adopts them."
+      },
+      "healHarm": {
+        "headline": "Never fight the reconciler",
+        "body": "With self-heal on, change desired state. A manual change is reverted; a loop against it makes things worse."
+      },
+      "hookHarm": {
+        "headline": "Replace is not ordering",
+        "body": "Replace=true can be destructive. Order the migration with a PreSync hook or a sync wave."
+      },
+      "target": {
+        "headline": "Good: synced safely, every change in desired state",
+        "body": "The diff was read and the prune stopped, the scale-up went through Git, and the migration was ordered by a hook."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Automated sync with prune applies whatever the diff says: resources that leave an app's path are deleted, and with a Delete reclaim policy the data goes with the claim. Read the diff, pause automation, protect stateful resources with the Prune=false sync option and let the new application adopt them. With self-heal on, a manual change is reverted, so the scale-up belongs in Git, and a field an autoscaler owns belongs in ignoreDifferences. Ordering is part of desired state too: a PreSync hook or an earlier sync wave runs the migration before the Deployment; Replace=true orders nothing and can be destructive."
+  }
+}

@@ -657,6 +657,9 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("NCLEXPN", "clinic-eviction-no-way-out"),
   entry("NCLEXRN", "voices-say-he-should-die"),
   // ---- end REQ-329 ----
+  // ---- REQ-336 (docs/sims.md 22.40): depth for the CNCF ecosystem, CompTIA, security and project-management courses (depth-infra-sec-pm). New cases and their bands; lib/sim/depth-isp.ts lists them by slug. Keep these entries together. ----
+  entry("CAPA", "argocd-prune-moved-database"),
+  // ---- end REQ-336 ----
 ];
 
 // REQ-312: the data and code console documents (docs/sims.md 22.25), by
