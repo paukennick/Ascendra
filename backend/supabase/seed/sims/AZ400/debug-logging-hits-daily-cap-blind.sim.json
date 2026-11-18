@@ -1,0 +1,876 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "debug-logging-hits-daily-cap-blind",
+  "title": "Blind: Application Insights went silent at 11:20, mid-incident",
+  "screen": {
+    "type": "terminal",
+    "level": 1,
+    "terminal": {
+      "prompt": "devops@cloudshell:~$",
+      "lines": [
+        {
+          "id": "page",
+          "text": "12:10 checkout errors since ~11:00; Application Insights empty since 11:20; on-sale 13:00",
+          "when": "true",
+          "at": "0",
+          "error": "true"
+        },
+        {
+          "id": "miss",
+          "text": "13:00: on-sale, checkout failing blind",
+          "when": "not isNull(missAt)",
+          "at": "timeAt(missAt)",
+          "error": "true"
+        },
+        {
+          "id": "ok",
+          "text": "13:00: on-sale, checkout healthy",
+          "when": "not isNull(okAt)",
+          "at": "timeAt(okAt)"
+        }
+      ],
+      "nodes": [
+        {
+          "id": "app",
+          "label": "checkout-api (App Service)",
+          "spokenLabel": "the checkout service",
+          "kind": "telemetry to App Insights",
+          "status": "{fixed and not harmed ? \"logging Information\" : \"logging Debug, 40x volume\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        },
+        {
+          "id": "law",
+          "label": "Workspace law-tickets",
+          "spokenLabel": "the workspace",
+          "kind": "daily cap 20 GB",
+          "status": "{harmed ? \"deleted and recreated\" : fixed ? \"ingesting, cap raised for today\" : \"cap reached 11:20, ingestion stopped\"}",
+          "tone": "harmed ? \"down\" : fixed ? \"up\" : \"down\""
+        },
+        {
+          "id": "team",
+          "label": "On-call dashboards",
+          "spokenLabel": "the team's view",
+          "kind": "live telemetry",
+          "status": "{fixed and not harmed ? \"errors visible\" : \"empty since 11:20\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ],
+      "links": [
+        {
+          "id": "l1",
+          "from": "app",
+          "to": "law",
+          "label": "telemetry",
+          "status": "{fixed and not harmed ? \"ingested\" : \"dropped over quota\"}",
+          "tone": "fixed and not harmed ? \"up\" : \"down\""
+        }
+      ]
+    }
+  },
+  "objective": "Configuring collection of telemetry using Azure Monitor Application Insights, Azure VM Insights, Azure Container Insights, Azure Monitor for Storage, and Azure Monitor for Networks",
+  "secondaryObjectives": [
+    "Interrogating logs using basic Kusto Query Language (KQL) queries",
+    "Configuring alerts for events in GitHub Actions and Azure Pipelines"
+  ],
+  "sources": [
+    {
+      "cite": "Microsoft Learn, Study guide for Exam AZ-400: Designing and Implementing Microsoft DevOps Solutions (page last updated 2026-10-30): processes and communications 10-15%, source control strategy 10-15%, build and release pipelines 50-55%, security and compliance plan 10-15%, instrumentation strategy 5-10%",
+      "checkedAt": "2026-11-17",
+      "url": "https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-400",
+      "note": "Read through a summarizing fetch on 2026-11-17. Bullets quoted there: 'Design a deployment strategy, including blue-green, canary, ring, progressive exposure, feature flags, and A/B testing'; 'Implement feature flags by using Azure App Configuration Feature Manager'; 'Plan for minimizing downtime during deployments by using load balancing, rolling deployments, and deployment slot usage and swap'. The objective wording is the course seed's. (read for this round by an earlier pass on 2026-11-17) (read for this round by an earlier pass on 2026-11-17)"
+    },
+    {
+      "cite": "Microsoft Learn (Azure Monitor), Set daily cap on Log Analytics workspace",
+      "checkedAt": "2026-11-18",
+      "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/daily-cap",
+      "note": "Read through a summarizing fetch on 2026-11-18. When the cap is reached, collection of billable data stops 'for the rest of a 24-hour period'; 'When the daily cap is met, you are effectively blind to the current state of your monitored environment'; 'Data collection resumes at the reset time which is a different hour of the day for each workspace. This reset hour can't be configured'; the cap 'should not be used as a primary mechanism to filter or reduce data before ingestion... Instead, use ingestion-time transformations'; create an alert before the cap is hit; sample query: _LogOperation | where Category =~ 'Ingestion' | where Detail contains 'OverQuota'. That a workspace-based Application Insights resource stops showing new telemetry when its workspace cap is reached is the author's reading of the same page."
+    }
+  ],
+  "brief": {
+    "situation": "You are the DevOps engineer at Halden Ticketing. Checkout errors started around 11:00, but Application Insights shows no telemetry at all since 11:20: no requests, no exceptions, no traces. The workspace-based resource writes to workspace law-tickets, which has a 20 GB daily cap. This morning's 10:05 release changed the log level. The 13:00 on-sale for a stadium tour needs checkout working, and the team cannot debug blind.",
+    "handover": [
+      "The workspace's cap resets at 02:00 (fixed per workspace).",
+      "The release pipeline sets Logging__LogLevel__Default from a variable group."
+    ],
+    "howItWorks": [
+      "The terminal shows each command's output; the diagram shows the checkout service's telemetry, the workspace's daily cap and the dashboards the team reads.",
+      "Each command takes a minute or two; the clock moves only when you act or wait.",
+      "When you close, you write the record and explain your reasoning."
+    ]
+  },
+  "clock": {
+    "start": "12:10",
+    "tick": "1min",
+    "maxDuration": "600min",
+    "calendar": "clock"
+  },
+  "params": {
+    "deadlineAt": {
+      "value": 3000,
+      "unit": "s",
+      "source": {
+        "cite": "Scenario data (authored)",
+        "checkedAt": "2026-11-17",
+        "note": "The on-sale starts at 13:00, 50 minutes after the page; the team needs telemetry to find the checkout errors before then."
+      }
+    }
+  },
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "fixed": {
+      "type": "bool",
+      "init": false
+    },
+    "planned": {
+      "type": "bool",
+      "init": false
+    },
+    "harmed": {
+      "type": "bool",
+      "init": false
+    },
+    "tried": {
+      "type": "bool",
+      "init": false
+    },
+    "verifiedAt": {
+      "type": "time",
+      "init": null
+    },
+    "quotaAt": {
+      "type": "time",
+      "init": null
+    },
+    "volumeAt": {
+      "type": "time",
+      "init": null
+    },
+    "loglevelAt": {
+      "type": "time",
+      "init": null
+    },
+    "capAt": {
+      "type": "time",
+      "init": null
+    },
+    "okAt": {
+      "type": "time",
+      "init": null
+    },
+    "missAt": {
+      "type": "time",
+      "init": null
+    },
+    "causeDoc": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "cap",
+        "outage",
+        "sdk"
+      ],
+      "init": "unset"
+    },
+    "closedAt": {
+      "type": "time",
+      "init": null
+    },
+    "documented": {
+      "type": "bool",
+      "init": false
+    }
+  },
+  "derived": {},
+  "processes": [],
+  "phases": {
+    "incident": {
+      "label": "Outage in progress",
+      "clock": "turns",
+      "actions": [
+        "quota",
+        "volume",
+        "loglevel",
+        "cap",
+        "restore",
+        "guard",
+        "recreate",
+        "restart",
+        "verify",
+        "watch",
+        "closeOutage"
+      ]
+    },
+    "report": {
+      "label": "Write-up",
+      "clock": "stopped",
+      "actions": [
+        "document"
+      ]
+    }
+  },
+  "initialPhase": "incident",
+  "actions": {
+    "quota": {
+      "label": "Ingestion operations: was the daily cap hit?",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(quotaAt)",
+          "then": [
+            {
+              "set": "quotaAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@cloudshell:~$ az monitor log-analytics query -w law-tickets --analytics-query \"_LogOperation | where Category =~ 'Ingestion' | where Detail contains 'OverQuota' | take 1\" -o tsv\n{fixed and not harmed ? \"(none since the cap was raised at 12:2x)\" : \"2026-11-18T11:20:04Z Ingestion OverQuota: daily cap of 20 GB reached; collection stops until 02:00\"}"
+        },
+        {
+          "finding": "The workspace hit its daily cap at 11:20: collection is stopped until the reset."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "volume": {
+      "label": "Ingested volume by table today, against yesterday",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(volumeAt)",
+          "then": [
+            {
+              "set": "volumeAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@cloudshell:~$ az monitor log-analytics query -w law-tickets --analytics-query \"Usage | where TimeGenerated > startofday(now()) | summarize GB=sum(Quantity)/1000 by DataType\" -o tsv\nAppTraces 18.7 (yesterday 0.4)\nAppRequests 0.9\nAppExceptions 0.1"
+        },
+        {
+          "finding": "Traces jumped 40-fold today: the release turned on Debug logging."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "loglevel": {
+      "label": "The log level the 10:05 release set",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(loglevelAt)",
+          "then": [
+            {
+              "set": "loglevelAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@cloudshell:~$ az webapp config appsettings list -g rg-tickets -n checkout-api --query \"[?name=='Logging__LogLevel__Default'].value\" -o tsv\nDebug"
+        },
+        {
+          "finding": "Debug was meant for staging; the variable group was shared."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "cap": {
+      "label": "The workspace's cap and reset time",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "isNull(capAt)",
+          "then": [
+            {
+              "set": "capAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@cloudshell:~$ az monitor log-analytics workspace show -g rg-tickets -n law-tickets --query 'workspaceCapping' -o json\ndailyQuotaGb: 20, quotaNextResetTime: 2026-11-19T02:00:00Z, dataIngestionStatus: OverQuota"
+        },
+        {
+          "finding": "Waiting for the reset means no telemetry until 02:00."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "1min"
+        }
+      ]
+    },
+    "restore": {
+      "label": "Set the log level back to Information, then raise today's cap to 30 GB so collection resumes",
+      "group": "Fix",
+      "available": "not busy and (not fixed and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "fixed",
+          "to": "true"
+        },
+        {
+          "output": "devops@cloudshell:~$ az webapp config appsettings set -g rg-tickets -n checkout-api --settings Logging__LogLevel__Default=Information\ndevops@cloudshell:~$ az monitor log-analytics workspace update -g rg-tickets -n law-tickets --quota 30"
+        },
+        {
+          "log": "Trace volume drops back to normal, collection resumes under the raised cap, and the next errors reach Application Insights within minutes.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "8min"
+        }
+      ]
+    },
+    "guard": {
+      "label": "Split the variable group per environment, alert at 80% of the cap, and drop Debug traces with an ingestion-time transformation",
+      "group": "Fix",
+      "available": "not busy and (not planned and not harmed)",
+      "why": "Already done, or the system is down.",
+      "effects": [
+        {
+          "set": "planned",
+          "to": "true"
+        },
+        {
+          "output": "devops@cloudshell:~$ (variable groups: logging-staging / logging-prod)\ndevops@cloudshell:~$ az monitor scheduled-query create -n law-cap-80 ... (ingestion > 16 GB today)\ndevops@cloudshell:~$ az monitor data-collection rule update ... transformKql: source | where SeverityLevel > 0"
+        },
+        {
+          "log": "A staging setting cannot reach production again, the cap warns before it bites, and stray Debug traces are dropped before ingestion instead of by the cap.",
+          "kind": "good"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "recreate": {
+      "label": "Delete and recreate the workspace to clear the cap",
+      "group": "Fix",
+      "available": "not busy and (not harmed)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "harmed",
+          "to": "true"
+        },
+        {
+          "output": "devops@cloudshell:~$ az monitor log-analytics workspace delete -g rg-tickets -n law-tickets --yes && az monitor log-analytics workspace create ...\n(created; App Insights still points at the deleted workspace)"
+        },
+        {
+          "log": "Months of history and the incident's first hour of telemetry are gone, and the app's telemetry has nowhere to land.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "restart": {
+      "label": "Restart checkout-api",
+      "group": "Fix",
+      "available": "not busy and (not harmed and not tried)",
+      "why": "Already done.",
+      "effects": [
+        {
+          "set": "tried",
+          "to": "true"
+        },
+        {
+          "output": "devops@cloudshell:~$ az webapp restart -g rg-tickets -n checkout-api\n(restarted; still logging Debug)"
+        },
+        {
+          "log": "The restart changes neither the cap nor the log level: nothing is ingested until 02:00.",
+          "kind": "bad"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "3min"
+        }
+      ]
+    },
+    "verify": {
+      "label": "Check that telemetry is flowing and errors are visible",
+      "group": "Look",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "verifiedAt",
+              "to": "t"
+            }
+          ]
+        },
+        {
+          "output": "devops@cloudshell:~$ az monitor app-insights query --app ai-checkout --analytics-query 'exceptions | where timestamp > ago(10m) | summarize count() by type' -o tsv\n{harmed ? \"(no rows: workspace not found)\" : fixed ? \"PaymentTimeoutException 212\n(collection resumed 12:2x)\" : \"(no rows: workspace over quota)\"}"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "2min"
+        }
+      ]
+    },
+    "watch": {
+      "label": "Keep watching (5 min)",
+      "group": "Wait",
+      "available": "not busy",
+      "why": "Wait for the running command to finish.",
+      "effects": [
+        {
+          "log": "You watch for 5 minutes.",
+          "kind": "act"
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "5min"
+        }
+      ]
+    },
+    "closeOutage": {
+      "label": "Close the outage and write the record",
+      "group": "Close",
+      "available": "not busy",
+      "why": "Wait for the running task to finish.",
+      "effects": [
+        {
+          "cancel": "work"
+        },
+        {
+          "set": "busy",
+          "to": "false"
+        },
+        {
+          "set": "closedAt",
+          "to": "t"
+        },
+        {
+          "log": "You close the outage.",
+          "kind": "act"
+        },
+        {
+          "phase": "report"
+        }
+      ]
+    },
+    "document": {
+      "label": "Write the incident record",
+      "group": "Report",
+      "available": "not documented",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "record",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "cause",
+              "label": "Cause",
+              "options": [
+                {
+                  "value": "cap",
+                  "label": "Debug logging from a shared variable group filled the 20 GB daily cap, which stops collection until the reset"
+                },
+                {
+                  "value": "outage",
+                  "label": "Application Insights had an outage"
+                },
+                {
+                  "value": "sdk",
+                  "label": "The SDK was removed in the release"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "causeDoc",
+          "to": "cause"
+        },
+        {
+          "log": "Recorded: {cause}.",
+          "kind": "act"
+        },
+        {
+          "set": "documented",
+          "to": "true"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Task running",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario timing (REQ-335)",
+        "checkedAt": "2026-11-17",
+        "note": "How many minutes each command or task takes, and when the fictional problem spreads, are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "deadline",
+      "when": "t >= deadlineAt and phase == \"incident\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "if": "fixed and not harmed",
+          "then": [
+            {
+              "set": "okAt",
+              "to": "t"
+            },
+            {
+              "log": "13:00: the on-sale runs; the checkout fix found in the telemetry is live.",
+              "kind": "good"
+            }
+          ],
+          "else": [
+            {
+              "set": "missAt",
+              "to": "t"
+            },
+            {
+              "log": "13:00: the on-sale starts with checkout failing and no telemetry.",
+              "kind": "alarm"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "writeUp",
+      "when": "phase == \"report\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "writeup"
+        }
+      ]
+    }
+  ],
+  "reasoning": {
+    "writeup": {
+      "question": "For the record: why telemetry stopped, what you changed, and what stops a repeat.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Why",
+          "criteria": "Reads the quota event.",
+          "modelAnswer": "The 10:05 release set Debug from a variable group shared with staging; traces rose 40-fold and the workspace hit its 20 GB cap at 11:20, which stops collection until the 02:00 reset."
+        },
+        {
+          "label": "Changed",
+          "criteria": "Volume down, cap up.",
+          "modelAnswer": "Set the log level to Information and raised today's cap to 30 GB; collection resumed and the payment timeouts showed. Deleting the workspace destroys history; a restart changes nothing."
+        },
+        {
+          "label": "Repeat",
+          "criteria": "Separate and filter.",
+          "modelAnswer": "Per-environment variable groups, an alert at 80% of the cap, and an ingestion-time transformation that drops Debug traces."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "infrastructure",
+    "thresholds": {
+      "restoreWindow": {
+        "value": 3000,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10), tightened for this case",
+          "checkedAt": "2026-11-17",
+          "note": "The on-sale starts at 13:00, 50 minutes after the page; the team needs telemetry to find the checkout errors before then."
+        }
+      },
+      "newFaults": {
+        "value": 0,
+        "source": {
+          "cite": "Infrastructure outcome profile (docs/sims.md 9.2, 22.10)",
+          "checkedAt": "2026-11-17",
+          "note": "No second fault: The workspace and its history were deleted to clear a cap."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "documented and not fixed and not harmed",
+      "class": "harm",
+      "rationale": "Closing with the workspace over its cap leaves the on-sale blind.",
+      "source": {
+        "cite": "Microsoft Learn (Azure Monitor), Set daily cap on Log Analytics workspace",
+        "checkedAt": "2026-11-18",
+        "url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/daily-cap",
+        "note": "Read through a summarizing fetch on 2026-11-18. When the cap is reached, collection of billable data stops 'for the rest of a 24-hour period'; 'When the daily cap is met, you are effectively blind to the current state of your monitored environment'; 'Data collection resumes at the reset time which is a different hour of the day for each workspace. This reset hour can't be configured'; the cap 'should not be used as a primary mechanism to filter or reduce data before ingestion... Instead, use ingestion-time transformations'; create an alert before the cap is hit; sample query: _LogOperation | where Category =~ 'Ingestion' | where Detail contains 'OverQuota'. That a workspace-based Application Insights resource stops showing new telemetry when its workspace cap is reached is the author's reading of the same page."
+      }
+    }
+  },
+  "endings": {
+    "historyLost": {
+      "label": "Telemetry history deleted",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and harmed",
+      "narrative": "Recreating the workspace deleted months of history and still left checkout's telemetry with nowhere to go."
+    },
+    "onsaleBlind": {
+      "label": "On-sale with checkout failing blind",
+      "class": "harm",
+      "terminal": true,
+      "when": "documented and not isNull(missAt)",
+      "narrative": "At 13:00 the workspace was still over its cap and checkout errors were unexplained."
+    },
+    "telemetryBack": {
+      "label": "Telemetry back, volume fixed, guarded",
+      "class": "target",
+      "terminal": true,
+      "when": "documented and fixed and planned and not harmed and isNull(missAt) and not isNull(quotaAt) and not isNull(volumeAt) and not isNull(verifiedAt) and causeDoc == \"cap\"",
+      "narrative": "Debug logging is off, collection resumed, the team found the payment timeouts, and the cap now warns early."
+    },
+    "gaps": {
+      "label": "Held, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "documented",
+      "narrative": "Telemetry is back, but the variable group split, the alert, the transformation, the check or the record was left."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "The run reached its time limit with no record written."
+    }
+  },
+  "endingOrder": [
+    "historyLost",
+    "onsaleBlind",
+    "telemetryBack",
+    "gaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "diagnose",
+        "label": "Read the quota event and the volume by table",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(quotaAt) and not isNull(volumeAt)",
+            "score": "met",
+            "why": "The key evidence, read before changing anything."
+          },
+          {
+            "when": "not isNull(quotaAt) or not isNull(volumeAt) or not isNull(loglevelAt) or not isNull(capAt)",
+            "score": "partial",
+            "why": "Part of the picture."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Changed things without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "fix",
+        "label": "Telemetry flowing by 13:00, workspace kept",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "fixed and not harmed and isNull(missAt)",
+            "score": "met",
+            "why": "The right change, in time, without harm."
+          },
+          {
+            "when": "fixed or harmed",
+            "score": "partial",
+            "why": "{harmed ? \"The workspace and its history were deleted to clear a cap.\" : \"Late.\"}"
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The cause was never removed."
+          }
+        ]
+      },
+      {
+        "id": "lasting",
+        "label": "Per-environment settings, 80% alert, ingestion filter; flow checked",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "planned and not isNull(verifiedAt)",
+            "score": "met",
+            "why": "The lasting step taken and the result checked."
+          },
+          {
+            "when": "planned or not isNull(verifiedAt)",
+            "score": "partial",
+            "why": "One of the two."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Neither."
+          }
+        ]
+      },
+      {
+        "id": "record",
+        "label": "Record names the cause",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "causeDoc == \"cap\"",
+            "score": "met",
+            "why": "Record right."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "The record names the wrong cause."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "writeup",
+        "label": "Written why, how and what it cost",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "faults",
+        "label": "Changes that caused harm",
+        "value": "harmed ? 1 : 0",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "12:10-12:14",
+        "text": "OverQuota at 11:20; AppTraces 18.7 GB; log level Debug; reset 02:00."
+      },
+      {
+        "at": "12:14-12:24",
+        "text": "Information; cap 30 GB today; split groups, 80% alert, transformation."
+      },
+      {
+        "at": "12:24-12:26",
+        "text": "Exceptions visible: PaymentTimeoutException."
+      }
+    ],
+    "debrief": {
+      "historyLost": {
+        "headline": "Raise the cap; never delete the workspace",
+        "body": "The daily cap is a setting. Lower the volume that caused it and raise the cap for today; deleting the workspace destroys history and breaks every connection to it."
+      },
+      "onsaleBlind": {
+        "headline": "A reached cap means no telemetry until the reset",
+        "body": "When the daily cap is met collection stops for the rest of the 24-hour period; find the volume that caused it and act now."
+      },
+      "telemetryBack": {
+        "headline": "Good: restore visibility, then remove the cause",
+        "body": "You confirmed the cap, found the 40-fold trace volume from Debug logging, set Information and raised today's cap, checked telemetry flowed, and separated environments with an 80% alert and an ingestion filter."
+      },
+      "gaps": {
+        "headline": "Held, with gaps",
+        "body": "The criteria show what was left: the evidence before the change, the lasting step, the check, or the cause in the record."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "No record was written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "No telemetry at all since one minute is a collection problem, not an app one: the workspace logged OverQuota at 11:20. Today's traces are 40 times yesterday's because the release set Debug. Set Information, raise today's cap so collection resumes, and check exceptions arrive. Deleting the workspace loses history; a restart leaves both causes. Then split the settings by environment, alert before the cap, and drop Debug traces at ingestion."
+  }
+}
