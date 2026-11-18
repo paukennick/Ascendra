@@ -1,0 +1,1061 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "header-collision-wants-back-in",
+  "title": "She wants back in",
+  "objective": "Manage concussion with relative rest for the first 24 to 48 hours, then a stepwise return to activity with monitoring; no return to play until a medical provider clears the athlete",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "Specialist certification examination outline: sports (the certifying board's published outline page)",
+      "checkedAt": "2026-11-08",
+      "url": "https://specialization.apta.org/become-a-specialist/sports/specialist-certification-examination-outline-sports",
+      "note": "Relayed from the sports specialty course seed (backend/supabase/seed/tracks/pt-abpts.ts, outline pages read 2026-10-08 and 2026-11-04, OUTLINE_CHECKED_AT 2026-11-08), not re-read: Patient and client clinical intervention (35%) is a tested area. Scope only; no outline wording reproduced."
+    },
+    {
+      "cite": "Ascendra sports specialty course catalog (backend/supabase/seed/tracks/pt-abpts.ts, track ABPTSSCS)",
+      "checkedAt": "2026-11-17",
+      "note": "The objective and secondary objectives are the course's own titles."
+    },
+    {
+      "cite": "Ferry B, et al.. Concussion. StatPearls (updated 2023-01-09), StatPearls Publishing",
+      "checkedAt": "2026-11-04",
+      "note": "Relayed from the course seed (tag SP-CONC; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: relative rest for the first 24 to 48 hours, then a stepwise return to activity with monitoring; no return to play until a medical provider clears the athlete (the course objective's wording)."
+    },
+    {
+      "cite": "CDC HEADS UP: Signs and Symptoms of Concussion (last reviewed 2025-09-15)",
+      "checkedAt": "2026-11-17",
+      "url": "https://cdc.gov/heads-up/signs-symptoms/index.html",
+      "note": "Read 2026-11-17 through a summarizing fetch with quotes: danger signs needing 911 or the emergency department: seizures, not recognizing people or places, 'Repeated nausea or vomiting', increased confusion or agitation, increasing drowsiness, slurred speech, weakness or numbness, 'A headache that gets worse and does not go away', 'One pupil larger than the other or double vision'. The page does not address return to play; that comes from the course objective."
+    },
+    {
+      "cite": "Ascendra teaching model (authored)",
+      "checkedAt": "2026-11-17",
+      "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+    }
+  ],
+  "brief": {
+    "situation": "10:06 at a high school soccer match. You are the sports physical therapist on the sideline. Maya, 15, clashed heads going up for a header a minute ago. She walked off holding her head and says, 'I'm fine, put me back in, it's the semifinal.'",
+    "handover": [
+      "She did not lose consciousness that anyone saw. Her coach wants her back for the second half at 10:30.",
+      "The school's concussion policy and state law: an athlete with a suspected concussion is removed from play and does not return that day; return needs written clearance from a licensed health care provider; danger signs mean 911."
+    ],
+    "howItWorks": [
+      "The clock runs in simulated time; study pace runs three simulated minutes per real minute. Pause any time.",
+      "Each check takes the time on its button. Decide what the findings mean, what to stop or start, and who must know.",
+      "Partway through you are asked to write your reasoning. A debrief scores what you did."
+    ]
+  },
+  "clock": {
+    "start": "10:06",
+    "tick": "5s",
+    "maxDuration": "60min",
+    "calendar": "clock"
+  },
+  "params": {
+    "progRate": {
+      "value": 0.012,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "An expanding bleed would show itself as she is watched; untreated, it worsens. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "slowRate": {
+      "value": 0.004,
+      "unit": "/min",
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "It is being treated once EMS takes her to the hospital. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "harmAt": {
+      "value": 1.0,
+      "source": {
+        "cite": "Ascendra teaching model (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "The authored point of deterioration from a bleed. FLAG. Simplified teaching model written for exam practice; not a validated physiological model."
+      }
+    },
+    "reportWindow": {
+      "value": 300,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "911 within 5 minutes of a danger sign (school concussion policy: at once)."
+      }
+    },
+    "testTime": {
+      "value": 60,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "A focused check: about 1 min."
+      }
+    },
+    "handTime": {
+      "value": 600,
+      "unit": "s",
+      "source": {
+        "cite": "Unit practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS to arrive."
+      }
+    }
+  },
+  "state": {
+    "prog": {
+      "type": "number",
+      "init": 0.4,
+      "min": 0,
+      "max": 2
+    },
+    "symAt": {
+      "type": "time",
+      "init": null
+    },
+    "neckAt": {
+      "type": "time",
+      "init": null
+    },
+    "recheckAt": {
+      "type": "time",
+      "init": null
+    },
+    "testPending": {
+      "type": "bool",
+      "init": false
+    },
+    "pendingTest": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "sym",
+        "neck",
+        "recheck"
+      ],
+      "init": "unset"
+    },
+    "redFlagAt": {
+      "type": "time",
+      "init": null
+    },
+    "callAt": {
+      "type": "time",
+      "init": null
+    },
+    "route": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "ems",
+        "parents"
+      ],
+      "init": "unset"
+    },
+    "leftAt": {
+      "type": "time",
+      "init": null
+    },
+    "dxEnum": {
+      "type": "enum",
+      "values": [
+        "unset",
+        "danger",
+        "fine",
+        "dehyd"
+      ],
+      "init": "unset"
+    },
+    "told": {
+      "type": "bool",
+      "init": false
+    },
+    "benchAt": {
+      "type": "time",
+      "init": null
+    },
+    "playAt": {
+      "type": "time",
+      "init": null
+    },
+    "aloneAt": {
+      "type": "time",
+      "init": null
+    }
+  },
+  "derived": {
+    "hr": {
+      "expr": "round(96 - 30 * max(0, prog - 0.85) + sin(t / 9) * 3)",
+      "unit": "/min",
+      "precision": 0
+    },
+    "pain": {
+      "expr": "round(clamp(3 + 7 * max(0, prog - 0.4), 0, 10))",
+      "unit": "/10",
+      "precision": 0
+    },
+    "inClinic": {
+      "expr": "isNull(leftAt)"
+    },
+    "redSeen": {
+      "expr": "not isNull(redFlagAt)"
+    }
+  },
+  "processes": [
+    {
+      "id": "course",
+      "when": "inClinic",
+      "update": {
+        "prog": "prog + (route == \"ems\" ? slowRate : progRate) * dt / 60"
+      }
+    }
+  ],
+  "screen": {
+    "type": "treatment-session",
+    "level": 1,
+    "treatment": {
+      "patient": {
+        "name": "Maya, 15, soccer midfielder",
+        "presentation": "Head-to-head collision going up for a header at 10:05. {not isNull(benchAt) ? \"Sitting out on the bench.\" : \"\"}"
+      },
+      "vitals": [
+        {
+          "id": "hr",
+          "label": "HR",
+          "spokenLabel": "Heart rate",
+          "value": "hr",
+          "unit": "/min",
+          "colour": "ecg",
+          "alarm": {
+            "high": 130
+          },
+          "announce": {
+            "bands": [
+              115,
+              130
+            ]
+          }
+        },
+        {
+          "id": "pain",
+          "label": "Pain",
+          "spokenLabel": "Pain, out of 10",
+          "value": "pain",
+          "unit": "/10",
+          "colour": "neutral",
+          "alarm": {
+            "high": 8
+          },
+          "announce": {
+            "bands": [
+              6,
+              8
+            ]
+          }
+        }
+      ],
+      "activity": "{not inClinic ? \"Gone by ambulance.\" : (not isNull(playAt) ? \"Back on the field.\" : (not isNull(benchAt) ? \"On the bench with you, under watch.\" : \"Standing on the touchline, holding her head.\"))}",
+      "measures": [
+        {
+          "id": "symResult",
+          "label": "Screen",
+          "result": "Headache, 'foggy', light-sensitive; can't recall the score; unsteady on tandem stance.",
+          "when": "not isNull(symAt)"
+        },
+        {
+          "id": "neckResult",
+          "label": "Neck",
+          "result": "No midline tenderness, full painless range, no arm symptoms.",
+          "when": "not isNull(neckAt)"
+        },
+        {
+          "id": "recheckResult",
+          "label": "Recheck",
+          "result": "Headache worse (7/10), vomited twice, drowsier; pupils equal.",
+          "when": "not isNull(recheckAt)",
+          "flag": "true"
+        }
+      ],
+      "dosage": {
+        "label": "Plan",
+        "items": [
+          {
+            "label": "Removed from play for the day",
+            "when": "not isNull(benchAt)"
+          },
+          {
+            "label": "Serial checks",
+            "when": "not isNull(recheckAt)"
+          }
+        ]
+      },
+      "rules": [
+        {
+          "id": "ruleOut",
+          "label": "Suspected concussion",
+          "text": "Out for the day; no return to play without a medical provider's clearance.",
+          "met": "not isNull(symAt) and isNull(benchAt)"
+        },
+        {
+          "id": "ruleEd",
+          "label": "A danger sign",
+          "text": "Worsening headache, repeated vomiting, drowsiness: 911.",
+          "met": "not isNull(recheckAt) and isNull(callAt)"
+        }
+      ]
+    }
+  },
+  "actions": {
+    "sym": {
+      "label": "Sideline concussion screen: symptoms, orientation, memory, balance",
+      "group": "Examine",
+      "available": "not testPending and isNull(symAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"sym\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "neck": {
+      "label": "Neck screen: midline tenderness, range, arm symptoms",
+      "group": "Examine",
+      "available": "not testPending and isNull(neckAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"neck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "recheck": {
+      "label": "Recheck her symptoms and pupils at 15 minutes",
+      "group": "Examine",
+      "available": "not testPending and isNull(recheckAt) and not isNull(symAt)",
+      "why": "Another test is running, or this one is done.",
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "true"
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"recheck\""
+        },
+        {
+          "schedule": "testT",
+          "after": "testTime"
+        },
+        {
+          "log": "Testing (about 1 min)."
+        }
+      ]
+    },
+    "bench": {
+      "label": "Remove her from play for the day and keep an adult with her",
+      "group": "Treat",
+      "available": "isNull(benchAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "benchAt",
+          "to": "t"
+        },
+        {
+          "log": "Out for the day; you stay with her on the bench.",
+          "kind": "act"
+        }
+      ]
+    },
+    "play": {
+      "label": "Let her go back in for the second half if she feels better at halftime",
+      "group": "Treat",
+      "available": "isNull(playAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "playAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.35, 2)"
+        },
+        {
+          "log": "She goes back on at 10:30 and takes another knock.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "alone": {
+      "label": "Send her to sit in the locker room until the end of the match",
+      "group": "Treat",
+      "available": "isNull(aloneAt) and inClinic",
+      "why": "Already done, or not possible now.",
+      "effects": [
+        {
+          "set": "aloneAt",
+          "to": "t"
+        },
+        {
+          "set": "prog",
+          "to": "min(prog + 0.15, 2)"
+        },
+        {
+          "log": "She goes to the locker room alone.",
+          "kind": "bad"
+        }
+      ]
+    },
+    "diagnose": {
+      "label": "What is happening at 15 minutes?",
+      "group": "Decide",
+      "available": "dxEnum == \"unset\"",
+      "why": "Already recorded.",
+      "params": [
+        {
+          "id": "dx",
+          "kind": "choice",
+          "label": "Impression",
+          "options": [
+            {
+              "value": "danger",
+              "label": "A concussion with danger signs (worsening headache, repeated vomiting, drowsiness): possible bleed; 911"
+            },
+            {
+              "value": "fine",
+              "label": "A mild knock; she can return after halftime if symptom-free"
+            },
+            {
+              "value": "dehyd",
+              "label": "Dehydration and heat"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "cases": [
+            {
+              "when": "dx == \"danger\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"danger\""
+                },
+                {
+                  "log": "Concussion with danger signs.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "dx == \"fine\"",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"fine\""
+                },
+                {
+                  "log": "Read as a knock.",
+                  "kind": "act"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "dxEnum",
+                  "to": "\"dehyd\""
+                },
+                {
+                  "log": "Read as dehydration.",
+                  "kind": "act"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "refer": {
+      "label": "Call",
+      "group": "Decide",
+      "available": "isNull(callAt)",
+      "why": "Already done.",
+      "params": [
+        {
+          "id": "how",
+          "kind": "choice",
+          "label": "What you do",
+          "options": [
+            {
+              "value": "ems",
+              "label": "Call 911: 15-year-old, head clash 10:05, now worsening headache, vomited twice, drowsy; pupils equal; neck cleared"
+            },
+            {
+              "value": "parents",
+              "label": "Call her parents to take her home to rest"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "callAt",
+          "to": "t"
+        },
+        {
+          "cases": [
+            {
+              "when": "how == \"ems\"",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"ems\""
+                },
+                {
+                  "schedule": "leaveT",
+                  "after": "handTime"
+                },
+                {
+                  "log": "EMS arrives and takes her to the emergency department; her parents meet her there.",
+                  "kind": "good"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "route",
+                  "to": "\"parents\""
+                },
+                {
+                  "log": "Her father is on the way to take her home.",
+                  "kind": "sys"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "tell": {
+      "label": "Tell her parents and coach the plan: no return without written provider clearance, then a stepwise return",
+      "group": "Decide",
+      "available": "not told and not isNull(callAt)",
+      "why": "Act on the concern first (or already done).",
+      "effects": [
+        {
+          "set": "told",
+          "to": "true"
+        },
+        {
+          "log": "Her parents and coach know: no return today, written clearance from a licensed provider, then a stepwise return with monitoring.",
+          "kind": "good"
+        }
+      ]
+    }
+  },
+  "phases": {
+    "visit": {
+      "label": "Sideline",
+      "clock": "running",
+      "actions": [
+        "sym",
+        "neck",
+        "recheck",
+        "bench",
+        "play",
+        "alone",
+        "diagnose",
+        "refer",
+        "tell"
+      ]
+    }
+  },
+  "initialPhase": "visit",
+  "timers": {
+    "testT": {
+      "label": "the test",
+      "wait": {
+        "skipLabel": "the test result"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "Each test or question takes the time on its button (authored)."
+      },
+      "effects": [
+        {
+          "set": "testPending",
+          "to": "false"
+        },
+        {
+          "cases": [
+            {
+              "when": "pendingTest == \"sym\"",
+              "then": [
+                {
+                  "set": "symAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Headache, feels foggy and light-sensitive, cannot recall the score or the half, and wobbles on tandem stance: suspected concussion.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "pendingTest == \"neck\"",
+              "then": [
+                {
+                  "set": "neckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "No midline tenderness, full painless neck range, no arm symptoms.",
+                  "kind": "find"
+                }
+              ]
+            },
+            {
+              "when": "true",
+              "then": [
+                {
+                  "set": "recheckAt",
+                  "to": "t"
+                },
+                {
+                  "log": "Her headache is worse, she has vomited twice and is harder to keep awake. Pupils still equal. Danger signs.",
+                  "kind": "find"
+                },
+                {
+                  "if": "isNull(redFlagAt)",
+                  "then": [
+                    {
+                      "set": "redFlagAt",
+                      "to": "t"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "set": "pendingTest",
+          "to": "\"unset\""
+        }
+      ]
+    },
+    "leaveT": {
+      "label": "EMS",
+      "wait": {
+        "skipLabel": "EMS"
+      },
+      "instances": "one",
+      "interruptsSkip": true,
+      "source": {
+        "cite": "Outpatient clinic practice (authored estimate)",
+        "checkedAt": "2026-11-17",
+        "note": "About 10 min for EMS to arrive."
+      },
+      "effects": [
+        {
+          "set": "leftAt",
+          "to": "t"
+        },
+        {
+          "log": "She leaves by ambulance for the emergency department.",
+          "kind": "sys"
+        }
+      ]
+    }
+  },
+  "triggers": [],
+  "reasoning": {
+    "why": {
+      "trigger": "redSeen or t >= 600",
+      "question": "Can Maya go back in, and what do you do when she worsens?",
+      "parts": [
+        {
+          "label": "What and why",
+          "criteria": "A suspected concussion means no return to play that day; worsening headache, repeated vomiting and drowsiness are danger signs of a possible bleed.",
+          "modelAnswer": "She's out for the day no matter how she feels at halftime. And now her headache's worse, she's vomited twice and she's drowsy, so this could be a bleed."
+        },
+        {
+          "label": "What I do",
+          "criteria": "Keeps her out with an adult, rechecks serially, calls 911 for danger signs, and explains that return needs a provider's clearance and then a stepwise progression after relative rest.",
+          "modelAnswer": "Keep her out and with me, recheck her, call 911 now, and tell her parents and coach she can't come back until a provider clears her, then step by step."
+        }
+      ],
+      "pausesClock": true
+    }
+  },
+  "outcome": {
+    "profile": "physical-therapy",
+    "thresholds": {
+      "stopWindow": {
+        "value": 120,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "spo2Floor": {
+        "value": 88,
+        "source": {
+          "cite": "Ascendra teaching model (authored)",
+          "checkedAt": "2026-11-17",
+          "note": "Simplified teaching model written for exam practice; not a validated physiological model. Disease courses, effect sizes and local waits are authored and carry FLAG."
+        }
+      },
+      "escalateWindow": {
+        "value": 300,
+        "source": {
+          "cite": "Unit practice (authored estimate)",
+          "checkedAt": "2026-11-17",
+          "note": "911 within 5 minutes of a danger sign (school concussion policy: at once)."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "inClinic and t >= 3599",
+      "class": "harm",
+      "rationale": "Concussion danger signs unescalated an hour on are harm here.",
+      "source": {
+        "cite": "CDC HEADS UP: Signs and Symptoms of Concussion (last reviewed 2025-09-15)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cdc.gov/heads-up/signs-symptoms/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: danger signs needing 911 or the emergency department: seizures, not recognizing people or places, 'Repeated nausea or vomiting', increased confusion or agitation, increasing drowsiness, slurred speech, weakness or numbness, 'A headache that gets worse and does not go away', 'One pupil larger than the other or double vision'. The page does not address return to play; that comes from the course objective."
+      }
+    }
+  },
+  "endings": {
+    "bleed": {
+      "label": "Deterioration from a bleed",
+      "class": "harm",
+      "terminal": true,
+      "when": "prog >= harmAt and inClinic",
+      "narrative": "She becomes hard to rouse and one pupil enlarges; EMS is called late and she needs emergency neurosurgery."
+    },
+    "safe": {
+      "label": "Removed, watched, sent",
+      "class": "target",
+      "terminal": true,
+      "when": "not inClinic and route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow and isNull(playAt) and isNull(aloneAt) and (not isNull(benchAt)) and (not isNull(recheckAt))",
+      "narrative": "{timeAt(leftAt)|clock}: she is on her way to the emergency department, with a return-to-play plan understood."
+    },
+    "safeGaps": {
+      "label": "Sent, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "not inClinic",
+      "narrative": "{timeAt(leftAt)|clock}: she reaches the hospital, but 911 was slow, or she was returned to play or left alone."
+    },
+    "time_up": {
+      "label": "Still on the sideline at 11:06",
+      "class": "harm",
+      "terminal": true,
+      "narrative": "11:06 and no one has called."
+    }
+  },
+  "endingOrder": [
+    "bleed",
+    "safe",
+    "safeGaps"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "reportC",
+        "label": "911 within 5 minutes of the danger signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "route == \"ems\" and timeAt(callAt) <= timeAt(redFlagAt) + reportWindow",
+            "score": "met",
+            "why": "At {timeAt(callAt)|clock}."
+          },
+          {
+            "when": "route == \"ems\"",
+            "score": "partial",
+            "why": "Late."
+          },
+          {
+            "when": "not isNull(callAt)",
+            "score": "missed",
+            "why": "Not the right route."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not escalated."
+          }
+        ]
+      },
+      {
+        "id": "outC",
+        "label": "Out for the day with an adult watching, not returned to play",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(playAt) or not isNull(aloneAt)",
+            "score": "missed",
+            "why": "Returned to play or left alone."
+          },
+          {
+            "when": "not isNull(benchAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not removed."
+          }
+        ]
+      },
+      {
+        "id": "watchC",
+        "label": "Rechecked serially for danger signs",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "not isNull(recheckAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "No recheck."
+          }
+        ]
+      },
+      {
+        "id": "lookC",
+        "label": "Screened her neck",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(neckAt)",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      },
+      {
+        "id": "dxC",
+        "label": "Recognized danger signs on top of a concussion",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "dxEnum == \"danger\"",
+            "score": "met",
+            "why": "Right."
+          },
+          {
+            "when": "dxEnum == \"fine\"",
+            "score": "missed",
+            "why": "No same-day return; and now danger signs."
+          },
+          {
+            "when": "dxEnum == \"dehyd\"",
+            "score": "missed",
+            "why": "After a head clash, this is a head injury."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not recorded."
+          }
+        ]
+      },
+      {
+        "id": "told",
+        "label": "Explained the return-to-play rule",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "told",
+            "score": "met",
+            "why": "Done."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Not done."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "why",
+        "label": "Written reasoning: suspected concussion means out today; danger signs mean 911; return only with clearance and stepwise",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "toReport",
+        "label": "Danger signs to 911",
+        "value": "isNull(callAt) or isNull(redFlagAt) ? -1 : max(0, timeAt(callAt) - timeAt(redFlagAt))",
+        "format": "duration",
+        "expert": "under 4 min"
+      },
+      {
+        "id": "toKey",
+        "label": "10:06 to out of play",
+        "value": "isNull(benchAt) ? -1 : timeAt(benchAt)",
+        "format": "duration",
+        "expert": "under 3 min"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "10:06",
+        "text": "Sideline screen: suspected concussion."
+      },
+      {
+        "at": "~10:07",
+        "text": "Out for the day; you stay with her."
+      },
+      {
+        "at": "~10:20",
+        "text": "Recheck: worse headache, vomiting, drowsy: 911."
+      },
+      {
+        "at": "~10:22",
+        "text": "Neck cleared; explain the clearance rule."
+      }
+    ],
+    "debrief": {
+      "bleed": {
+        "headline": "Deterioration from a bleed",
+        "body": "Suspected concussion: out for the day, an adult watching, serial checks. Worsening headache, repeated vomiting or drowsiness mean 911."
+      },
+      "safe": {
+        "headline": "Removed, watched, sent",
+        "body": "You removed her from play, watched her, caught the danger signs on recheck and called 911 within minutes. That is the expert path."
+      },
+      "safeGaps": {
+        "headline": "Sent, with gaps",
+        "body": "Check whether she was kept out with an adult, whether you rechecked, and how soon you called."
+      },
+      "time_up": {
+        "headline": "Still on the sideline at 11:06",
+        "body": "Danger signs need 911 now."
+      }
+    },
+    "modelReasoning": "An athlete with a suspected concussion is removed from play and does not return that day; return needs clearance from a medical provider, after relative rest for the first 24 to 48 hours and a stepwise return with monitoring. Watch for danger signs, which mean 911: a headache that gets worse and does not go away, repeated vomiting, increasing drowsiness, confusion, slurred speech, weakness, seizures or unequal pupils. Maya has three of them at 15 minutes."
+  },
+  "chapters": [
+    {
+      "id": "escalated",
+      "label": "Escalated",
+      "when": "not isNull(callAt)"
+    }
+  ],
+  "teaching": {
+    "rtpQ": {
+      "during": "leaveT",
+      "ask": "While EMS takes her: when can she return to soccer?",
+      "choices": [
+        {
+          "id": "clear",
+          "label": "After relative rest, a stepwise return, and a medical provider's clearance"
+        },
+        {
+          "id": "tom",
+          "label": "Tomorrow if she feels fine"
+        },
+        {
+          "id": "half",
+          "label": "Today after halftime"
+        }
+      ],
+      "expect": "clear",
+      "explain": "Relative rest for 24 to 48 hours, then a stepwise return with monitoring; no return to play until a medical provider clears the athlete.",
+      "source": {
+        "cite": "Ferry B, et al.. Concussion. StatPearls (updated 2023-01-09), StatPearls Publishing",
+        "checkedAt": "2026-11-04",
+        "note": "Relayed from the course seed (tag SP-CONC; read 2026-11-04 from NCBI's StatPearls literature-archive snapshot), not re-read: relative rest for the first 24 to 48 hours, then a stepwise return to activity with monitoring; no return to play until a medical provider clears the athlete (the course objective's wording)."
+      }
+    },
+    "dangerQ": {
+      "during": "testT",
+      "ask": "While you recheck: which are concussion danger signs?",
+      "choices": [
+        {
+          "id": "d",
+          "label": "A worsening headache, repeated vomiting, increasing drowsiness"
+        },
+        {
+          "id": "mild",
+          "label": "A mild headache that is easing"
+        },
+        {
+          "id": "none",
+          "label": "Being thirsty"
+        }
+      ],
+      "expect": "d",
+      "explain": "A headache that gets worse and does not go away, repeated nausea or vomiting and increasing drowsiness mean 911 or the emergency department.",
+      "source": {
+        "cite": "CDC HEADS UP: Signs and Symptoms of Concussion (last reviewed 2025-09-15)",
+        "checkedAt": "2026-11-17",
+        "url": "https://cdc.gov/heads-up/signs-symptoms/index.html",
+        "note": "Read 2026-11-17 through a summarizing fetch with quotes: danger signs needing 911 or the emergency department: seizures, not recognizing people or places, 'Repeated nausea or vomiting', increased confusion or agitation, increasing drowsiness, slurred speech, weakness or numbness, 'A headache that gets worse and does not go away', 'One pupil larger than the other or double vision'. The page does not address return to play; that comes from the course objective."
+      }
+    }
+  },
+  "safetyNote": "Teaching case for exam practice; fictional patient. Not medical advice."
+}
