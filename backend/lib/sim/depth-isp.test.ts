@@ -90,7 +90,10 @@ describe("REQ-336: the depth round's documents", () => {
   });
 
   test("the goldens reach every ending but time_up, rate Good, Mediocre and Bad, and the expert path reaches target", () => {
-    for (const w of DEPTH_ISP) {
+    // A band replays its base's goldens unchanged, so its coverage is the
+    // base's (some bases reach an ending only by searched path); the band
+    // test below checks it matches the base outcome for outcome.
+    for (const w of DEPTH_ISP.filter((x) => !x.base)) {
       const d = docOf(w.slug);
       const g = goldenOf(w.slug);
       assert.ok(g.paths.length >= 5, `${w.slug}: ${g.paths.length} golden paths`);
