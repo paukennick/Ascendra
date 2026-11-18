@@ -373,4 +373,21 @@ describe("what each new depth cloud case teaches (REQ-335)", () => {
     assert.equal(ok.value("missAt"), null);
     assert.equal(ok.value("okAt") !== null, true);
   });
+  test("AZ120 hana-vip-unreachable-tcp-timestamps: a takeover moves HANA onto the same problem; restarting the probe listener changes nothing; timestamps off restores the virtual IP", () => {
+    const d = docOf("hana-vip-unreachable-tcp-timestamps");
+    const h = driver(d);
+    h.act("move");
+    assert.equal(h.value("harmed"), true, "move causes harm");
+    until(h, 81);
+    assert.notEqual(h.value("missAt"), null);
+    const n = driver(d);
+    n.act("restartnc");
+    until(n, 81);
+    assert.notEqual(n.value("missAt"), null, "restartnc changes nothing");
+    const ok = driver(d);
+    ok.act("ts");
+    until(ok, 81);
+    assert.equal(ok.value("missAt"), null);
+    assert.equal(ok.value("okAt") !== null, true);
+  });
 });

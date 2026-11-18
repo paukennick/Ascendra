@@ -21,4 +21,5 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AZ120", slug: "fence-agent-lost-role-before-maintenance", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-fence" },
   { course: "AZ120", slug: "migration-wave-blocked-by-vm-family-quota", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-quota" },
   { course: "AZ120", slug: "hana-log-writes-slow-no-write-accelerator", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-writeacc" },
+  { course: "AZ120", slug: "hana-vip-unreachable-tcp-timestamps", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az120-lbprobe" },
 ];
