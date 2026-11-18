@@ -143,4 +143,9 @@ export const DEPTH_CLOUD: readonly CloudEntry[] = [
   { course: "AZ400", slug: "storage-key-in-history-before-open-source", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "az400-scrub" },
   { course: "AWSSCS", slug: "miner-instance-evidence-before-scale-in", screen: "terminal", profile: "infrastructure", kind: "scenario", steps: "scs-forensics" },
   { course: "AWSDOP", slug: "miner-instance-evidence-before-scale-in-dop", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awsdop-miner-instance-evidence-before-scale-in-dop", base: "AWSSCS/miner-instance-evidence-before-scale-in" },
+  { course: "AWSSAA", slug: "glue-join-skewed-on-guest-key-saa", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-awssaa-glue-join-skewed-on-guest-key-saa", base: "AWSDEA/glue-join-skewed-on-guest-key" },
+  { course: "AZ900", slug: "app-pinned-to-old-primary-after-geo-failover-az900", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-az900-app-pinned-to-old-primary-after-geo-failover-az900", base: "DP300/app-pinned-to-old-primary-after-geo-failover" },
+  { course: "AZ305", slug: "cosmos-query-without-partition-key-429-az305", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-az305-cosmos-query-without-partition-key-429-az305", base: "AI200/cosmos-query-without-partition-key-429" },
+  { course: "GCPACE", slug: "service-account-key-on-public-repo-ace", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-gcpace-service-account-key-on-public-repo-ace", base: "GCPSEC/service-account-key-on-public-repo" },
+  { course: "SC500", slug: "containerapp-keyvault-revision-sc500", screen: "terminal", profile: "infrastructure", kind: "band", steps: "dc-sc500-containerapp-keyvault-revision-sc500", base: "AI200/ai200-containerapp-keyvault-revision" },
 ];

@@ -678,6 +678,11 @@ export const ALL_DOCUMENTS: readonly DocumentEntry[] = [
   entry("AZ400", "storage-key-in-history-before-open-source"),
   entry("AWSSCS", "miner-instance-evidence-before-scale-in"),
   band("AWSDOP", "miner-instance-evidence-before-scale-in-dop"),
+  band("AWSSAA", "glue-join-skewed-on-guest-key-saa"),
+  band("AZ900", "app-pinned-to-old-primary-after-geo-failover-az900"),
+  band("AZ305", "cosmos-query-without-partition-key-429-az305"),
+  band("GCPACE", "service-account-key-on-public-repo-ace"),
+  band("SC500", "containerapp-keyvault-revision-sc500"),
   // ---- end REQ-335 ----
   // ---- REQ-323 (docs/sims.md 22.32): health breadth and nursing depth of the
   // 2026-11-17 round. Bands first, then new cases. Keep these together. ----
