@@ -1,0 +1,846 @@
+{
+  "slug": "windows-update-failure-restore-backup",
+  "status": "draft",
+  "paths": [
+    {
+      "id": "expert",
+      "title": "Logs and backup reports read; repaired and updated; System Restore; restore tested and backup protected; honest notes",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wulog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bkp",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "repair",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "sysrestore",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "test321",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "target",
+        "class": "target",
+        "rating": "good",
+        "score": 100,
+        "criteria": {
+          "wuCrit": "met",
+          "restoreCrit": "met",
+          "bkCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "671f703ad8caec77"
+      },
+      "reasoning": {
+        "reflection": "met"
+      }
+    },
+    {
+      "id": "partialWu",
+      "title": "Partly right on the update, the rest on plan",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wulog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "retry",
+          "seq": 4,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 60,
+          "seq": 5,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "sysrestore",
+          "seq": 6,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 90,
+          "seq": 7,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "test321",
+          "seq": 8,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 120,
+          "seq": 9,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 10,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 11,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 12,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "mediocre",
+        "score": 75,
+        "criteria": {
+          "wuCrit": "partial",
+          "restoreCrit": "met",
+          "bkCrit": "met",
+          "evidenceCrit": "partial",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "edefe805f3851781"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "partialBk",
+      "title": "Partly right on the backups, and a one-line record",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "repair",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "sysrestore",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "trust",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "summary"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "wuCrit": "met",
+          "restoreCrit": "met",
+          "bkCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "missed"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "2323f0b2b09090af"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "allPartial",
+      "title": "Every decision only partly right",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "retry",
+          "seq": 2,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 2,
+          "to": 60,
+          "seq": 3,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "safeMode",
+          "seq": 4,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 3,
+          "to": 90,
+          "seq": 5,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "trust",
+          "seq": 6,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 120,
+          "seq": 7,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 8,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 9,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 10,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "partly",
+        "class": "recovered",
+        "rating": "bad",
+        "score": 50,
+        "criteria": {
+          "wuCrit": "partial",
+          "restoreCrit": "partial",
+          "bkCrit": "partial",
+          "evidenceCrit": "missed",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 0
+        },
+        "stateHash": "a234b2ee2133753c"
+      },
+      "reasoning": {
+        "reflection": "partial"
+      }
+    },
+    {
+      "id": "badWu",
+      "title": "Updates paused during tax season",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wulog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bkp",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "pause",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "sysrestore",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "test321",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "wuHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wuCrit": "missed",
+          "restoreCrit": "met",
+          "bkCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "48f821705cb84273"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badRestore",
+      "title": "Reset this PC with remove everything",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wulog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bkp",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "repair",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "reset",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "test321",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "restoreHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wuCrit": "met",
+          "restoreCrit": "missed",
+          "bkCrit": "met",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "91ed4820ca3125a5"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    },
+    {
+      "id": "badBk",
+      "title": "Old backup versions deleted",
+      "seed": 1,
+      "commands": [
+        {
+          "type": "act",
+          "action": "wulog",
+          "seq": 1,
+          "tick": 0
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 2,
+          "to": 10,
+          "seq": 2,
+          "tick": 0
+        },
+        {
+          "type": "act",
+          "action": "bkp",
+          "seq": 3,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "work",
+          "instance": 3,
+          "to": 20,
+          "seq": 4,
+          "tick": 10
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 1,
+          "to": 30,
+          "seq": 5,
+          "tick": 20
+        },
+        {
+          "type": "choose",
+          "prompt": "wuPrompt",
+          "choice": "repair",
+          "seq": 6,
+          "tick": 30
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 4,
+          "to": 60,
+          "seq": 7,
+          "tick": 30
+        },
+        {
+          "type": "choose",
+          "prompt": "restorePrompt",
+          "choice": "sysrestore",
+          "seq": 8,
+          "tick": 60
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 5,
+          "to": 90,
+          "seq": 9,
+          "tick": 60
+        },
+        {
+          "type": "choose",
+          "prompt": "bkPrompt",
+          "choice": "deleteOld",
+          "seq": 10,
+          "tick": 90
+        },
+        {
+          "type": "skip",
+          "timer": "period",
+          "instance": 6,
+          "to": 120,
+          "seq": 11,
+          "tick": 90
+        },
+        {
+          "type": "reason",
+          "moment": "reflection",
+          "answered": true,
+          "seq": 12,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "closeOut",
+          "params": {
+            "how": "honest"
+          },
+          "seq": 13,
+          "tick": 120
+        },
+        {
+          "type": "act",
+          "action": "close",
+          "seq": 14,
+          "tick": 120
+        }
+      ],
+      "expect": {
+        "ending": "bkHarm",
+        "class": "harm",
+        "rating": "bad",
+        "score": 67,
+        "criteria": {
+          "wuCrit": "met",
+          "restoreCrit": "met",
+          "bkCrit": "missed",
+          "evidenceCrit": "met",
+          "recordCrit": "met"
+        },
+        "kpis": {
+          "missK": 1
+        },
+        "stateHash": "967e99c51501dda6"
+      },
+      "reasoning": {
+        "reflection": "missed"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1035 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "windows-update-failure-restore-backup",
+  "title": "A failed Windows update, a PC that won't boot after a driver, and backups nobody tested",
+  "screen": {
+    "type": "service-desk",
+    "level": 1,
+    "desk": {
+      "matrix": {
+        "impacts": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "urgencies": [
+          "High",
+          "Medium",
+          "Low"
+        ],
+        "priorities": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            4
+          ],
+          [
+            3,
+            4,
+            5
+          ]
+        ],
+        "targets": [
+          {
+            "priority": 1,
+            "label": "P1: restore within 4 hours"
+          },
+          {
+            "priority": 2,
+            "label": "P2: within 8 hours"
+          },
+          {
+            "priority": 3,
+            "label": "P3: within 2 working days"
+          },
+          {
+            "priority": 4,
+            "label": "P4: within 5 working days"
+          },
+          {
+            "priority": 5,
+            "label": "P5: next planned release"
+          }
+        ]
+      },
+      "tickets": [
+        {
+          "id": "tWu",
+          "ref": "INC-5501",
+          "kind": "incident",
+          "title": "Cumulative update fails nightly",
+          "when": "p >= 1",
+          "at": "1800",
+          "impact": "3",
+          "urgency": "2",
+          "priority": "4",
+          "status": "{wu == \"repair\" ? \"Space freed, store repaired, update installed\" : wu == \"retry\" ? \"Retried; fails again\" : wu == \"pause\" ? \"Updates paused 35 days\" : \"Due\"}",
+          "open": "wu == \"none\"",
+          "due": "3600"
+        },
+        {
+          "id": "tRestore",
+          "ref": "INC-5502",
+          "kind": "incident",
+          "title": "Blue screen after a printer driver",
+          "when": "p >= 2",
+          "at": "3600",
+          "impact": "2",
+          "urgency": "1",
+          "priority": "2",
+          "status": "{restore == \"sysrestore\" ? \"System Restore to pre-driver point\" : restore == \"safeMode\" ? \"Driver removed in Safe Mode\" : restore == \"reset\" ? \"PC reset, files removed\" : \"Due\"}",
+          "open": "restore == \"none\"",
+          "due": "5400"
+        },
+        {
+          "id": "tBk",
+          "ref": "REQ-5503",
+          "kind": "request",
+          "title": "Do the backups work?",
+          "when": "p >= 3",
+          "at": "5400",
+          "impact": "2",
+          "urgency": "3",
+          "priority": "4",
+          "status": "{bk == \"test321\" ? \"Restore tested; backup protected; offsite added\" : bk == \"trust\" ? \"Trusted the reports\" : bk == \"deleteOld\" ? \"Old versions deleted\" : \"Due\"}",
+          "open": "bk == \"none\"",
+          "due": "7200"
+        }
+      ],
+      "services": [
+        {
+          "id": "vWu",
+          "label": "ACC-07 workstation",
+          "spokenLabel": "ACC-07 workstation",
+          "status": "{wu == \"repair\" ? \"Space freed, store repaired, update installed\" : wu == \"retry\" ? \"Retried; fails again\" : wu == \"pause\" ? \"Updates paused 35 days\" : \"Normal service\"}",
+          "tone": "wu == \"repair\" ? \"ok\" : wu == \"retry\" ? \"degraded\" : wu == \"pause\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vRestore",
+          "label": "ACC-12 workstation",
+          "spokenLabel": "ACC-12 workstation",
+          "status": "{restore == \"sysrestore\" ? \"System Restore to pre-driver point\" : restore == \"safeMode\" ? \"Driver removed in Safe Mode\" : restore == \"reset\" ? \"PC reset, files removed\" : \"Normal service\"}",
+          "tone": "restore == \"sysrestore\" ? \"ok\" : restore == \"safeMode\" ? \"degraded\" : restore == \"reset\" ? \"down\" : \"ok\""
+        },
+        {
+          "id": "vBk",
+          "label": "Backups to the NAS",
+          "spokenLabel": "Backups to the NAS",
+          "status": "{bk == \"test321\" ? \"Restore tested; backup protected; offsite added\" : bk == \"trust\" ? \"Trusted the reports\" : bk == \"deleteOld\" ? \"Old versions deleted\" : \"Normal service\"}",
+          "tone": "bk == \"test321\" ? \"ok\" : bk == \"trust\" ? \"degraded\" : bk == \"deleteOld\" ? \"down\" : \"ok\""
+        }
+      ],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Ticket round",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Configuring and troubleshooting Windows Update, backup, and system restore",
+  "secondaryObjectives": [
+    "Windows administrative tools: Task Manager, Disk Management, Control Panel, Settings app, and MMC snap-ins"
+  ],
+  "sources": [
+    {
+      "cite": "CompTIA A+ Core 2 (220-1202) V15 Exam Objectives, Document Version 4.0: domains Operating systems 28%, Security 28%, Software troubleshooting 23%, Operational procedures 21%; launched 2025-03-25",
+      "checkedAt": "2026-11-14",
+      "url": "https://www.comptia.org/en-us/certifications/a/core-2-v15/",
+      "note": "Objective 2.6 'Given a scenario, implement procedures for basic small office/home office (SOHO) malware removal', read in primary text in the objectives PDF on 2026-11-14: '1. Investigate and verify malware symptoms. 2. Quarantine infected system. 3. Disable System Restore in Windows Home. 4. Remediate infected systems. 5. Update anti-malware software. 6. Scan and removal techniques (e.g., safe mode, preinstallation environment) 7. Reimage/reinstall. 8. Schedule scans and run updates. 9. Enable System Restore and create a restore point in Windows Home. 10. Educate the end user.' Objective 3.4 lists 'False alerts regarding antivirus protection', 'Random/frequent pop-ups' and 'Redirection'. The exam page (summarizing fetch, same day) gives the domains and launch date. Reused for REQ-336 from this course's home-office-laptop-malware (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The business, the users, the devices and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the desktop support technician at Hollins and Grey, a fictional accounting firm in tax season. Three tickets wait: an update that keeps failing, a PC that blue-screens after a printer driver install, and a partner asking whether backups work.",
+    "handover": [
+      "PC ACC-07: a cumulative update fails at 35% and rolls back every night.",
+      "PC ACC-12: System Restore is on; a restore point was made before yesterday's driver install."
+    ],
+    "howItWorks": [
+      "The desk shows the ticket queue against the priority matrix and each service's status.",
+      "Move on a ticket round at a time. A decision comes to you at each ticket round; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-02-15T08:00",
+    "tick": "1min",
+    "maxDuration": "360min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "wu": {
+      "type": "enum",
+      "values": [
+        "none",
+        "repair",
+        "retry",
+        "pause"
+      ],
+      "init": "none"
+    },
+    "wuAt": {
+      "type": "time",
+      "init": null
+    },
+    "restore": {
+      "type": "enum",
+      "values": [
+        "none",
+        "sysrestore",
+        "safeMode",
+        "reset"
+      ],
+      "init": "none"
+    },
+    "restoreAt": {
+      "type": "time",
+      "init": null
+    },
+    "bk": {
+      "type": "enum",
+      "values": [
+        "none",
+        "test321",
+        "trust",
+        "deleteOld"
+      ],
+      "init": "none"
+    },
+    "bkAt": {
+      "type": "time",
+      "init": null
+    },
+    "wulogAt": {
+      "type": "time",
+      "init": null
+    },
+    "bkpAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "missCount": {
+      "expr": "((wu == \"pause\") ? 1 : 0) + ((restore == \"reset\") ? 1 : 0) + ((bk == \"deleteOld\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(wu == \"none\" or (wu == \"pause\") ? 1 : 0) + (restore == \"none\" or (restore == \"reset\") ? 1 : 0) + (bk == \"none\" or (bk == \"deleteOld\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "The ticket queue",
+      "clock": "turns",
+      "actions": [
+        "wulog",
+        "bkp"
+      ]
+    },
+    "close": {
+      "label": "Work notes",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "wulog": {
+      "label": "Read ACC-07's update history and Event Viewer",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(wulogAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "wulogAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the update history and the System log.",
+          "kind": "act"
+        },
+        {
+          "finding": "The update fails with a corrupted component store and 2 GB free on C:; Disk Management shows the drive nearly full of old installer files."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "bkp": {
+      "label": "Read the backup job's reports",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(bkpAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "bkpAt",
+          "to": "t"
+        },
+        {
+          "log": "You read the backup reports.",
+          "kind": "act"
+        },
+        {
+          "finding": "The file-history backup to the NAS reports success nightly, but nobody has ever restored from it, and the NAS share is mapped on every PC with write access."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "10min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the work notes",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the notes say",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "Update fixed after space and component repair, ACC-12 restored to its restore point, and backups proven by a test restore and protected"
+                },
+                {
+                  "value": "summary",
+                  "label": "Tickets closed"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next ticket round",
+      "wait": {
+        "skipLabel": "Go to the next ticket round"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "wu == \"pause\"",
+              "then": [
+                {
+                  "log": "Round 2: ACC-07 is hit through the unpatched vulnerability by a malicious attachment; the security team isolates it.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "restore == \"reset\"",
+              "then": [
+                {
+                  "log": "Round 3: the reset removed two days of the partner's unsynced working papers.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "bk == \"deleteOld\"",
+              "then": [
+                {
+                  "log": "Round 4: a client file corrupted three weeks ago is discovered; with old versions deleted, it can't be recovered.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "30min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The morning's tickets are closed.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "30min"
+        }
+      ]
+    },
+    {
+      "id": "t_wu",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 1: the update ticket.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "wuPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_restore",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 2: the boot failure.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "restorePrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_bk",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Round 3: the backup question.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "bkPrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "wuPrompt": {
+      "title": "An update that keeps rolling back",
+      "context": "The update includes a security fix being exploited in the wild.",
+      "choices": [
+        {
+          "id": "repair",
+          "label": "Free space with Disk Cleanup (including old installer files), repair the component store with DISM and sfc, then install the update",
+          "effects": [
+            {
+              "set": "wu",
+              "to": "\"repair\""
+            },
+            {
+              "set": "wuAt",
+              "to": "t"
+            },
+            {
+              "log": "The update installs after the repair.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "The log named the causes: space and a corrupted store. Fix them, then update."
+        },
+        {
+          "id": "retry",
+          "label": "Run Windows Update again tonight",
+          "effects": [
+            {
+              "set": "wu",
+              "to": "\"retry\""
+            },
+            {
+              "set": "wuAt",
+              "to": "t"
+            },
+            {
+              "log": "The update is retried.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Nothing changed, so it fails the same way."
+        },
+        {
+          "id": "pause",
+          "label": "Pause updates on ACC-07 for 35 days until tax season ends",
+          "effects": [
+            {
+              "set": "wu",
+              "to": "\"pause\""
+            },
+            {
+              "set": "wuAt",
+              "to": "t"
+            },
+            {
+              "log": "Updates are paused for 35 days.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "The exploited vulnerability stays open for a month on a PC holding client tax data."
+        }
+      ]
+    },
+    "restorePrompt": {
+      "title": "ACC-12 won't boot",
+      "context": "A restore point exists from before the driver install.",
+      "choices": [
+        {
+          "id": "sysrestore",
+          "label": "Boot to the Windows Recovery Environment and use System Restore to the pre-driver restore point, then install the vendor's current driver",
+          "effects": [
+            {
+              "set": "restore",
+              "to": "\"sysrestore\""
+            },
+            {
+              "set": "restoreAt",
+              "to": "t"
+            },
+            {
+              "log": "Restored to before the driver; ACC-12 boots.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "System Restore rolls back drivers and system settings without touching user files."
+        },
+        {
+          "id": "safeMode",
+          "label": "Boot to Safe Mode and remove the driver by hand",
+          "effects": [
+            {
+              "set": "restore",
+              "to": "\"safeMode\""
+            },
+            {
+              "set": "restoreAt",
+              "to": "t"
+            },
+            {
+              "log": "The driver is removed in Safe Mode.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "It works, but takes longer and may leave pieces of the driver behind."
+        },
+        {
+          "id": "reset",
+          "label": "Reset this PC, removing everything",
+          "effects": [
+            {
+              "set": "restore",
+              "to": "\"reset\""
+            },
+            {
+              "set": "restoreAt",
+              "to": "t"
+            },
+            {
+              "log": "The PC is reset.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Reset removes the user's local files and apps; the partner's unsynced working papers are gone."
+        }
+      ]
+    },
+    "bkPrompt": {
+      "title": "Backups never tested",
+      "context": "Backups report success; the NAS share is writable from every PC.",
+      "choices": [
+        {
+          "id": "test321",
+          "label": "Restore a sample of files to a test folder to prove the backups work, remove the PCs' write access to the backup share, and add an offsite copy",
+          "effects": [
+            {
+              "set": "bk",
+              "to": "\"test321\""
+            },
+            {
+              "set": "bkAt",
+              "to": "t"
+            },
+            {
+              "log": "A test restore succeeds; the backup is no longer writable from PCs; offsite added.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "A backup is only proven by a restore; a backup any PC can write to can be encrypted by ransomware."
+        },
+        {
+          "id": "trust",
+          "label": "Tell the partner the reports show success",
+          "effects": [
+            {
+              "set": "bk",
+              "to": "\"trust\""
+            },
+            {
+              "set": "bkAt",
+              "to": "t"
+            },
+            {
+              "log": "The partner is told they work.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Success reports don't prove you can restore."
+        },
+        {
+          "id": "deleteOld",
+          "label": "Delete old backup versions to save NAS space",
+          "effects": [
+            {
+              "set": "bk",
+              "to": "\"deleteOld\""
+            },
+            {
+              "set": "bkAt",
+              "to": "t"
+            },
+            {
+              "log": "Old versions are deleted.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Without old versions, a file corrupted last month can't be recovered."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the work notes: what was behind each ticket and which Windows tool fixed it.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Update and restore",
+          "criteria": "Space and component store fixed with Disk Cleanup, DISM and sfc; System Restore from WinRE.",
+          "modelAnswer": "The update failed on low space and a corrupted component store; Disk Cleanup, DISM and sfc fixed it. ACC-12 went back to its restore point from WinRE."
+        },
+        {
+          "label": "Backups",
+          "criteria": "Test restore, no PC write access, offsite copy.",
+          "modelAnswer": "We restored sample files to prove the backups work, removed PCs' write access to the backup share and added an offsite copy."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "service",
+    "thresholds": {
+      "slaBreachTarget": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No incident restored after its service level target."
+        }
+      },
+      "unauthorizedChanges": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No change without the authorization its type needs."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (wu == \"retry\") and (restore == \"safeMode\") and (bk == \"trust\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA A+ Core 2 (220-1202) V15 Exam Objectives, Document Version 4.0: domains Operating systems 28%, Security 28%, Software troubleshooting 23%, Operational procedures 21%; launched 2025-03-25",
+        "checkedAt": "2026-11-14",
+        "url": "https://www.comptia.org/en-us/certifications/a/core-2-v15/",
+        "note": "Objective 2.6 'Given a scenario, implement procedures for basic small office/home office (SOHO) malware removal', read in primary text in the objectives PDF on 2026-11-14: '1. Investigate and verify malware symptoms. 2. Quarantine infected system. 3. Disable System Restore in Windows Home. 4. Remediate infected systems. 5. Update anti-malware software. 6. Scan and removal techniques (e.g., safe mode, preinstallation environment) 7. Reimage/reinstall. 8. Schedule scans and run updates. 9. Enable System Restore and create a restore point in Windows Home. 10. Educate the end user.' Objective 3.4 lists 'False alerts regarding antivirus protection', 'Random/frequent pop-ups' and 'Redirection'. The exam page (summarizing fetch, same day) gives the domains and launch date. Reused for REQ-336 from this course's home-office-laptop-malware (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "wuHarm": {
+      "label": "Exploited while unpatched",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and wu == \"pause\"",
+      "narrative": "The paused PC was exploited through the vulnerability the update fixed."
+    },
+    "restoreHarm": {
+      "label": "Working papers lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and restore == \"reset\"",
+      "narrative": "Resetting the PC removed two days of unsynced working papers."
+    },
+    "bkHarm": {
+      "label": "A file lost for good",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and bk == \"deleteOld\"",
+      "narrative": "With old versions deleted, a client file corrupted weeks ago could not be recovered."
+    },
+    "target": {
+      "label": "Updated, restored and recoverable",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (wu == \"repair\") and (restore == \"sysrestore\") and (bk == \"test321\") and record == \"honest\" and missCount <= slaBreachTarget and openCount <= unauthorizedChanges",
+      "narrative": "Every PC is patched, ACC-12 works with its files intact, and the backups are proven."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "wuHarm",
+    "restoreHarm",
+    "bkHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "wuCrit",
+        "label": "Fixed the cause and installed the update",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "wu == \"repair\"",
+            "score": "met",
+            "why": "Fixed and updated."
+          },
+          {
+            "when": "wu == \"retry\"",
+            "score": "partial",
+            "why": "Retry without a fix."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Left it unpatched."
+          }
+        ]
+      },
+      {
+        "id": "restoreCrit",
+        "label": "Recovered with the restore point without losing data",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "restore == \"sysrestore\"",
+            "score": "met",
+            "why": "Right tool."
+          },
+          {
+            "when": "restore == \"safeMode\"",
+            "score": "partial",
+            "why": "Slower, manual."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Destroyed data."
+          }
+        ]
+      },
+      {
+        "id": "bkCrit",
+        "label": "Tested a restore and protected the backup copy",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "bk == \"test321\"",
+            "score": "met",
+            "why": "Tested and protected."
+          },
+          {
+            "when": "bk == \"trust\"",
+            "score": "partial",
+            "why": "Untested."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Removed recovery points."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(wulogAt) and not isNull(bkpAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(wulogAt) or not isNull(bkpAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Read the update history, Event Viewer and the backup job's reports first."
+      },
+      {
+        "at": "Round 1",
+        "text": "Free space, repair with DISM and sfc, then install the update."
+      },
+      {
+        "at": "Round 2",
+        "text": "Use System Restore from WinRE to the pre-driver point."
+      },
+      {
+        "at": "Round 3",
+        "text": "Test a restore, remove PC write access to backups, add an offsite copy."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "wuHarm": {
+        "headline": "Fix why it fails",
+        "body": "Read the logs, fix space and component store issues, then update."
+      },
+      "restoreHarm": {
+        "headline": "Least destructive first",
+        "body": "Restore points roll back drivers without touching files."
+      },
+      "bkHarm": {
+        "headline": "Test and protect backups",
+        "body": "Prove backups by restoring, keep versions, and keep a copy PCs can't write to."
+      },
+      "target": {
+        "headline": "Good: updated, restored and recoverable",
+        "body": "Causes fixed before updating, the least destructive recovery, and tested backups."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "When Windows Update fails, read the update history and Event Viewer: low disk space and a corrupted component store are fixed with Disk Cleanup, DISM and sfc. A driver that breaks boot is undone with System Restore from the recovery environment, which keeps user files; reset removes them. A backup is proven only by a test restore, keeps versions, and needs a copy ransomware on a PC can't reach."
+  }
+}
