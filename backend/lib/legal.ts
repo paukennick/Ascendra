@@ -32,9 +32,13 @@ import { isLegacyClient } from "@/lib/client-version";
 // REQ-331: 2026-11-19 bumps the Privacy Policy alone (Nick, Nov 17: reviewers):
 // reviewer status and areas on an access grant, and reviewer feedback
 // (sections 1, 3 and 6). The Terms stay 2026-11-18.
+// REQ-332: 2026-11-20 bumps the Privacy Policy alone (Nick, Nov 17: reviewer
+// quick notes): reviewer feedback now records the lesson, question or sim
+// step it is about, the screen it was sent from and a quick tag (section 1).
+// The Terms stay 2026-11-18.
 export const LEGAL_VERSIONS = {
   terms: "2026-11-18",
-  privacy: "2026-11-19",
+  privacy: "2026-11-20",
 } as const;
 
 // REQ-175 / REQ-205: the generations of the text that installed builds still
@@ -52,7 +56,7 @@ export const LEGAL_VERSIONS = {
 //     REQ-175; "legacy clients"). Frozen: never change it.
 export const PREVIOUS_LEGAL_VERSIONS = {
   terms: "2026-11-18",
-  privacy: "2026-11-18",
+  privacy: "2026-11-19",
 } as const;
 export const UNDECLARED_LEGAL_VERSIONS = {
   terms: "2026-11-09",
@@ -70,7 +74,9 @@ export const LEGACY_LEGAL_VERSIONS = {
 // REQ-317: the 2026-11-14 pair, which it held until the 2026-11-17 one.
 // REQ-327: the 2026-11-16 pair, which it held until the 2026-11-18 one.
 // REQ-331: the 2026-11-13/2026-11-17 pair, which it held until the 2026-11-19 one.
+// REQ-332: the 2026-11-18 pair, which it held until the 2026-11-20 one.
 export const EARLIER_LEGAL_VERSIONS: readonly { terms: string; privacy: string }[] = [
+  { terms: "2026-11-18", privacy: "2026-11-18" },
   { terms: "2026-11-13", privacy: "2026-11-17" },
   { terms: "2026-11-13", privacy: "2026-11-16" },
   { terms: "2026-11-13", privacy: "2026-11-14" },

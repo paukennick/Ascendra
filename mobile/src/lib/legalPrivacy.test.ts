@@ -138,17 +138,17 @@ describe("Export my data downloads a JSON file on the web (FAIL-905)", () => {
 describe("the legal version the app shows (FAIL-901)", () => {
   test("the app sends the legal version on every request, and it is the text it carries", () => {
     assert.equal(LEGAL_VERSION_HEADER, "X-Ascendra-Legal");
-    // REQ-331: the Privacy Policy is 2026-11-19 (reviewers), the newer of the two.
-    assert.equal(TERMS_VERSION, "2026-11-19");
+    // REQ-332: the Privacy Policy is 2026-11-20 (reviewer quick notes), the newer of the two.
+    assert.equal(TERMS_VERSION, "2026-11-20");
     assert.match(read("src", "api", "client.ts"), /\[LEGAL_VERSION_HEADER\]: TERMS_VERSION/);
     const backend = readFileSync(join(root, "..", "backend", "lib", "legal.ts"), "utf8");
     assert.match(backend, new RegExp(`LEGAL_VERSION_HEADER = "${LEGAL_VERSION_HEADER}"`));
   });
-  test("each document carries its own version and date: the Terms 2026-11-18 (REQ-327), the Privacy Policy 2026-11-19 (REQ-331), Cookies 2026-11-16 (REQ-306)", () => {
+  test("each document carries its own version and date: the Terms 2026-11-18 (REQ-327), the Privacy Policy 2026-11-20 (REQ-332), Cookies 2026-11-16 (REQ-306)", () => {
     const content = read("src", "content", "legal.ts");
     const expected: Record<string, [string, string]> = {
       TERMS: ["2026-11-18", "November 18, 2026"],
-      PRIVACY: ["2026-11-19", "November 19, 2026"],
+      PRIVACY: ["2026-11-20", "November 20, 2026"],
       COOKIES: ["2026-11-16", "November 16, 2026"],
     };
     for (const [n, want] of Object.entries(expected)) {
@@ -267,8 +267,8 @@ describe("website analytics in the policy (REQ-261)", () => {
     // simulations); the analytics text above is unchanged.
     assert.equal(TERMS.version, "2026-11-18");
     // REQ-306 moved both again (2026-11-16); the analytics text above is unchanged.
-    // REQ-331 moved the Privacy Policy alone to 2026-11-19 (reviewers).
-    assert.equal(PRIVACY.version, "2026-11-19");
+    // REQ-331 moved the Privacy Policy alone to 2026-11-19 (reviewers), REQ-332 to 2026-11-20 (quick notes).
+    assert.equal(PRIVACY.version, "2026-11-20");
     assert.equal(COOKIES.version, "2026-11-16");
   });
 });
@@ -363,5 +363,30 @@ describe("reviewers are disclosed (REQ-331)", () => {
     assert.match(section("6."), /coach, support and reviewer feedback data: while your account is open/);
     assert.doesNotMatch(section("4."), /review(er)? feedback/i);
     assert.doesNotMatch(section("5."), /review(er)? feedback/i);
+  });
+});
+
+// REQ-332 (Nick, 2026-11-17 19:48 PT): reviewer quick notes record more than
+// "the courses or simulations it is about" -- the lesson, question or sim step,
+// the screen and a quick tag (reviewer_feedback.context / quick_tag, 089). The
+// Privacy Policy 2026-11-20 says so in section 1; purpose and retention are
+// unchanged, and it is still neither emailed nor sent to the AI model.
+describe("reviewer quick notes are disclosed (REQ-332)", () => {
+  const src = read("src", "content", "legal.ts");
+  const privacy = src.slice(src.indexOf("export const PRIVACY: LegalDoc"), src.indexOf("export const COOKIES: LegalDoc"));
+  const s1 = privacy.slice(privacy.indexOf('title: "1.'), privacy.indexOf("title: ", privacy.indexOf('title: "1.') + 10));
+  test("section 1 names what a quick note records", () => {
+    assert.match(s1, /the feedback you send with the reviewer form or the Feedback button/);
+    assert.match(s1, /the course, lesson, lab, question or simulation it is about/);
+    assert.match(s1, /for a quick note, the screen you sent it from and where you were in a lesson, simulation or practice exam, any quick tag you chose/);
+    assert.doesNotMatch(s1, /the courses or simulations it is about/);
+  });
+  test("every context key the app records is covered by those words", () => {
+    const app = read("src", "lib", "quickNote.ts");
+    const block = app.slice(app.indexOf("export interface QuickContext {"), app.indexOf("}", app.indexOf("export interface QuickContext {")));
+    const keys = [...block.matchAll(/^\s+(\w+)\?:/gm)].map((m) => m[1]).sort();
+    // route/screen: the screen; unit, objective, lesson step, item: lesson or question;
+    // sim run, phase, tick, clock: where you were in a simulation; exam: practice exam; lab: the lab.
+    assert.deepEqual(keys, ["examQuestion", "examQuestionCount", "examSessionId", "itemId", "itemKind", "itemPosition", "labId", "lessonStage", "objectiveId", "route", "screen", "simClock", "simPhase", "simPhaseLabel", "simRunId", "simTick", "unitId"]);
   });
 });

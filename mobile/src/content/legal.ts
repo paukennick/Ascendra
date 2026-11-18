@@ -76,6 +76,17 @@
 // sent to the AI model, so sections 4 and 5 are unchanged. The Terms stay
 // 2026-11-18: everyone is asked to accept the Privacy Policy once more. No
 // lawyer has reviewed this text.
+//
+// 2026-11-20 (REQ-332, Nick, 2026-11-17 19:48 PT: reviewer feedback one tap
+// away): the Privacy Policy alone. Section 1's reviewer feedback bullet now
+// says a quick note records the course, lesson, lab, question or simulation it is
+// about, the screen it was sent from and where the reviewer was in a lesson,
+// simulation or practice exam, and any quick tag (migration 089
+// reviewer_feedback.kind / quick_tag / context). Same purpose (section 3) and
+// retention (section 6); not emailed and not sent to the AI model, so
+// sections 4 and 5 are unchanged. The Terms stay 2026-11-18: everyone is
+// asked to accept the Privacy Policy once more. No lawyer has reviewed this
+// text.
 
 import { TRADEMARK_OWNERS } from "../lib/vendor";
 
@@ -235,8 +246,8 @@ export const TERMS: LegalDoc = {
 // while paid plans are off.
 export const PRIVACY: LegalDoc = {
   title: "Privacy Policy",
-  version: "2026-11-19",
-  updated: "November 19, 2026",
+  version: "2026-11-20",
+  updated: "November 20, 2026",
   intro:
     "This policy explains what Ascendra stores about you, why, who else handles it, how long it is kept, and what you can do about it. It describes what the app actually stores and sends today.",
   sections: [
@@ -249,7 +260,7 @@ export const PRIVACY: LegalDoc = {
         "• Learning milestones: a short record of milestones — a lesson started or finished, a review or practice exam done, a placement check finished, the welcome steps completed, an exam result reported, and the steps of a lesson (a guess made or skipped, which explanation card you reached, guided practice skipped, key terms opened, a level changed, why you're taking a course answered or put aside and where you were asked, that question's card shown in a lesson, a suggestion to move a unit's level down and whether you said “Not now”, and whether a typed guess was close, partly right or off) — with the time, the course it belongs to, and for lesson steps your level, the card number or how many seconds it took. It holds no answer text. We use it, only ourselves, to see whether Ascendra is helping people learn (for example, how many new learners finish a first lesson).",
         "• AI coach: the messages you send the coach and its replies.",
         "• Support: tickets, course requests and problem reports about a lesson, question, lab or coach reply that you send (a coach-reply report includes the reply you reported), with your account email so we can reply, and our replies.",
-        "• Reviewer feedback: if you are a reviewer, the feedback you send with the reviewer form — the name and role you enter, the courses or simulations it is about, what you tried, your ratings and comments, whether you'd recommend Ascendra and whether we may contact you about it — and when you sent or last changed it. Only the operator sees it.",
+        "• Reviewer feedback: if you are a reviewer, the feedback you send with the reviewer form or the Feedback button — the name and role you enter, the course, lesson, lab, question or simulation it is about and, for a quick note, the screen you sent it from and where you were in a lesson, simulation or practice exam, any quick tag you chose, what you tried, your ratings and comments, whether you'd recommend Ascendra and whether we may contact you about it — and when you sent or last changed it. Only the operator sees it.",
         "• Access grants: if the operator gives an email address unrestricted access or marks it as a reviewer, that address (even before an account uses it), who gave it, its dates, any note and, for a reviewer, the subject areas they review, and a record of grants, changes and when an account with it reached the AI safety limit.",
         "• Agreements: which versions of these terms, this policy and the study notice you accepted, how (at sign-up or in the app) and when; and, for accounts made since 2026-11-10, that you confirmed you are 16 or older, and when.",
         "• Age for adults-only content (mental health courses, and simulations on sensitive topics such as suicide-risk assessment or behavioral emergencies in any course): when you first open or start any of it, your date of birth (asked once, the first time) and when you entered it; you can't change it in the app afterwards. Then, per course, that you confirmed you are 18 or older and that what you entered is true to the best of your knowledge, with the date, the version of the notice you saw, where you were asked, and whether it was for a whole mental health course or for that course's adults-only simulations. Nothing is asked until you open such a course or simulation. We use your date of birth only to check that you're old enough for this content.",
