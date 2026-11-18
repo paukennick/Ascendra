@@ -1,0 +1,1071 @@
+{
+  "schemaVersion": 1,
+  "engine": {
+    "major": 1,
+    "minor": 2
+  },
+  "slug": "delivery-times-skew-rates-correlation",
+  "title": "Delivery-time analysis for a courier: a skewed average, regions of different sizes, and a correlation someone wants to call a cause",
+  "screen": {
+    "type": "data",
+    "level": 1,
+    "data": {
+      "workspace": "deliveries_last_month",
+      "flags": [
+        {
+          "id": "fCenter",
+          "label": "Typical delivery time",
+          "text": "{center == \"median\" ? \"Median with percentiles; outliers explained\" : center == \"meanNote\" ? \"Mean with a footnote\" : center == \"dropOut\" ? \"Outliers deleted\" : \"Open\"}",
+          "when": "p >= 1",
+          "severity": "warning"
+        },
+        {
+          "id": "fRates",
+          "label": "Late deliveries by region",
+          "text": "{rates == \"rate\" ? \"Rates compared\" : rates == \"countsNoted\" ? \"Counts with totals\" : rates == \"counts\" ? \"Raw counts compared\" : \"Open\"}",
+          "when": "p >= 2",
+          "severity": "info"
+        },
+        {
+          "id": "fCause",
+          "label": "Overtime and on-time rate",
+          "text": "{cause == \"correlation\" ? \"Correlation reported; trial proposed\" : cause == \"rOnly\" ? \"Coefficient only\" : cause == \"causal\" ? \"Correlation claimed as cause\" : \"Open\"}",
+          "when": "p >= 3",
+          "severity": "warning"
+        },
+        {
+          "id": "iDist",
+          "label": "Profile delivery times",
+          "text": "Most deliveries take 1 to 2 days; 120 strike-delayed deliveries took 9 to 14 days; mean 2.3 days, median 1.4 days.",
+          "when": "not isNull(distAt)",
+          "severity": "info"
+        },
+        {
+          "id": "iRegions",
+          "label": "Count late deliveries by region",
+          "text": "North: 2,000 late of 40,000; Coastal: 800 late of 8,000.",
+          "when": "not isNull(regionsAt)",
+          "severity": "info"
+        }
+      ],
+      "tables": [
+        {
+          "id": "checks",
+          "label": "Checks and decisions",
+          "spokenLabel": "Checks and decisions",
+          "columns": [
+            {
+              "id": "check",
+              "label": "Check"
+            },
+            {
+              "id": "result",
+              "label": "Decision"
+            }
+          ],
+          "rows": [
+            {
+              "id": "rCenter",
+              "cells": [
+                "Measure of center",
+                "{center == \"median\" ? \"Median with percentiles; outliers explained\" : center == \"meanNote\" ? \"Mean with a footnote\" : center == \"dropOut\" ? \"Outliers deleted\" : \"Not decided\"}"
+              ],
+              "when": "p >= 1",
+              "flag": "center == \"dropOut\""
+            },
+            {
+              "id": "rRates",
+              "cells": [
+                "Comparison",
+                "{rates == \"rate\" ? \"Rates compared\" : rates == \"countsNoted\" ? \"Counts with totals\" : rates == \"counts\" ? \"Raw counts compared\" : \"Not decided\"}"
+              ],
+              "when": "p >= 2",
+              "flag": "rates == \"counts\""
+            },
+            {
+              "id": "rCause",
+              "cells": [
+                "Inference",
+                "{cause == \"correlation\" ? \"Correlation reported; trial proposed\" : cause == \"rOnly\" ? \"Coefficient only\" : cause == \"causal\" ? \"Correlation claimed as cause\" : \"Not decided\"}"
+              ],
+              "when": "p >= 3",
+              "flag": "cause == \"causal\""
+            }
+          ]
+        }
+      ],
+      "charts": [],
+      "code": [],
+      "meters": [
+        {
+          "id": "mPeriod",
+          "label": "Step",
+          "value": "{p} of 4"
+        }
+      ]
+    }
+  },
+  "objective": "Applying basic statistical techniques to data",
+  "secondaryObjectives": [],
+  "sources": [
+    {
+      "cite": "CompTIA Data+ (V2), exam DA0-002, certification page: Data concepts and environments 20%, Acquisition and preparation 22%, Data analysis 24%, Visualization and reporting 20%, Data governance 14%",
+      "checkedAt": "2026-11-17",
+      "url": "https://www.comptia.org/en-us/certifications/data/v2/",
+      "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's page. Relevant text: use tools and resources to resolve analysis problems; apply validation and review to solve reporting issues; compare privacy and protection strategies, including access control, encryption and masking. The objective wording here is the course seed's. Reused for REQ-336 from this course's sql-not-in-null-empty-list-dataplus (the same reading and date); the objective wording is the course seed's."
+    },
+    {
+      "cite": "NIST/SEMATECH e-Handbook of Statistical Methods, 1.3.5.1 Measures of Location",
+      "checkedAt": "2026-11-17",
+      "url": "https://itl.nist.gov/div898/handbook/eda/section3/eda351.htm",
+      "note": "Read 2026-11-17 with WebFetch (a summarizing fetch) of the primary page, found by WebSearch. Confirms: extreme values in the tails distort the mean but not the median, which is based on ranks; for data with extreme values in the tails the median is the better estimate of location; in skewed data the mean is pulled toward the tail."
+    },
+    {
+      "cite": "Author's scenario figures (REQ-336)",
+      "checkedAt": "2026-11-17",
+      "note": "The organization, the systems, the data and the people are fictional. The minutes or days each step takes and the effects of each decision are teaching simplifications for exam practice, not measured values."
+    }
+  ],
+  "brief": {
+    "situation": "You are the analyst at Swiftlane Couriers, a fictional delivery company. The operations director wants this month's delivery performance and a budget recommendation by noon.",
+    "handover": [
+      "Last month: 48,000 deliveries; 120 were held at depots for days during a strike.",
+      "North region made 40,000 deliveries; Coastal made 8,000."
+    ],
+    "howItWorks": [
+      "The console shows the open dataset, its quality flags and a table of the checks and their results.",
+      "Move on a step at a time. A decision comes to you at each step; before the first, you can read the evidence.",
+      "At the end you write the record and a short reflection."
+    ]
+  },
+  "clock": {
+    "start": "2027-03-15T09:00",
+    "tick": "1min",
+    "maxDuration": "240min",
+    "calendar": "clock"
+  },
+  "params": {},
+  "state": {
+    "busy": {
+      "type": "bool",
+      "init": false
+    },
+    "p": {
+      "type": "number",
+      "init": 0,
+      "min": 0,
+      "max": 4
+    },
+    "closed": {
+      "type": "bool",
+      "init": false
+    },
+    "doneAt": {
+      "type": "time",
+      "init": null
+    },
+    "lead": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "biz": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "team": {
+      "type": "number",
+      "init": 6,
+      "min": 0,
+      "max": 10
+    },
+    "center": {
+      "type": "enum",
+      "values": [
+        "none",
+        "median",
+        "meanNote",
+        "dropOut"
+      ],
+      "init": "none"
+    },
+    "centerAt": {
+      "type": "time",
+      "init": null
+    },
+    "rates": {
+      "type": "enum",
+      "values": [
+        "none",
+        "rate",
+        "countsNoted",
+        "counts"
+      ],
+      "init": "none"
+    },
+    "ratesAt": {
+      "type": "time",
+      "init": null
+    },
+    "cause": {
+      "type": "enum",
+      "values": [
+        "none",
+        "correlation",
+        "rOnly",
+        "causal"
+      ],
+      "init": "none"
+    },
+    "causeAt": {
+      "type": "time",
+      "init": null
+    },
+    "distAt": {
+      "type": "time",
+      "init": null
+    },
+    "regionsAt": {
+      "type": "time",
+      "init": null
+    },
+    "record": {
+      "type": "enum",
+      "values": [
+        "none",
+        "honest",
+        "summary"
+      ],
+      "init": "none"
+    }
+  },
+  "derived": {
+    "minSupport": {
+      "expr": "min(min(lead, biz), team)"
+    },
+    "missCount": {
+      "expr": "((center == \"dropOut\") ? 1 : 0) + ((rates == \"counts\") ? 1 : 0) + ((cause == \"causal\") ? 1 : 0)"
+    },
+    "openCount": {
+      "expr": "(center == \"none\" or (center == \"dropOut\") ? 1 : 0) + (rates == \"none\" or (rates == \"counts\") ? 1 : 0) + (cause == \"none\" or (cause == \"causal\") ? 1 : 0)"
+    }
+  },
+  "processes": [],
+  "phases": {
+    "run": {
+      "label": "Analysis steps",
+      "clock": "turns",
+      "actions": [
+        "dist",
+        "regions"
+      ]
+    },
+    "close": {
+      "label": "Analysis record",
+      "clock": "stopped",
+      "actions": [
+        "closeOut",
+        "close"
+      ]
+    }
+  },
+  "initialPhase": "run",
+  "actions": {
+    "dist": {
+      "label": "Profile delivery times",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(distAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "distAt",
+          "to": "t"
+        },
+        {
+          "log": "Profile delivery times.",
+          "kind": "act"
+        },
+        {
+          "finding": "Most deliveries take 1 to 2 days; 120 strike-delayed deliveries took 9 to 14 days; mean 2.3 days, median 1.4 days."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "regions": {
+      "label": "Count late deliveries by region",
+      "group": "Inspect",
+      "available": "not busy and phase == \"run\" and isNull(regionsAt)",
+      "why": "Done, or finish what you are doing first.",
+      "effects": [
+        {
+          "set": "regionsAt",
+          "to": "t"
+        },
+        {
+          "log": "Count late deliveries by region.",
+          "kind": "act"
+        },
+        {
+          "finding": "North: 2,000 late of 40,000; Coastal: 800 late of 8,000."
+        },
+        {
+          "set": "busy",
+          "to": "true"
+        },
+        {
+          "schedule": "work",
+          "after": "6min"
+        }
+      ]
+    },
+    "closeOut": {
+      "label": "Write the record",
+      "group": "Closing",
+      "available": "phase == \"close\" and record == \"none\"",
+      "why": "Done.",
+      "params": [
+        {
+          "id": "co",
+          "kind": "form",
+          "label": "Record",
+          "fields": [
+            {
+              "id": "how",
+              "label": "What the record says",
+              "options": [
+                {
+                  "value": "honest",
+                  "label": "The median with percentiles and outliers explained, regions compared by rate, and correlation reported with a proposed trial"
+                },
+                {
+                  "value": "summary",
+                  "label": "Analysis delivered"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "set": "record",
+          "to": "how"
+        }
+      ]
+    },
+    "close": {
+      "label": "Finish",
+      "group": "Closing",
+      "available": "record != \"none\" and not closed",
+      "why": "Write the record first.",
+      "effects": [
+        {
+          "set": "closed",
+          "to": "true"
+        },
+        {
+          "log": "The record is filed.",
+          "kind": "act"
+        }
+      ]
+    }
+  },
+  "timers": {
+    "work": {
+      "label": "Working",
+      "wait": {
+        "skipLabel": "Let the work finish"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "set": "busy",
+          "to": "false"
+        }
+      ]
+    },
+    "period": {
+      "label": "The next step",
+      "wait": {
+        "skipLabel": "Go to the next step"
+      },
+      "instances": "one",
+      "source": {
+        "cite": "Author's scenario figures (REQ-336)",
+        "checkedAt": "2026-11-17",
+        "note": "How long each task takes and when each review or event arrives are teaching simplifications for exam practice, not measured values."
+      },
+      "effects": [
+        {
+          "add": "p",
+          "by": "1"
+        },
+        {
+          "if": "p == 2",
+          "then": [
+            {
+              "if": "center == \"dropOut\"",
+              "then": [
+                {
+                  "log": "Step 2: customer service finds 120 complaints the report says never happened; the director loses trust in the numbers.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 3",
+          "then": [
+            {
+              "if": "rates == \"counts\"",
+              "then": [
+                {
+                  "log": "Step 3: extra staff go to North while Coastal's late rate climbs to 13%.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p == 4",
+          "then": [
+            {
+              "if": "cause == \"causal\"",
+              "then": [
+                {
+                  "log": "Step 4: overtime doubles; the on-time rate does not move, and the budget is overspent by a quarter of a million dollars.",
+                  "kind": "bad"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "if": "p < 4",
+          "then": [
+            {
+              "schedule": "period",
+              "after": "20min"
+            }
+          ],
+          "else": [
+            {
+              "cancel": "work"
+            },
+            {
+              "set": "busy",
+              "to": "false"
+            },
+            {
+              "set": "doneAt",
+              "to": "t"
+            },
+            {
+              "log": "The analysis is delivered.",
+              "kind": "sys"
+            },
+            {
+              "phase": "close"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "triggers": [
+    {
+      "id": "begin",
+      "when": "true",
+      "mode": "once",
+      "effects": [
+        {
+          "schedule": "period",
+          "after": "20min"
+        }
+      ]
+    },
+    {
+      "id": "t_center",
+      "when": "p == 1 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 1: the headline number.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "centerPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_rates",
+      "when": "p == 2 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 2: which region is worse?",
+          "kind": "sys"
+        },
+        {
+          "prompt": "ratesPrompt"
+        }
+      ]
+    },
+    {
+      "id": "t_cause",
+      "when": "p == 3 and phase == \"run\"",
+      "mode": "once",
+      "interruptsSkip": true,
+      "effects": [
+        {
+          "log": "Step 3: the recommendation.",
+          "kind": "sys"
+        },
+        {
+          "prompt": "causePrompt"
+        }
+      ]
+    },
+    {
+      "id": "reflect",
+      "when": "phase == \"close\"",
+      "mode": "once",
+      "effects": [
+        {
+          "reason": "reflection"
+        }
+      ]
+    }
+  ],
+  "prompts": {
+    "centerPrompt": {
+      "title": "Mean 2.3 days, median 1.4",
+      "context": "A few strike-delayed deliveries pull the mean up.",
+      "choices": [
+        {
+          "id": "median",
+          "label": "Report the median (1.4 days) with the 90th percentile, show the mean beside it, and explain the 120 strike-delayed deliveries separately",
+          "effects": [
+            {
+              "set": "center",
+              "to": "\"median\""
+            },
+            {
+              "set": "centerAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "1"
+            },
+            {
+              "log": "The director sees the typical time and the tail.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Extreme values distort the mean but not the median; for skewed data the median is the better typical value."
+        },
+        {
+          "id": "meanNote",
+          "label": "Report the mean with a footnote about the strike",
+          "effects": [
+            {
+              "set": "center",
+              "to": "\"meanNote\""
+            },
+            {
+              "set": "centerAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "-1"
+            },
+            {
+              "log": "The mean leads.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Accurate, but the headline overstates the typical delivery."
+        },
+        {
+          "id": "dropOut",
+          "label": "Delete the 120 delayed deliveries and report the new mean",
+          "effects": [
+            {
+              "set": "center",
+              "to": "\"dropOut\""
+            },
+            {
+              "set": "centerAt",
+              "to": "t"
+            },
+            {
+              "add": "lead",
+              "by": "-2"
+            },
+            {
+              "log": "The delayed deliveries are removed.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Real customer experiences vanish from the record."
+        }
+      ]
+    },
+    "ratesPrompt": {
+      "title": "North has more late deliveries",
+      "context": "North: 2,000 late; Coastal: 800.",
+      "choices": [
+        {
+          "id": "rate",
+          "label": "Compare late rates: North 5%, Coastal 10%",
+          "effects": [
+            {
+              "set": "rates",
+              "to": "\"rate\""
+            },
+            {
+              "set": "ratesAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "1"
+            },
+            {
+              "log": "Coastal's rate is twice North's.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Regions of different sizes are compared by rate, not count."
+        },
+        {
+          "id": "countsNoted",
+          "label": "Show counts with the delivery totals beside them",
+          "effects": [
+            {
+              "set": "rates",
+              "to": "\"countsNoted\""
+            },
+            {
+              "set": "ratesAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-1"
+            },
+            {
+              "log": "Counts and totals are shown.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "The information is there, but the reader must do the math."
+        },
+        {
+          "id": "counts",
+          "label": "Report North as the worst region by late count",
+          "effects": [
+            {
+              "set": "rates",
+              "to": "\"counts\""
+            },
+            {
+              "set": "ratesAt",
+              "to": "t"
+            },
+            {
+              "add": "biz",
+              "by": "-2"
+            },
+            {
+              "log": "North is named worst.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "North is bigger, not worse; Coastal's rate is double."
+        }
+      ]
+    },
+    "causePrompt": {
+      "title": "Spend and on-time rate move together",
+      "context": "Months with more courier overtime spend had better on-time rates (r = 0.7).",
+      "choices": [
+        {
+          "id": "correlation",
+          "label": "Report the correlation, note that peak months and new routes also changed, and propose a controlled trial of overtime in two depots",
+          "effects": [
+            {
+              "set": "cause",
+              "to": "\"correlation\""
+            },
+            {
+              "set": "causeAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "1"
+            },
+            {
+              "log": "A trial is planned.",
+              "kind": "good"
+            }
+          ],
+          "feedback": "Correlation does not show cause; other factors moved too, and a test can tell."
+        },
+        {
+          "id": "rOnly",
+          "label": "Report r = 0.7 with no recommendation",
+          "effects": [
+            {
+              "set": "cause",
+              "to": "\"rOnly\""
+            },
+            {
+              "set": "causeAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-1"
+            },
+            {
+              "log": "The coefficient is reported.",
+              "kind": "sys"
+            }
+          ],
+          "feedback": "Accurate but leaves the director to guess."
+        },
+        {
+          "id": "causal",
+          "label": "Recommend doubling overtime because it causes on-time delivery",
+          "effects": [
+            {
+              "set": "cause",
+              "to": "\"causal\""
+            },
+            {
+              "set": "causeAt",
+              "to": "t"
+            },
+            {
+              "add": "team",
+              "by": "-2"
+            },
+            {
+              "log": "Doubling is recommended.",
+              "kind": "bad"
+            }
+          ],
+          "feedback": "Overtime rose in peak months when routes were also improved; the effect may be the routes."
+        }
+      ]
+    }
+  },
+  "reasoning": {
+    "reflection": {
+      "question": "Write the analysis record for the operations director.",
+      "pausesClock": true,
+      "parts": [
+        {
+          "label": "Summary statistics",
+          "criteria": "Median 1.4 days, 90th percentile shown; strike delays explained.",
+          "modelAnswer": "The typical delivery took 1.4 days (median); 120 strike-delayed deliveries pulled the mean to 2.3 and are reported separately."
+        },
+        {
+          "label": "Comparisons",
+          "criteria": "Coastal 10% late versus North 5%; correlation, not cause.",
+          "modelAnswer": "Coastal's late rate is twice North's. Overtime spend correlates with on-time rate, but routes changed too; we propose a two-depot trial."
+        }
+      ]
+    }
+  },
+  "outcome": {
+    "profile": "data",
+    "thresholds": {
+      "deliverWindow": {
+        "value": 7200,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "The right result delivered within 2 hours of the request."
+        }
+      },
+      "alteredRowsMax": {
+        "value": 0,
+        "source": {
+          "cite": "Outcome profile defaults (docs/sims.md 9.2)",
+          "checkedAt": "2026-11-17",
+          "note": "No data altered beyond the fix."
+        }
+      }
+    },
+    "noProgress": {
+      "when": "closed and (center == \"meanNote\") and (rates == \"countsNoted\") and (cause == \"rOnly\")",
+      "class": "recovered",
+      "rationale": "Every decision only partly right leaves the work done late or incomplete but harms nothing; a cost, not harm.",
+      "source": {
+        "cite": "CompTIA Data+ (V2), exam DA0-002, certification page: Data concepts and environments 20%, Acquisition and preparation 22%, Data analysis 24%, Visualization and reporting 20%, Data governance 14%",
+        "checkedAt": "2026-11-17",
+        "url": "https://www.comptia.org/en-us/certifications/data/v2/",
+        "note": "Read 2026-11-17 through a summarizing fetch of CompTIA's page. Relevant text: use tools and resources to resolve analysis problems; apply validation and review to solve reporting issues; compare privacy and protection strategies, including access control, encryption and masking. The objective wording here is the course seed's. Reused for REQ-336 from this course's sql-not-in-null-empty-list-dataplus (the same reading and date); the objective wording is the course seed's."
+      }
+    }
+  },
+  "endings": {
+    "centerHarm": {
+      "label": "Trust lost",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and center == \"dropOut\"",
+      "narrative": "Deleting real outliers hid 120 customers' experience."
+    },
+    "ratesHarm": {
+      "label": "Help sent to the wrong region",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and rates == \"counts\"",
+      "narrative": "Comparing counts sent staff to North while Coastal got worse."
+    },
+    "causeHarm": {
+      "label": "Budget spent for nothing",
+      "class": "harm",
+      "terminal": true,
+      "when": "closed and cause == \"causal\"",
+      "narrative": "Doubling overtime on a correlation overspent the budget with no gain."
+    },
+    "target": {
+      "label": "Numbers the director can act on",
+      "class": "target",
+      "terminal": true,
+      "when": "closed and (center == \"median\") and (rates == \"rate\") and (cause == \"correlation\") and record == \"honest\" and missCount <= alteredRowsMax and timeAt(doneAt) <= deliverWindow",
+      "narrative": "The director sees the typical delivery, the right region to fix, and a test before spending."
+    },
+    "partly": {
+      "label": "Done, with gaps",
+      "class": "recovered",
+      "terminal": true,
+      "when": "closed",
+      "narrative": "The work is done and nothing was harmed, but the criteria show which decision was only partly right."
+    },
+    "time_up": {
+      "label": "Time up",
+      "class": "recovered",
+      "terminal": true,
+      "narrative": "The run reached its time limit."
+    }
+  },
+  "endingOrder": [
+    "centerHarm",
+    "ratesHarm",
+    "causeHarm",
+    "target",
+    "partly"
+  ],
+  "scoring": {
+    "criteria": [
+      {
+        "id": "centerCrit",
+        "label": "Reported the median and spread for skewed data, with the outliers explained",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "center == \"median\"",
+            "score": "met",
+            "why": "Representative."
+          },
+          {
+            "when": "center == \"meanNote\"",
+            "score": "partial",
+            "why": "Misleading headline."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Data hidden."
+          }
+        ]
+      },
+      {
+        "id": "ratesCrit",
+        "label": "Compared regions by rate, not raw count",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "rates == \"rate\"",
+            "score": "met",
+            "why": "Fair comparison."
+          },
+          {
+            "when": "rates == \"countsNoted\"",
+            "score": "partial",
+            "why": "Unclear."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Wrong conclusion."
+          }
+        ]
+      },
+      {
+        "id": "causeCrit",
+        "label": "Reported correlation without claiming causation, and proposed a test",
+        "weight": 1,
+        "critical": true,
+        "rows": [
+          {
+            "when": "cause == \"correlation\"",
+            "score": "met",
+            "why": "Careful."
+          },
+          {
+            "when": "cause == \"rOnly\"",
+            "score": "partial",
+            "why": "Unhelpful."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Unsupported."
+          }
+        ]
+      },
+      {
+        "id": "evidenceCrit",
+        "label": "Read the evidence before deciding",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "not isNull(distAt) and not isNull(regionsAt)",
+            "score": "met",
+            "why": "Both read."
+          },
+          {
+            "when": "not isNull(distAt) or not isNull(regionsAt)",
+            "score": "partial",
+            "why": "One of the two read."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "Decided without reading the evidence."
+          }
+        ]
+      },
+      {
+        "id": "recordCrit",
+        "label": "The record is complete and honest",
+        "weight": 1,
+        "rows": [
+          {
+            "when": "record == \"honest\"",
+            "score": "met",
+            "why": "Complete and honest."
+          },
+          {
+            "when": "true",
+            "score": "missed",
+            "why": "A one-line summary."
+          }
+        ]
+      }
+    ],
+    "reasoningCriteria": [
+      {
+        "moment": "reflection",
+        "label": "Written reflection",
+        "weight": 1
+      }
+    ],
+    "kpis": [
+      {
+        "id": "missK",
+        "label": "Decisions that caused harm",
+        "value": "missCount",
+        "format": "number",
+        "expert": "0"
+      },
+      {
+        "id": "supK",
+        "label": "Lowest stakeholder support at the close (of 10)",
+        "value": "minSupport",
+        "format": "number",
+        "expert": "6 or more"
+      }
+    ],
+    "expertPath": [
+      {
+        "at": "Before the first review",
+        "text": "Profile the data before summarizing it."
+      },
+      {
+        "at": "Step 1",
+        "text": "Lead with the median and explain the tail."
+      },
+      {
+        "at": "Step 2",
+        "text": "Compare rates."
+      },
+      {
+        "at": "Step 3",
+        "text": "Report correlation and propose a test."
+      },
+      {
+        "at": "Close",
+        "text": "An honest, complete record."
+      }
+    ],
+    "debrief": {
+      "centerHarm": {
+        "headline": "Explain outliers",
+        "body": "Use robust measures; don't delete data."
+      },
+      "ratesHarm": {
+        "headline": "Compare rates",
+        "body": "Normalize by size."
+      },
+      "causeHarm": {
+        "headline": "Correlation is not causation",
+        "body": "Test before spending."
+      },
+      "target": {
+        "headline": "Good: numbers the director can act on",
+        "body": "Robust centers, rates and careful inference."
+      },
+      "partly": {
+        "headline": "Done, with gaps",
+        "body": "Nothing was harmed, but a decision was only partly right, or the record left something out. The criteria say which."
+      },
+      "time_up": {
+        "headline": "Time up",
+        "body": "The record was not written before the run's hard limit."
+      }
+    },
+    "modelReasoning": "Choose statistics that fit the data: in skewed data the median represents the typical value, and outliers are explained, not deleted. Compare groups of different sizes by rate. Correlation is not causation; propose a test before acting on it."
+  }
+}
